@@ -271,7 +271,7 @@ class MyGLRenderer(private val context : Context) : GLSurfaceView.Renderer {
 
     override fun onDrawFrame(gl: GL10?) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        Matrix.setLookAtM(viewMatrix, 0, 12f, 3f, 3f, 12f, 2f, 0f, 0f, 1.0f, 0.0f)
+        Matrix.setLookAtM(viewMatrix, 0, 12f, 3f, 4f, 12f, 1.5f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
         neck.draw(vPMatrix)
         tab.draw(vPMatrix)
@@ -281,12 +281,12 @@ class MyGLRenderer(private val context : Context) : GLSurfaceView.Renderer {
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         glViewport(0, 0, width, height)
         val ratio = width.toFloat() / height.toFloat()
-        val fov = 0.75f
+        val fov = 0.9f
         val zNear = 0.1f
         val zFar = 100.0f
         val size = zNear * tan(fov / 2)
         Matrix.frustumM(projectionMatrix, 0,
-            -size, size, -size/ratio, size/ratio, zNear, zFar)
+            -size*ratio, size*ratio, -size, size, zNear, zFar)
     }
 }
 
