@@ -1,10 +1,10 @@
 package eu.tilk.wihajster
 
+import android.app.Activity
 import android.opengl.GLSurfaceView
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private lateinit var glView : GLSurfaceView
 
