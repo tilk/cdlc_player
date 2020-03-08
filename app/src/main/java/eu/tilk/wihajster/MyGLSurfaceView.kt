@@ -33,36 +33,40 @@ fun checkProgram(n : Int) {
     }
 }
 
-fun loadTexture(context : Context, fileName : String) : Int {
+fun loadTexture(context : Context, fileName : String, lastMip : Int) : Int {
     val textures = IntArray(1)
     glGenTextures(1, textures, 0)
     glBindTexture(GL_TEXTURE_2D, textures[0])
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    context.resources.assets.open(fileName).use { input ->
-        val data = input.readBytes()
-        val buffer = ByteBuffer.allocateDirect(data.size).apply {
-            order(ByteOrder.LITTLE_ENDIAN)
-            put(data)
-            position(PKM_HEADER_SIZE)
+    for (mipLevel in 0..lastMip) {
+        val name = fileName + "_mip_" + mipLevel + ".pkm"
+        context.resources.assets.open(name).use { input ->
+            val data = input.readBytes()
+            val buffer = ByteBuffer.allocateDirect(data.size).apply {
+                order(ByteOrder.LITTLE_ENDIAN)
+                put(data)
+                position(PKM_HEADER_SIZE)
+            }
+            val header = ByteBuffer.allocateDirect(PKM_HEADER_SIZE).apply {
+                order(ByteOrder.BIG_ENDIAN)
+                put(data, 0, PKM_HEADER_SIZE)
+                position(0)
+            }
+            val width = header.getShort(PKM_HEADER_WIDTH_OFFSET).toInt()
+            val height = header.getShort(PKM_HEADER_HEIGHT_OFFSET).toInt()
+            glCompressedTexImage2D(
+                GL_TEXTURE_2D, mipLevel, GL_COMPRESSED_RGBA8_ETC2_EAC, width, height,
+                0, data.size - PKM_HEADER_SIZE, buffer
+            )
         }
-        val header = ByteBuffer.allocateDirect(PKM_HEADER_SIZE).apply {
-            order(ByteOrder.BIG_ENDIAN)
-            put(data, 0, PKM_HEADER_SIZE)
-            position(0)
-        }
-        val width = header.getShort(PKM_HEADER_WIDTH_OFFSET).toInt()
-        val height = header.getShort(PKM_HEADER_HEIGHT_OFFSET).toInt()
-        glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA8_ETC2_EAC, width, height,
-            0, data.size - PKM_HEADER_SIZE, buffer)
-        // TODO MIP
     }
     glBindTexture(GL_TEXTURE_2D, 0)
     return textures[0]
 }
 
 class Textures(context : Context) {
-    val fretNumbers = loadTexture(context, "textures/fretNumbers_mip_0.pkm")
+    val fretNumbers = loadTexture(context, "textures/fretNumbers", 9)
 }
 
 abstract class Shape(
