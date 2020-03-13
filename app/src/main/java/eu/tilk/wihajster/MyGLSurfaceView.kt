@@ -1,7 +1,6 @@
 package eu.tilk.wihajster
 
 import android.content.Context
-import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
@@ -120,17 +119,34 @@ class Neck(textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
             0, 1, 2, 0, 2, 3
         )
         private val vertexShaderCode = """
+            #version 300 es
             uniform mat4 uMVPMatrix;
-            attribute vec4 vPosition;
+            in vec4 vPosition;
+            out vec2 vTexCoord;
             void main() {
                 gl_Position = uMVPMatrix * vPosition;
+                vTexCoord = vec2(vPosition.x, vPosition.y / 1.5);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
+            #version 300 es
             precision mediump float;
-            uniform vec4 vColor;
+            in vec2 vTexCoord;
+            out vec4 FragColor;
+            const vec3 stringColors[6] = vec3[](
+                vec3(0.87, 0.33, 0.42),
+                vec3(0.83, 0.76, 0.24),
+                vec3(0.31, 0.69, 0.87),
+                vec3(0.93, 0.69, 0.44),
+                vec3(0.50, 0.85, 0.34),
+                vec3(0.77, 0.29, 0.81)
+            );
             void main() {
-                gl_FragColor = vColor;
+                float y = vTexCoord.y * 6.0;
+                lowp int str = int(y);
+                float dist = abs(y - float(str) - 0.5);
+                float scl = (1.5+atan(20.0*(dist-0.1)))/3.0;
+                FragColor = vec4(stringColors[str], 1.0 - scl);
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -147,8 +163,8 @@ class Neck(textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
     }
     override fun internalDraw() {
         glGetUniformLocation(mProgram, "vColor").also {
-            val color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
-            glUniform4fv(it, 1, color, 0)
+//            val color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
+//            glUniform4fv(it, 1, color, 0)
         }
         super.internalDraw()
     }
@@ -171,7 +187,7 @@ class FretNumbers(private val textures : Textures) : Shape(vertexCoords, drawOrd
             varying vec2 vTexCoord;
             void main() {
                 gl_Position = uMVPMatrix * vPosition;
-                vTexCoord = vec2(vPosition.x, vPosition.y);
+                vTexCoord = vec2(vPosition.x, -vPosition.y / 0.5);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
@@ -180,7 +196,7 @@ class FretNumbers(private val textures : Textures) : Shape(vertexCoords, drawOrd
             varying vec2 vTexCoord;
             void main() {
                 float x = fract(vTexCoord.x);
-                float y = -vTexCoord.y / 0.5;
+                float y = vTexCoord.y;
                 lowp int fret = int(vTexCoord.x);
                 lowp int col = fret/12;
                 gl_FragColor = texture2D(uTexture, vec2((x + float(col)) / 6.0, (y + float(fret - 12 * col)) / 12.0));
@@ -267,6 +283,8 @@ class MyGLRenderer(val song : Song2014, private val context : Context) : GLSurfa
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_DEPTH_TEST)
         Neck.initialize()
         FretNumbers.initialize()
@@ -281,8 +299,8 @@ class MyGLRenderer(val song : Song2014, private val context : Context) : GLSurfa
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         Matrix.setLookAtM(viewMatrix, 0, 12f, 3f, 4f, 12f, 1.5f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
-        neck.draw(vPMatrix)
         tab.draw(vPMatrix)
+        neck.draw(vPMatrix)
         fretNumbers.draw(vPMatrix)
     }
 
