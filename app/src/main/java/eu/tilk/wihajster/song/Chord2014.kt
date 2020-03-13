@@ -4,27 +4,27 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 data class Chord2014(
-    @JacksonXmlProperty(isAttribute = true)
-    val time : Float,
-    @JacksonXmlProperty(isAttribute = true)
-    val linkNext : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val accent : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val chordId : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val fretHandMute : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val highDensity : Byte,
-    @JacksonXmlProperty(isAttribute = true)
-    val ignore : Byte,
-    @JacksonXmlProperty(isAttribute = true)
-    val palmMute : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val hopo : Int,
-    @JacksonXmlProperty(isAttribute = true)
-    val strum : String,
+    @JacksonXmlProperty(isAttribute = true, localName = "time")
+    var time : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "linkNext")
+    var linkNext : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "accent")
+    var accent : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "chordId")
+    var chordId : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "fretHandMute")
+    var fretHandMute : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "highDensity")
+    var highDensity : Byte,
+    @JacksonXmlProperty(isAttribute = true, localName = "ignore")
+    var ignore : Byte,
+    @JacksonXmlProperty(isAttribute = true, localName = "palmMute")
+    var palmMute : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "hopo")
+    var hopo : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "strum")
+    var strum : String/* TODO,
     @JacksonXmlProperty(localName = "chordNote")
     @JacksonXmlElementWrapper(useWrapping = false)
-    val chordNotes : List<Note2014>
+    var chordNotes : List<Note2014> = ArrayList()*/
 )

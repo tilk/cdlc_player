@@ -1,20 +1,18 @@
 package eu.tilk.wihajster.song
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonRootName
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
-@JsonRootName("tuning")
 data class Tuning(
-    @JsonProperty("string0")
-    val string0 : Int,
-    @JsonProperty("string1")
-    val string1 : Int,
-    @JsonProperty("string2")
-    val string2 : Int,
-    @JsonProperty("string3")
-    val string3 : Int,
-    @JsonProperty("string4")
-    val string4 : Int,
-    @JsonProperty("string5")
-    val string5 : Int
+    @JacksonXmlProperty(isAttribute = true, localName = "string0")
+    var string0 : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "string1")
+    var string1 : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "string2")
+    var string2 : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "string3")
+    var string3 : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "string4")
+    var string4 : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "string5")
+    var string5 : Int
 )

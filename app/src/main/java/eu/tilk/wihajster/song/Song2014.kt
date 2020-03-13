@@ -5,72 +5,93 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
 @JacksonXmlRootElement(localName = "Song")
-data class Song2014(
-    val title : String,
-    val arrangement : String,
-    val part : Int,
-    val offset : Float,
-    val centOffset : String,
-    val songLength : Float,
-    val songNameSort : String,
-    val startBeat : Float,
-    val averageTempo : Float,
-    val tuning : Tuning,
-    val capo : Int,
-    val artistName : String,
-    val artistNameSort : String,
-    val albumName : String,
-    val albumNameSort : String,
-    val albumYear : String,
-    val albumArt : String,
-    val crowdSpeed : String,
-    val arrangementProperties : ArrangementProperties2014,
-    val lastConversionDateTime : String,
+class Song2014 {
+    @JacksonXmlProperty(localName = "title")
+    lateinit var title: String
+    @JacksonXmlProperty(localName = "arrangement")
+    lateinit var arrangement: String
+    @JacksonXmlProperty(localName = "part")
+    var part: Int = -1
+    @JacksonXmlProperty(localName = "offset")
+    var offset: Float = 0F
+    @JacksonXmlProperty(localName = "centOffset")
+    lateinit var centOffset: String
+    @JacksonXmlProperty(localName = "songLength")
+    var songLength: Float = 0F
+    @JacksonXmlProperty(localName = "songNameSort")
+    lateinit var songNameSort: String
+    @JacksonXmlProperty(localName = "startBeat")
+    var startBeat: Float = 0F
+    @JacksonXmlProperty(localName = "averageTempo")
+    var averageTempo: Float = 0F
+    @JacksonXmlProperty(localName = "tuning")
+    lateinit var tuning: Tuning
+    @JacksonXmlProperty(localName = "capo")
+    var capo: Int = -1
+    @JacksonXmlProperty(localName = "artistName")
+    lateinit var artistName: String
+    @JacksonXmlProperty(localName = "artistNameSort")
+    lateinit var artistNameSort: String
+    @JacksonXmlProperty(localName = "albumName")
+    lateinit var albumName: String
+    @JacksonXmlProperty(localName = "albumNameSort")
+    lateinit var albumNameSort: String
+    @JacksonXmlProperty(localName = "albumYear")
+    lateinit var albumYear: String
+    @JacksonXmlProperty(localName = "albumArt")
+    lateinit var albumArt: String
+    @JacksonXmlProperty(localName = "crowdSpeed")
+    lateinit var crowdSpeed: String
+    @JacksonXmlProperty(localName = "arrangementProperties")
+    lateinit var arrangementProperties: ArrangementProperties2014
+    @JacksonXmlProperty(localName = "lastConversionDateTime")
+    lateinit var lastConversionDateTime: String
     @JacksonXmlProperty(localName = "phrase")
     @JacksonXmlElementWrapper(localName = "phrases")
-    val phrases : List<Phrase>,
+    var phrases: List<Phrase> = ArrayList()
     @JacksonXmlProperty(localName = "newLinkedDiff")
     @JacksonXmlElementWrapper(localName = "newLinkedDiffs")
-    val newLinkedDiffs : List<NewLinkedDiff>,
+    var newLinkedDiffs: List<NewLinkedDiff> = ArrayList()
     @JacksonXmlProperty(localName = "phraseIteration")
     @JacksonXmlElementWrapper(localName = "phraseIterations")
-    val phraseIterations : List<PhraseIteration2014>,
+    var phraseIterations: List<PhraseIteration2014> = ArrayList()
     @JacksonXmlProperty(localName = "linkedDiff")
     @JacksonXmlElementWrapper(localName = "linkedDiffs")
-    val linkedDiffs : List<LinkedDiff>,
+    var linkedDiffs: List<LinkedDiff> = ArrayList()
     @JacksonXmlProperty(localName = "phraseProperty")
     @JacksonXmlElementWrapper(localName = "phraseProperties")
-    val phraseProperties : List<PhraseProperty>,
+    var phraseProperties: List<PhraseProperty> = ArrayList()
     @JacksonXmlProperty(localName = "chordTemplate")
     @JacksonXmlElementWrapper(localName = "chordTemplates")
-    val chordTemplates : List<ChordTemplate2014>,
+    var chordTemplates: List<ChordTemplate2014> = ArrayList()
     @JacksonXmlProperty(localName = "ebeat")
     @JacksonXmlElementWrapper(localName = "ebeats")
-    val eBeats : List<EBeat>,
+    var ebeats: List<EBeat> = ArrayList()
     @JacksonXmlProperty(localName = "tonebase")
-    val toneBase : String,
+    var toneBase: String? = null
     @JacksonXmlProperty(localName = "tonea")
-    val toneA : String,
+    var toneA: String? = null
     @JacksonXmlProperty(localName = "toneb")
-    val toneB : String,
+    var toneB: String? = null
     @JacksonXmlProperty(localName = "tonec")
-    val toneC : String,
+    var toneC: String? = null
     @JacksonXmlProperty(localName = "toned")
-    val toneD : String,
+    var toneD: String? = null
     @JacksonXmlProperty(localName = "tone")
     @JacksonXmlElementWrapper(localName = "tones")
-    val tones : List<Tone2014>,
+    var tones: List<Tone2014> = ArrayList()
     @JacksonXmlProperty(localName = "section")
     @JacksonXmlElementWrapper(localName = "sections")
-    val sections : List<Section>,
+    var sections: List<Section> = ArrayList()
     @JacksonXmlProperty(localName = "event")
     @JacksonXmlElementWrapper(localName = "events")
-    val events : List<Event>,
+    var events: List<Event> = ArrayList()
     @JacksonXmlProperty(localName = "control")
     @JacksonXmlElementWrapper(localName = "controls")
-    val controls : List<Control>,
-    val transcriptionTrack : TranscriptionTrack2014,
-    @JacksonXmlProperty(localName = "level")
+    var controls: List<Control> = ArrayList()
+    @JacksonXmlProperty(localName = "transcriptionTrack")
+    lateinit var transcriptionTrack: TranscriptionTrack2014
     @JacksonXmlElementWrapper(localName = "levels")
-    val levels : List<Level2014>
-    )
+    @JacksonXmlProperty(localName = "level")
+    var levels: List<Level2014> = ArrayList()
+}

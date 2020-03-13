@@ -3,22 +3,19 @@ package eu.tilk.wihajster.song
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
-data class TranscriptionTrack2014(
-    @JacksonXmlProperty(isAttribute = true)
-    val difficulty : Int,
+class TranscriptionTrack2014 {
+    @JacksonXmlProperty(isAttribute = true, localName = "difficulty")
+    var difficulty: Int = -1
     @JacksonXmlProperty(localName = "note")
     @JacksonXmlElementWrapper(localName = "notes")
-    val notes : List<Note2014>,
+    var notes: List<Note2014> = ArrayList()
     @JacksonXmlProperty(localName = "chord")
     @JacksonXmlElementWrapper(localName = "chords")
-    val chords : List<Chord2014>,
+    var chords: List<Chord2014> = ArrayList()
     @JacksonXmlProperty(localName = "anchor")
     @JacksonXmlElementWrapper(localName = "anchors")
-    val anchors : List<Anchor2014>,
+    var anchors: List<Anchor2014> = ArrayList()
     @JacksonXmlProperty(localName = "handShape")
     @JacksonXmlElementWrapper(localName = "handShapes")
-    val handShapes : List<HandShape>,
-    @JacksonXmlProperty(localName = "fretHandMute")
-    @JacksonXmlElementWrapper(localName = "fretHandMutes")
-    val fretHandMutes : List<FretHandMuteTemplate>
-)
+    var handShapes: List<HandShape> = ArrayList()
+}
