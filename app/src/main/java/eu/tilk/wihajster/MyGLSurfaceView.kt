@@ -6,6 +6,10 @@ import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
 import android.util.Log
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.*
+import eu.tilk.wihajster.song.Song2014
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
@@ -252,7 +256,7 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
     }
 }
 
-class MyGLRenderer(private val context : Context) : GLSurfaceView.Renderer {
+class MyGLRenderer(val song : Song2014, private val context : Context) : GLSurfaceView.Renderer {
     private lateinit var neck : Neck
     private lateinit var tab : Tab
     private lateinit var textures : Textures
@@ -299,7 +303,17 @@ class MyGLSurfaceView(context : Context) : GLSurfaceView(context) {
     init {
         setEGLContextClientVersion(3)
         setEGLConfigChooser(8, 8, 8, 8, 16, 4)
-        renderer = MyGLRenderer(context)
+        val song = loadSong("songs/sabaprim_lead.xml")
+        renderer = MyGLRenderer(song, context)
         setRenderer(renderer)
+    }
+    private fun loadSong(name : String) : Song2014 {
+        val xmlMapper = XmlMapper().apply {
+            registerModule(KotlinModule())
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
+        return context.resources.assets.open(name).use { input ->
+            xmlMapper.readValue(input)
+        }
     }
 }
