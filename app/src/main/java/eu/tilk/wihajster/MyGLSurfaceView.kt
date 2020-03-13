@@ -4,6 +4,7 @@ import android.content.Context
 import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
+import android.os.SystemClock
 import android.util.Log
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -12,6 +13,7 @@ import eu.tilk.wihajster.song.Song2014
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
+import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.tan
@@ -20,6 +22,17 @@ const val COORDS_PER_VERTEX = 3
 const val PKM_HEADER_SIZE = 16
 const val PKM_HEADER_WIDTH_OFFSET = 8
 const val PKM_HEADER_HEIGHT_OFFSET = 10
+
+const val stringColorsGLSL = """
+const vec3 stringColors[6] = vec3[](
+    vec3(0.87, 0.33, 0.42),
+    vec3(0.83, 0.76, 0.24),
+    vec3(0.31, 0.69, 0.87),
+    vec3(0.93, 0.69, 0.44),
+    vec3(0.50, 0.85, 0.34),
+    vec3(0.77, 0.29, 0.81)
+);
+"""
 
 fun loadShader(type : Int, shaderCode : String): Int {
     return glCreateShader(type).also {
@@ -33,6 +46,15 @@ fun checkProgram(n : Int) {
     glGetProgramiv(n, GL_LINK_STATUS, buf)
     if (buf[0] != GL_TRUE) {
         Log.e("program", glGetProgramInfoLog(n))
+    }
+}
+
+fun makeProgramFromShaders(vertexShader : Int, fragmentShader : Int) : Int {
+    return glCreateProgram().also {
+        glAttachShader(it, vertexShader)
+        glAttachShader(it, fragmentShader)
+        glLinkProgram(it)
+        checkProgram(it)
     }
 }
 
@@ -99,15 +121,76 @@ abstract class Shape(
         glDrawElements(GL_TRIANGLES, drawOrder.size, GL_UNSIGNED_SHORT, drawListBuffer)
         glDisableVertexAttribArray(positionHandle)
     }
-    fun draw(mvpMatrix : FloatArray) {
+    protected fun prepare(mvpMatrix : FloatArray) {
         glUseProgram(mProgram)
         val vPMatrixHandle = glGetUniformLocation(mProgram, "uMVPMatrix")
         glUniformMatrix4fv(vPMatrixHandle, 1, false, mvpMatrix, 0)
+    }
+}
+
+abstract class StaticShape(
+    vertexCoords : FloatArray,
+    drawOrder : ShortArray,
+    mProgram : Int
+) : Shape(vertexCoords, drawOrder, mProgram) {
+    fun draw(mvpMatrix : FloatArray) {
+        prepare(mvpMatrix)
         internalDraw()
     }
 }
 
-class Neck(textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
+class Note : Shape(vertexCoords, drawOrder, mProgram) {
+    companion object {
+        private val vertexCoords = floatArrayOf(
+            -0.25f, -0.12f, 0.0f,
+            -0.25f, 0.12f, 0.0f,
+            0.25f, 0.12f, 0.0f,
+            0.25f, -0.12f, 0.0f
+        )
+        private val drawOrder = shortArrayOf(
+            0, 1, 2, 0, 2, 3
+        )
+        private val vertexShaderCode = """
+            #version 300 es
+            uniform mat4 uMVPMatrix;
+            uniform vec4 uPosition;
+            in vec4 vPosition;
+            void main() {
+                gl_Position = uMVPMatrix * (vPosition + uPosition);
+            }
+        """.trimIndent()
+        private val fragmentShaderCode = """
+            #version 300 es
+            precision mediump float;
+            uniform int uString;
+            out vec4 FragColor;
+            $stringColorsGLSL
+            void main() {
+                FragColor = vec4(stringColors[uString], 1.0);
+            }
+        """.trimIndent()
+        private var mProgram : Int = -1
+        fun initialize() {
+            val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
+            val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+            mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
+        }
+    }
+    fun draw(mvpMatrix : FloatArray, time : Float, note : Event.Note) {
+        prepare(mvpMatrix)
+        val positionHandle = glGetUniformLocation(mProgram, "uPosition")
+        glUniform4f(positionHandle,
+            note.fret + 0.5f,
+            1.5f * (note.string + 0.5f) / 6f,
+            time - note.time,
+            0f)
+        val stringHandle = glGetUniformLocation(mProgram, "uString")
+        glUniform1i(stringHandle, note.string.toInt())
+        internalDraw()
+    }
+}
+
+class Neck : StaticShape(vertexCoords, drawOrder, mProgram) {
     companion object {
         private val vertexCoords = floatArrayOf(
             0.0f, 0f, 0.0f,
@@ -133,14 +216,7 @@ class Neck(textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
             precision mediump float;
             in vec2 vTexCoord;
             out vec4 FragColor;
-            const vec3 stringColors[6] = vec3[](
-                vec3(0.87, 0.33, 0.42),
-                vec3(0.83, 0.76, 0.24),
-                vec3(0.31, 0.69, 0.87),
-                vec3(0.93, 0.69, 0.44),
-                vec3(0.50, 0.85, 0.34),
-                vec3(0.77, 0.29, 0.81)
-            );
+            $stringColorsGLSL
             void main() {
                 float y = vTexCoord.y * 6.0;
                 lowp int str = int(y);
@@ -151,26 +227,14 @@ class Neck(textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
         """.trimIndent()
         private var mProgram : Int = -1
         fun initialize() {
-            mProgram = glCreateProgram().also {
-                val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
-                val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
-                glAttachShader(it, vertexShader)
-                glAttachShader(it, fragmentShader)
-                glLinkProgram(it)
-                checkProgram(it)
-            }
+            val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
+            val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+            mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
-    }
-    override fun internalDraw() {
-        glGetUniformLocation(mProgram, "vColor").also {
-//            val color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
-//            glUniform4fv(it, 1, color, 0)
-        }
-        super.internalDraw()
     }
 }
 
-class FretNumbers(private val textures : Textures) : Shape(vertexCoords, drawOrder, mProgram) {
+class FretNumbers(private val textures : Textures) : StaticShape(vertexCoords, drawOrder, mProgram) {
     companion object {
         private val vertexCoords = floatArrayOf(
             0.0f, -0.5f, 0.0f,
@@ -204,14 +268,9 @@ class FretNumbers(private val textures : Textures) : Shape(vertexCoords, drawOrd
         """.trimIndent()
         private var mProgram : Int = -1
         fun initialize() {
-            mProgram = glCreateProgram().also {
-                val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
-                val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
-                glAttachShader(it, vertexShader)
-                glAttachShader(it, fragmentShader)
-                glLinkProgram(it)
-                checkProgram(it)
-            }
+            val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
+            val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+            mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
     override fun internalDraw() {
@@ -226,7 +285,7 @@ class FretNumbers(private val textures : Textures) : Shape(vertexCoords, drawOrd
     }
 }
 
-class Tab : Shape(vertexCoords, drawOrder, mProgram) {
+class Tab : StaticShape(vertexCoords, drawOrder, mProgram) {
     companion object {
         private val vertexCoords = floatArrayOf(
             0.0f, 0.0f, 0.0f,
@@ -253,14 +312,9 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
         """.trimIndent()
         private var mProgram : Int = -1
         fun initialize() {
-            mProgram = glCreateProgram().also {
-                val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
-                val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
-                glAttachShader(it, vertexShader)
-                glAttachShader(it, fragmentShader)
-                glLinkProgram(it)
-                checkProgram(it)
-            }
+            val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
+            val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+            mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
     override fun internalDraw() {
@@ -272,14 +326,39 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
     }
 }
 
-class MyGLRenderer(val song : Song2014, private val context : Context) : GLSurfaceView.Renderer {
+class SongScroller(private val song : List<Event>, private val horizon : Float) {
+    private var time : Float = 0F
+    private var position : Int = 0
+    private var events : ArrayList<Event> = ArrayList()
+
+    val activeEvents : List<Event> get() = events
+    val currentTime : Float get() = time
+
+    fun advance(t : Float) {
+        time += t
+
+        val it = events.iterator()
+        while (it.hasNext()) {
+            val e = it.next()
+            if (e.endTime < time) it.remove()
+        }
+
+        while (position < song.size && song[position].time < time + horizon)
+            events.add(song[position++])
+    }
+}
+
+class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSurfaceView.Renderer {
     private lateinit var neck : Neck
     private lateinit var tab : Tab
     private lateinit var textures : Textures
     private lateinit var fretNumbers : FretNumbers
+    private lateinit var note : Note
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
+    private var lastFrameTime : Long = 0
+    private val scroller : SongScroller = SongScroller(song, 100F)
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -289,17 +368,31 @@ class MyGLRenderer(val song : Song2014, private val context : Context) : GLSurfa
         Neck.initialize()
         FretNumbers.initialize()
         Tab.initialize()
+        Note.initialize()
         textures = Textures(context)
-        neck = Neck(textures)
+        neck = Neck()
         fretNumbers = FretNumbers(textures)
         tab = Tab()
+        note = Note()
+        lastFrameTime = SystemClock.elapsedRealtime()
     }
 
     override fun onDrawFrame(gl: GL10?) {
+        val currentTime = SystemClock.elapsedRealtime()
+        val deltaTime = currentTime - lastFrameTime
+        lastFrameTime = currentTime
+
+        scroller.advance(deltaTime / 1000.0F)
+
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         Matrix.setLookAtM(viewMatrix, 0, 12f, 3f, 4f, 12f, 1.5f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
         tab.draw(vPMatrix)
+        for (evt in scroller.activeEvents) {
+            when (evt) {
+                is Event.Note -> note.draw(vPMatrix, scroller.currentTime, evt)
+            }
+        }
         neck.draw(vPMatrix)
         fretNumbers.draw(vPMatrix)
     }
@@ -322,7 +415,7 @@ class MyGLSurfaceView(context : Context) : GLSurfaceView(context) {
         setEGLContextClientVersion(3)
         setEGLConfigChooser(8, 8, 8, 8, 16, 4)
         val song = loadSong("songs/sabaprim_lead.xml")
-        renderer = MyGLRenderer(song, context)
+        renderer = MyGLRenderer(song.makeEventList(), context)
         setRenderer(renderer)
     }
     private fun loadSong(name : String) : Song2014 {

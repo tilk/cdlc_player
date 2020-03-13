@@ -3,6 +3,7 @@ package eu.tilk.wihajster.song
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import eu.tilk.wihajster.Event as TEvent
 
 @JacksonXmlRootElement(localName = "Song")
 class Song2014 {
@@ -94,4 +95,21 @@ class Song2014 {
     @JacksonXmlElementWrapper(localName = "levels")
     @JacksonXmlProperty(localName = "level")
     var levels: List<Level2014> = ArrayList()
+
+    fun makeEventList() : List<TEvent> {
+        val list = ArrayList<TEvent>()
+        for (ebeat in ebeats) {
+            list.add(TEvent.Beat(ebeat.time))
+        }
+        val lvl = levels.last();
+        for (note in lvl.notes) {
+            list.add(TEvent.Note(
+                note.time,
+                note.fret,
+                note.string
+            ))
+        }
+        list.sortBy { it.time }
+        return list
+    }
 }
