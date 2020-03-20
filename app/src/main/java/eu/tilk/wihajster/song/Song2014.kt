@@ -95,21 +95,49 @@ class Song2014 {
     @JacksonXmlElementWrapper(localName = "levels")
     @JacksonXmlProperty(localName = "level")
     var levels: List<Level2014> = ArrayList()
-
-    fun makeEventList() : List<TEvent> {
+    fun makeEventListForInterval(level : Int, startTime : Float, endTime : Float) : List<TEvent> {
         val list = ArrayList<TEvent>()
+        // inefficient, TODO binary search
         for (ebeat in ebeats) {
-            list.add(TEvent.Beat(ebeat.time))
+            if (ebeat.time >= startTime && ebeat.time < endTime)
+                list.add(TEvent.Beat(ebeat.time))
         }
-        val lvl = levels.last();
-        for (note in lvl.notes) {
-            list.add(TEvent.Note(
-                note.time,
-                note.fret,
-                note.string
-            ))
+        for (note in levels[level].notes) {
+            if (note.time >= startTime && note.time < endTime)
+                list.add(TEvent.Note(
+                    note.time,
+                    note.fret,
+                    note.string
+                ))
+        }
+        for (chord in levels[level].chords) {
+            if (chord.time >= startTime && chord.time < endTime)
+                for (note in chord.chordNotes)
+                    list.add(TEvent.Note(
+                        note.time,
+                        note.fret,
+                        note.string
+                    ))
         }
         list.sortBy { it.time }
         return list
+    }
+    fun makeEventListForLevels(phraseLevels : List<Int>) : List<TEvent> {
+        val list = ArrayList<TEvent>()
+        for (i in 0 until phraseIterations.size-1) {
+            list.addAll(makeEventListForInterval(
+                phraseLevels[phraseIterations[i].phraseId],
+                phraseIterations[i].time,
+                phraseIterations[i+1].time
+            ))
+        }
+        return list
+    }
+    fun makeEventList() : List<TEvent> {
+        val phraseLevels = ArrayList<Int>()
+        for (phrase in phrases) {
+            phraseLevels.add(phrase.maxDifficulty)
+        }
+        return makeEventListForLevels(phraseLevels)
     }
 }
