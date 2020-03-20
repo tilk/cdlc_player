@@ -176,13 +176,13 @@ class Note : Shape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    fun draw(mvpMatrix : FloatArray, time : Float, note : Event.Note) {
+    fun draw(mvpMatrix : FloatArray, time : Float, note : Event.Note, scrollSpeed : Float) {
         prepare(mvpMatrix)
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
             note.fret + 0.5f,
             1.5f * (note.string + 0.5f) / 6f,
-            time - note.time,
+            (time - note.time) * scrollSpeed,
             0f)
         val stringHandle = glGetUniformLocation(mProgram, "uString")
         glUniform1i(stringHandle, note.string.toInt())
@@ -358,7 +358,8 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private var lastFrameTime : Long = 0
-    private val scroller : SongScroller = SongScroller(song, 100F)
+    private var scrollSpeed : Float = 13f
+    private val scroller : SongScroller = SongScroller(song, 100f / scrollSpeed)
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -390,7 +391,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         tab.draw(vPMatrix)
         for (evt in scroller.activeEvents) {
             when (evt) {
-                is Event.Note -> note.draw(vPMatrix, scroller.currentTime, evt)
+                is Event.Note -> note.draw(vPMatrix, scroller.currentTime, evt, scrollSpeed)
             }
         }
         neck.draw(vPMatrix)
