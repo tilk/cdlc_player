@@ -155,18 +155,26 @@ class Note : Shape(vertexCoords, drawOrder, mProgram) {
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
             in vec4 vPosition;
+            out vec2 vTexCoord;
             void main() {
                 gl_Position = uMVPMatrix * (vPosition + uPosition);
+                vTexCoord = vec2(vPosition.x / 0.25, vPosition.y / 0.12);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
             uniform int uString;
+            in vec4 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
-                FragColor = vec4(stringColors[uString], 1.0);
+                float dist = max(abs(vTexCoord.x), abs(vTexCoord.y));
+                float scaling = min(1.0, max(
+                    1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14,
+                    step(dist, 0.8) * (0.85 + vTexCoord.y / 4.0)
+                ));
+                FragColor = vec4(scaling * stringColors[uString], 1.0);
             }
         """.trimIndent()
         private var mProgram : Int = -1
