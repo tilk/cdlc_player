@@ -391,8 +391,13 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private var lastFrameTime : Long = 0
     private var scrollSpeed : Float = 13f
     private val scroller : SongScroller = SongScroller(song, 100f / scrollSpeed)
-    private var awayAnchor : Event.Anchor = Event.Anchor(0f, -1 ,0)
+    private var awayAnchor : Event.Anchor = Event.Anchor(0f, 1 , 4)
     private var finalAnchor : Event.Anchor = awayAnchor
+    private var leftFret : Int = 0
+    private var rightFret : Int = 0
+    private var eyeX : Float = 2f
+    private var eyeY : Float = 1.2f
+    private var eyeZ : Float = 3f
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -419,24 +424,38 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         scroller.advance(deltaTime / 1000.0F)
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        Matrix.setLookAtM(viewMatrix, 0, 4f, 3f, 4f, 4f, 1.5f, 0f, 0f, 1.0f, 0.0f)
+        Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY * 2.1f, eyeZ, eyeX, eyeY * 1.1f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
         var lastAnchor = Event.Anchor(currentTime + scroller.horizon, -1, 0)
+        leftFret = 24
+        rightFret = 1
+        fun updateFretBounds(evt : Event.Anchor) {
+            if (evt.fret < leftFret) leftFret = evt.fret.toInt()
+            if (evt.fret + evt.width > rightFret) rightFret = evt.fret + evt.width
+        }
         for (evt in scroller.activeEvents.reversed()) {
             when (evt) {
                 is Event.Anchor -> {
                     tab.draw(vPMatrix, scroller.currentTime, evt, lastAnchor, scrollSpeed)
                     lastAnchor = evt
+                    updateFretBounds(evt)
                 }
             }
         }
-        if (finalAnchor.time < scroller.currentTime)
-            awayAnchor = Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
+        awayAnchor = if (finalAnchor.time < scroller.currentTime)
+            Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
         else
-            awayAnchor = Event.Anchor(scroller.currentTime, awayAnchor.fret, awayAnchor.width)
+            Event.Anchor(scroller.currentTime, awayAnchor.fret, awayAnchor.width)
         if (lastAnchor.width > 0) finalAnchor = lastAnchor
         tab.draw(vPMatrix, scroller.currentTime, awayAnchor, lastAnchor, scrollSpeed)
+        updateFretBounds(awayAnchor)
+        val targetEyeX = (leftFret + rightFret)/2.0f - 1f
+        val targetEyeY = (rightFret - leftFret + 2)/6.0f*1.2f
+        val targetEyeZ = (rightFret - leftFret + 2)/6.0f*3f
+        eyeX = 0.02f*targetEyeX + 0.98f*eyeX
+        eyeY = 0.02f*targetEyeY + 0.98f*eyeY
+        eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
 
         for (evt in scroller.activeEvents.reversed()) {
             when (evt) {
