@@ -254,24 +254,27 @@ class FretNumbers(private val textures : Textures) : StaticShape(vertexCoords, d
             0, 1, 2, 0, 2, 3
         )
         private val vertexShaderCode = """
+            #version 300 es
             uniform mat4 uMVPMatrix;
-            attribute vec4 vPosition;
-            varying vec2 vTexCoord;
+            in vec4 vPosition;
+            out vec2 vTexCoord;
             void main() {
                 gl_Position = uMVPMatrix * vPosition;
                 vTexCoord = vec2(vPosition.x, -vPosition.y / 0.5);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
+            #version 300 es
             precision mediump float;
             uniform sampler2D uTexture;
-            varying vec2 vTexCoord;
+            in vec2 vTexCoord;
+            out vec4 FragColor;
             void main() {
                 float x = fract(vTexCoord.x);
                 float y = vTexCoord.y;
                 lowp int fret = int(vTexCoord.x);
                 lowp int col = fret/12;
-                gl_FragColor = texture2D(uTexture, vec2((x + float(col)) / 6.0, (y + float(fret - 12 * col)) / 12.0));
+                FragColor = texture(uTexture, vec2((x + float(col)) / 6.0, (y + float(fret - 12 * col)) / 12.0));
             }
         """.trimIndent()
         private var mProgram : Int = -1
