@@ -8,27 +8,30 @@ data class ChordTemplate2014(
     @JacksonXmlProperty(isAttribute = true, localName = "chordName")
     var chordName : String,
     @JacksonXmlProperty(isAttribute = true, localName = "fret0")
-    var fret0 : Int = -1,
+    var fret0 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "fret1")
-    var fret1 : Int = -1,
+    var fret1 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "fret2")
-    var fret2 : Int = -1,
+    var fret2 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "fret3")
-    var fret3 : Int = -1,
+    var fret3 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "fret4")
-    var fret4 : Int = -1,
+    var fret4 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "fret5")
-    var fret5 : Int = -1,
+    var fret5 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger0")
-    var finger0 : Int = -1,
+    var finger0 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger1")
-    var finger1 : Int = -1,
+    var finger1 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger2")
-    var finger2 : Int = -1,
+    var finger2 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger3")
-    var finger3 : Int = -1,
+    var finger3 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger4")
-    var finger4 : Int = -1,
+    var finger4 : Byte = -1,
     @JacksonXmlProperty(isAttribute = true, localName = "finger5")
-    var finger5 : Int = -1
-)
+    var finger5 : Byte = -1
+) {
+    val fret : Array<Byte> get() = arrayOf(fret0, fret1, fret2, fret3, fret4, fret5)
+    val finger : Array<Byte> get() = arrayOf(finger0, finger1, finger2, finger3, finger4, finger5)
+}
