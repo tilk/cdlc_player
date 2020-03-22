@@ -98,6 +98,10 @@ class Song2014 {
     fun makeEventListForInterval(level : Int, startTime : Float, endTime : Float) : List<TEvent> {
         val list = ArrayList<TEvent>()
         // inefficient, TODO binary search
+        for (anchor in levels[level].anchors) {
+            if (anchor.time >= startTime && anchor.time < endTime)
+                list.add(TEvent.Anchor(anchor.time, anchor.fret, anchor.width))
+        }
         for (ebeat in ebeats) {
             if (ebeat.time >= startTime && ebeat.time < endTime)
                 list.add(TEvent.Beat(ebeat.time))

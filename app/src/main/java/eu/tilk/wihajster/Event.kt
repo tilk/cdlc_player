@@ -13,4 +13,10 @@ sealed class Event {
     data class Beat(
         override val time : Float
     ) : Event()
+
+    data class Anchor(
+        override val time : Float,
+        val fret : Byte,
+        val width : Short
+    ) : Event()
 }

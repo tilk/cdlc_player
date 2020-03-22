@@ -1,6 +1,7 @@
 package eu.tilk.wihajster
 
 import android.content.Context
+import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
@@ -188,7 +189,7 @@ class Note : Shape(vertexCoords, drawOrder, mProgram) {
         prepare(mvpMatrix)
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
-            note.fret + 0.5f,
+            note.fret - 0.5f,
             1.5f * (note.string + 0.5f) / 6f,
             (time - note.time) * scrollSpeed,
             0f)
@@ -293,29 +294,43 @@ class FretNumbers(private val textures : Textures) : StaticShape(vertexCoords, d
     }
 }
 
-class Tab : StaticShape(vertexCoords, drawOrder, mProgram) {
+class Tab : Shape(vertexCoords, drawOrder, mProgram) {
     companion object {
         private val vertexCoords = floatArrayOf(
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, -100.0f,
-            24.0f, 0.0f, -100.0f,
-            24.0f, 0.0f, 0.0f
+            -0.5f, 0.0f, 0.0f,
+            -0.5f, 0.0f, -1.0f,
+            24.5f, 0.0f, -1.0f,
+            24.5f, 0.0f, 0.0f
         )
         private val drawOrder = shortArrayOf(
             0, 1, 2, 0, 2, 3
         )
         private val vertexShaderCode = """
+            #version 300 es
             uniform mat4 uMVPMatrix;
-            attribute vec4 vPosition;
+            in vec4 vPosition;
+            uniform vec2 uTime;
+            out float pos;
             void main() {
-                gl_Position = uMVPMatrix * vPosition;
+                vec4 actPosition = vec4(vPosition.x, vPosition.y, uTime.x + vPosition.z * uTime.y, vPosition.w);
+                gl_Position = uMVPMatrix * actPosition;
+                pos = vPosition.x;
             }
         """.trimIndent()
         private val fragmentShaderCode = """
+            #version 300 es
             precision mediump float;
-            uniform vec4 vColor;
+            uniform ivec2 uFret;
+            in float pos;
+            out vec4 FragColor;
+            const vec3 beltColor = vec3(0.063, 0.231, 0.365);
+            const vec3 bumpColor = vec3(0.051, 0.388, 0.478);
             void main() {
-                gl_FragColor = vColor;
+                float fdist = 2.0 * distance(fract(pos), 0.5);
+                float cdist = 1.0 - fdist;
+                FragColor = vec4(
+                    step(float(uFret.x - 1), pos) * step(pos, float(uFret.x + uFret.y - 1)) * (cos(2.0*fdist)+1.0)/2.0 * beltColor
+                    + (tanh(20.0*(fdist-0.95))+1.0)/2.0 * bumpColor, 1.0);
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -325,16 +340,25 @@ class Tab : StaticShape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    override fun internalDraw() {
-        glGetUniformLocation(mProgram, "vColor").also {
-            val color = floatArrayOf(0.22265625f, 0.63671875f, 0.76953125f, 1.0f)
-            glUniform4fv(it, 1, color, 0)
-        }
-        super.internalDraw()
+    fun draw(
+        mvpMatrix : FloatArray,
+        time : Float,
+        anchor : Event.Anchor,
+        lastAnchor : Event.Anchor,
+        scrollSpeed : Float
+    ) {
+        prepare(mvpMatrix)
+        val timeHandle = glGetUniformLocation(mProgram, "uTime")
+        glUniform2f(timeHandle,
+            (time - anchor.time) * scrollSpeed,
+            (lastAnchor.time - anchor.time) * scrollSpeed)
+        val fretHandle = GLES20.glGetUniformLocation(mProgram, "uFret")
+        glUniform2i(fretHandle, anchor.fret.toInt(), anchor.width.toInt())
+        internalDraw()
     }
 }
 
-class SongScroller(private val song : List<Event>, private val horizon : Float) {
+class SongScroller(private val song : List<Event>, val horizon : Float) {
     private var time : Float = 0F
     private var position : Int = 0
     private var events : ArrayList<Event> = ArrayList()
@@ -368,12 +392,14 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private var lastFrameTime : Long = 0
     private var scrollSpeed : Float = 13f
     private val scroller : SongScroller = SongScroller(song, 100f / scrollSpeed)
+    private var awayAnchor : Event.Anchor = Event.Anchor(0f, -1 ,0)
+    private var finalAnchor : Event.Anchor = awayAnchor
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_DEPTH_TEST)
+        //glEnable(GL_DEPTH_TEST)
         Neck.initialize()
         FretNumbers.initialize()
         Tab.initialize()
@@ -394,14 +420,31 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         scroller.advance(deltaTime / 1000.0F)
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        Matrix.setLookAtM(viewMatrix, 0, 12f, 3f, 4f, 12f, 1.5f, 0f, 0f, 1.0f, 0.0f)
+        Matrix.setLookAtM(viewMatrix, 0, 4f, 3f, 4f, 4f, 1.5f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
-        tab.draw(vPMatrix)
-        for (evt in scroller.activeEvents) {
+
+        var lastAnchor = Event.Anchor(currentTime + scroller.horizon, -1, 0)
+        for (evt in scroller.activeEvents.reversed()) {
+            when (evt) {
+                is Event.Anchor -> {
+                    tab.draw(vPMatrix, scroller.currentTime, evt, lastAnchor, scrollSpeed)
+                    lastAnchor = evt
+                }
+            }
+        }
+        if (finalAnchor.time < scroller.currentTime)
+            awayAnchor = Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
+        else
+            awayAnchor = Event.Anchor(scroller.currentTime, awayAnchor.fret, awayAnchor.width)
+        if (lastAnchor.width > 0) finalAnchor = lastAnchor
+        tab.draw(vPMatrix, scroller.currentTime, awayAnchor, lastAnchor, scrollSpeed)
+
+        for (evt in scroller.activeEvents.reversed()) {
             when (evt) {
                 is Event.Note -> note.draw(vPMatrix, scroller.currentTime, evt, scrollSpeed)
             }
         }
+
         neck.draw(vPMatrix)
         fretNumbers.draw(vPMatrix)
     }
