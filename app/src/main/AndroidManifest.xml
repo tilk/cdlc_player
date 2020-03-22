@@ -16,6 +16,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:screenOrientation="landscape"
+            android:keepScreenOn="true"
             android:configChanges="orientation|keyboardHidden"
             android:name=".MainActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"

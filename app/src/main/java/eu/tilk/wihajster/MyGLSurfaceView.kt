@@ -165,7 +165,7 @@ class Note : Shape(vertexCoords, drawOrder, mProgram) {
             #version 300 es
             precision mediump float;
             uniform int uString;
-            in vec4 vTexCoord;
+            in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
