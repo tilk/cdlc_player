@@ -1,7 +1,6 @@
 package eu.tilk.wihajster
 
 import android.content.Context
-import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
@@ -352,7 +351,7 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
         glUniform2f(timeHandle,
             (time - anchor.time) * scrollSpeed,
             (lastAnchor.time - anchor.time) * scrollSpeed)
-        val fretHandle = GLES20.glGetUniformLocation(mProgram, "uFret")
+        val fretHandle = glGetUniformLocation(mProgram, "uFret")
         glUniform2i(fretHandle, anchor.fret.toInt(), anchor.width.toInt())
         internalDraw()
     }
