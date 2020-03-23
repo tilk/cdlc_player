@@ -11,7 +11,8 @@ sealed class Event {
     ) : Event()
 
     data class Beat(
-        override val time : Float
+        override val time : Float,
+        val measure : Short
     ) : Event()
 
     data class Anchor(

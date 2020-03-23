@@ -16,6 +16,7 @@ import java.nio.IntBuffer
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.collections.ArrayList
 import kotlin.math.tan
 
 const val COORDS_PER_VERTEX = 3
@@ -33,6 +34,8 @@ const vec3 stringColors[6] = vec3[](
     vec3(0.77, 0.29, 0.81)
 );
 """
+const val beltColorGLSL = "const vec3 beltColor = vec3(0.063, 0.231, 0.365);"
+const val bumpColorGLSL = "const vec3 bumpColor = vec3(0.051, 0.388, 0.478);"
 
 fun loadShader(type : Int, shaderCode : String): Int {
     return glCreateShader(type).also {
@@ -135,6 +138,61 @@ abstract class StaticShape(
 ) : Shape(vertexCoords, drawOrder, mProgram) {
     fun draw(mvpMatrix : FloatArray) {
         prepare(mvpMatrix)
+        internalDraw()
+    }
+}
+
+class Beat : Shape(vertexCoords, drawOrder, mProgram) {
+    companion object {
+        private val vertexCoords = floatArrayOf(
+            0f, 0f, 0.0f,
+            0f, 0f, 0.15f,
+            1f, 0f, 0.15f,
+            1f, 0f, 0.0f
+        )
+        private val drawOrder = shortArrayOf(
+            0, 1, 2, 0, 2, 3
+        )
+        private val vertexShaderCode = """
+            #version 300 es
+            uniform mat4 uMVPMatrix;
+            uniform float uTime;
+            uniform ivec2 uFret;
+            in vec4 vPosition;
+            out vec2 vTexCoord;
+            void main() {
+                vec4 actPosition = vec4(float(uFret.x - 1) + vPosition.x * float(uFret.y), vPosition.y, uTime + vPosition.z, vPosition.w);
+                gl_Position = uMVPMatrix * actPosition;
+                vTexCoord = vec2(vPosition.x, vPosition.y);
+            }
+        """.trimIndent()
+        private val fragmentShaderCode = """
+            #version 300 es
+            precision mediump float;
+            in vec2 vTexCoord;
+            out vec4 FragColor;
+            uniform int uMeasure;
+            $bumpColorGLSL
+            void main() {
+                FragColor = vec4(bumpColor, 0.5 + float(uMeasure) / 2.0);
+            }
+        """.trimIndent()
+        private var mProgram : Int = -1
+        fun initialize() {
+            val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
+            val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+            mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
+        }
+    }
+    fun draw(mvpMatrix : FloatArray, time : Float, beat : Event.Beat,
+             fret : Int, width : Int, scrollSpeed : Float) {
+        prepare(mvpMatrix)
+        val timeHandle = glGetUniformLocation(mProgram, "uTime")
+        glUniform1f(timeHandle, (time - beat.time) * scrollSpeed)
+        val fretHandle = glGetUniformLocation(mProgram, "uFret")
+        glUniform2i(fretHandle, fret, width)
+        val measureHandle = glGetUniformLocation(mProgram, "uMeasure")
+        glUniform1i(measureHandle, if (beat.measure >= 0) 1 else 0)
         internalDraw()
     }
 }
@@ -325,8 +383,8 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
             uniform ivec2 uFret;
             in float pos;
             out vec4 FragColor;
-            const vec3 beltColor = vec3(0.063, 0.231, 0.365);
-            const vec3 bumpColor = vec3(0.051, 0.388, 0.478);
+            $beltColorGLSL
+            $bumpColorGLSL
             void main() {
                 float fdist = 2.0 * distance(fract(pos), 0.5);
                 float cdist = 1.0 - fdist;
@@ -388,6 +446,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private lateinit var textures : Textures
     private lateinit var fretNumbers : FretNumbers
     private lateinit var note : Note
+    private lateinit var beat : Beat
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
@@ -411,11 +470,13 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         FretNumbers.initialize()
         Tab.initialize()
         Note.initialize()
+        Beat.initialize()
         textures = Textures(context)
         neck = Neck()
         fretNumbers = FretNumbers(textures)
         tab = Tab()
         note = Note()
+        beat = Beat()
         lastFrameTime = SystemClock.elapsedRealtime()
     }
 
@@ -430,18 +491,19 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY * 2.1f, eyeZ, eyeX, eyeY * 1.1f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
-        var lastAnchor = Event.Anchor(currentTime + scroller.horizon, -1, 0)
+        val anchors = ArrayList<Event.Anchor>()
+        anchors.add(Event.Anchor(currentTime + scroller.horizon, -1, 0))
         leftFret = 24
         rightFret = 1
         fun updateFretBounds(evt : Event.Anchor) {
             if (evt.fret < leftFret) leftFret = evt.fret.toInt()
             if (evt.fret + evt.width > rightFret) rightFret = evt.fret + evt.width
+            anchors.add(evt)
         }
         for (evt in scroller.activeEvents.reversed()) {
             when (evt) {
                 is Event.Anchor -> {
-                    tab.draw(vPMatrix, scroller.currentTime, evt, lastAnchor, scrollSpeed)
-                    lastAnchor = evt
+                    tab.draw(vPMatrix, scroller.currentTime, evt, anchors.last(), scrollSpeed)
                     updateFretBounds(evt)
                 }
             }
@@ -450,8 +512,8 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
             Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
         else
             Event.Anchor(scroller.currentTime, awayAnchor.fret, awayAnchor.width)
-        if (lastAnchor.width > 0) finalAnchor = lastAnchor
-        tab.draw(vPMatrix, scroller.currentTime, awayAnchor, lastAnchor, scrollSpeed)
+        if (anchors.last().width > 0) finalAnchor = anchors.last()
+        tab.draw(vPMatrix, scroller.currentTime, awayAnchor, anchors.last(), scrollSpeed)
         updateFretBounds(awayAnchor)
         val targetEyeX = (leftFret + rightFret)/2.0f - 1f
         val targetEyeY = (rightFret - leftFret + 2)/6.0f*1.2f
@@ -460,9 +522,14 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         eyeY = 0.02f*targetEyeY + 0.98f*eyeY
         eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
 
+        var anchorsIdx = 0
         for (evt in scroller.activeEvents.reversed()) {
+            while (anchors[anchorsIdx].time > evt.time) anchorsIdx++
             when (evt) {
                 is Event.Note -> note.draw(vPMatrix, scroller.currentTime, evt, scrollSpeed)
+                is Event.Beat -> beat.draw(vPMatrix, scroller.currentTime, evt,
+                    anchors[anchorsIdx].fret.toInt(), anchors[anchorsIdx].width.toInt(),
+                    scrollSpeed)
             }
         }
 

@@ -104,7 +104,7 @@ class Song2014 {
         }
         for (ebeat in ebeats) {
             if (ebeat.time >= startTime && ebeat.time < endTime)
-                list.add(TEvent.Beat(ebeat.time))
+                list.add(TEvent.Beat(ebeat.time, ebeat.measure))
         }
         for (note in levels[level].notes) {
             if (note.time >= startTime && note.time < endTime)
