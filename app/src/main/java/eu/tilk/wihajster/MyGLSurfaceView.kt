@@ -1,6 +1,8 @@
 package eu.tilk.wihajster
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.opengl.GLSurfaceView
 import android.opengl.GLES31.*
 import android.opengl.Matrix
@@ -13,7 +15,6 @@ import eu.tilk.wihajster.song.Song2014
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
-import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.collections.ArrayList
@@ -478,7 +479,10 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
     }
 }
 
-class SongScroller(private val song : List<Event>, val horizon : Float) {
+class SongScroller(
+    private val song : List<Event>,
+    val horizon : Float)
+{
     private var time : Float = 0F
     private var position : Int = 0
     private var events : ArrayList<Event> = ArrayList()
@@ -486,13 +490,16 @@ class SongScroller(private val song : List<Event>, val horizon : Float) {
     val activeEvents : List<Event> get() = events
     val currentTime : Float get() = time
 
-    fun advance(t : Float) {
+    fun advance(t : Float, onRemove : (Event) -> Unit) {
         time += t
 
         val it = events.iterator()
         while (it.hasNext()) {
             val e = it.next()
-            if (e.endTime < time) it.remove()
+            if (e.endTime < time) {
+                onRemove(e)
+                it.remove()
+            }
         }
 
         while (position < song.size && song[position].time < time + horizon)
@@ -521,6 +528,16 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private var eyeX : Float = 2f
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
+    private val sounds : SoundPool = SoundPool.Builder().run {
+        setAudioAttributes(AudioAttributes.Builder().run {
+            setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            build()
+        })
+        setMaxStreams(2)
+        build()
+    }
+    private val metronome1 = sounds.load(context, R.raw.metronome1, 1)
+    private val metronome2 = sounds.load(context, R.raw.metronome2, 1)
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -548,7 +565,13 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         val deltaTime = currentTime - lastFrameTime
         lastFrameTime = currentTime
 
-        scroller.advance(deltaTime / 1000.0F)
+        scroller.advance(deltaTime / 1000.0F) { evt : Event ->
+            when (evt) {
+                is Event.Beat ->
+                    sounds.play(if (evt.measure >= 0) metronome2 else metronome1,
+                        1f, 1f, 0, 0, 1f)
+            }
+        }
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY * 2.1f, eyeZ, eyeX, eyeY * 1.1f, 0f, 0f, 1.0f, 0.0f)
