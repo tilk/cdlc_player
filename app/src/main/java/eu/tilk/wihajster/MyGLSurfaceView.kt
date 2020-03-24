@@ -570,6 +570,8 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
                 is Event.Beat ->
                     sounds.play(if (evt.measure >= 0) metronome2 else metronome1,
                         1f, 1f, 0, 0, 1f)
+                is Event.Anchor ->
+                    finalAnchor = evt
             }
         }
 
@@ -594,11 +596,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
                 }
             }
         }
-        awayAnchor = if (finalAnchor.time < scroller.currentTime)
-            Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
-        else
-            Event.Anchor(scroller.currentTime, awayAnchor.fret, awayAnchor.width)
-        if (anchors.last().width > 0) finalAnchor = anchors.last()
+        awayAnchor = Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
         tab.draw(vPMatrix, scroller.currentTime, awayAnchor, anchors.last(), scrollSpeed)
         updateFretBounds(awayAnchor)
         val targetEyeX = (leftFret + rightFret)/2.0f - 1f
