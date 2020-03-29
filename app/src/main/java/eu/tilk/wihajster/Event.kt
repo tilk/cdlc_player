@@ -2,7 +2,6 @@ package eu.tilk.wihajster
 
 sealed class Event {
     abstract val time : Float
-    val endTime : Float get() = time
 
     data class Note(
         override val time : Float,

@@ -18,6 +18,7 @@ import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.collections.ArrayList
+import kotlin.math.max
 import kotlin.math.tan
 
 const val COORDS_PER_VERTEX = 3
@@ -117,7 +118,7 @@ abstract class Shape(
             position(0)
         }
     }
-    protected open fun internalDraw() {
+    protected open fun internalDraw(time: Float, scrollSpeed : Float) {
         val positionHandle = glGetAttribLocation(mProgram, "vPosition")
         glEnableVertexAttribArray(positionHandle)
         glVertexAttribPointer(positionHandle, COORDS_PER_VERTEX, GL_FLOAT, false,
@@ -137,13 +138,26 @@ abstract class StaticShape(
     drawOrder : ShortArray,
     mProgram : Int
 ) : Shape(vertexCoords, drawOrder, mProgram) {
-    fun draw(mvpMatrix : FloatArray) {
+    fun draw(mvpMatrix : FloatArray, time: Float, scrollSpeed : Float) {
         prepare(mvpMatrix)
-        internalDraw()
+        internalDraw(time, scrollSpeed)
     }
 }
 
-class Beat : Shape(vertexCoords, drawOrder, mProgram) {
+abstract class EventShape<out T : Event>(
+    vertexCoords : FloatArray,
+    drawOrder : ShortArray,
+    mProgram : Int,
+    val event : T
+) : StaticShape(vertexCoords, drawOrder, mProgram) {
+    open val endTime : Float get() = event.time
+    abstract val sortLevel : SortLevel
+}
+
+class Beat(
+    beat : Event.Beat,
+    private val anchor : Event.Anchor
+) : EventShape<Event.Beat>(vertexCoords, drawOrder, mProgram, beat) {
     companion object {
         private val vertexCoords = floatArrayOf(
             0f, 0f, 0.0f,
@@ -185,20 +199,19 @@ class Beat : Shape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    fun draw(mvpMatrix : FloatArray, time : Float, beat : Event.Beat,
-             fret : Int, width : Int, scrollSpeed : Float) {
-        prepare(mvpMatrix)
+    override val sortLevel = SortLevel.Beat
+    override fun internalDraw(time : Float, scrollSpeed : Float) {
         val timeHandle = glGetUniformLocation(mProgram, "uTime")
-        glUniform1f(timeHandle, (time - beat.time) * scrollSpeed)
+        glUniform1f(timeHandle, (time - event.time) * scrollSpeed)
         val fretHandle = glGetUniformLocation(mProgram, "uFret")
-        glUniform2i(fretHandle, fret, width)
+        glUniform2i(fretHandle, anchor.fret.toInt(), anchor.width.toInt())
         val measureHandle = glGetUniformLocation(mProgram, "uMeasure")
-        glUniform1i(measureHandle, if (beat.measure >= 0) 1 else 0)
-        internalDraw()
+        glUniform1i(measureHandle, if (event.measure >= 0) 1 else 0)
+        super.internalDraw(time, scrollSpeed)
     }
 }
 
-class Note : Shape(vertexCoords, drawOrder, mProgram) {
+class Note(note : Event.Note) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {
         private val vertexCoords = floatArrayOf(
             -0.25f, -0.12f, 0.0f,
@@ -243,21 +256,24 @@ class Note : Shape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    fun draw(mvpMatrix : FloatArray, time : Float, note : Event.Note, scrollSpeed : Float) {
-        prepare(mvpMatrix)
+    override val sortLevel = SortLevel.String(note.string.toInt())
+    override fun internalDraw(time : Float, scrollSpeed : Float) {
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
-            note.fret - 0.5f,
-            1.5f * (note.string + 0.5f) / 6f,
-            (time - note.time) * scrollSpeed,
+            event.fret - 0.5f,
+            1.5f * (event.string + 0.5f) / 6f,
+            (time - event.time) * scrollSpeed,
             0f)
         val stringHandle = glGetUniformLocation(mProgram, "uString")
-        glUniform1i(stringHandle, note.string.toInt())
-        internalDraw()
+        glUniform1i(stringHandle, event.string.toInt())
+        super.internalDraw(time, scrollSpeed)
     }
 }
 
-class EmptyStringNote : Shape(vertexCoords, drawOrder, mProgram) {
+class EmptyStringNote(
+    note : Event.Note,
+    private val anchor : Event.Anchor
+) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {
         private val vertexCoords = floatArrayOf(
             0f, -0.12f, 0.0f,
@@ -300,20 +316,19 @@ class EmptyStringNote : Shape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    fun draw(mvpMatrix : FloatArray, time : Float, note : Event.Note,
-             fret : Int, width : Int, scrollSpeed : Float) {
-        prepare(mvpMatrix)
+    override val sortLevel = SortLevel.String(note.string.toInt())
+    override fun internalDraw(time: Float, scrollSpeed : Float) {
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
-            fret - 1f,
-            1.5f * (note.string + 0.5f) / 6f,
-            (time - note.time) * scrollSpeed,
+            anchor.fret - 1f,
+            1.5f * (event.string + 0.5f) / 6f,
+            (time - event.time) * scrollSpeed,
             0f)
         val fretHandle = glGetUniformLocation(mProgram, "uWidth")
-        glUniform1i(fretHandle, width)
+        glUniform1i(fretHandle, anchor.width.toInt())
         val stringHandle = glGetUniformLocation(mProgram, "uString")
-        glUniform1i(stringHandle, note.string.toInt())
-        internalDraw()
+        glUniform1i(stringHandle, event.string.toInt())
+        super.internalDraw(time, scrollSpeed)
     }
 }
 
@@ -403,19 +418,22 @@ class FretNumbers(private val textures : Textures) : StaticShape(vertexCoords, d
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    override fun internalDraw() {
+    override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uTexture").also {
             glUniform1i(it, 0)
         }
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.fretNumbers)
-        super.internalDraw()
+        super.internalDraw(time, scrollSpeed)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, 0)
     }
 }
 
-class Tab : Shape(vertexCoords, drawOrder, mProgram) {
+class Anchor(
+    anchor : Event.Anchor,
+    var lastAnchorTime : Float
+) : EventShape<Event.Anchor>(vertexCoords, drawOrder, mProgram, anchor) {
     companion object {
         private val vertexCoords = floatArrayOf(
             -0.5f, 0.0f, 0.0f,
@@ -461,66 +479,75 @@ class Tab : Shape(vertexCoords, drawOrder, mProgram) {
             mProgram = makeProgramFromShaders(vertexShader, fragmentShader)
         }
     }
-    fun draw(
-        mvpMatrix : FloatArray,
-        time : Float,
-        anchor : Event.Anchor,
-        lastAnchor : Event.Anchor,
-        scrollSpeed : Float
-    ) {
-        prepare(mvpMatrix)
+    override val endTime : Float get() = lastAnchorTime
+    override val sortLevel = SortLevel.Tab
+    override fun internalDraw(time : Float, scrollSpeed : Float) {
         val timeHandle = glGetUniformLocation(mProgram, "uTime")
+        val movedTime = max(event.time, time)
         glUniform2f(timeHandle,
-            (time - anchor.time) * scrollSpeed,
-            (lastAnchor.time - anchor.time) * scrollSpeed)
+            (time - movedTime) * scrollSpeed,
+            (lastAnchorTime - movedTime) * scrollSpeed)
         val fretHandle = glGetUniformLocation(mProgram, "uFret")
-        glUniform2i(fretHandle, anchor.fret.toInt(), anchor.width.toInt())
-        internalDraw()
+        glUniform2i(fretHandle, event.fret.toInt(), event.width.toInt())
+        super.internalDraw(time, scrollSpeed)
     }
 }
 
 class SongScroller(
     private val song : List<Event>,
-    val horizon : Float)
-{
+    private val horizon : Float
+) {
     private var time : Float = 0F
     private var position : Int = 0
-    private var events : ArrayList<Event> = ArrayList()
+    private var lastAnchor = Anchor(Event.Anchor(0f, 1 , 4), horizon)
+    private var events : ArrayList<EventShape<Event>> = arrayListOf(lastAnchor)
 
-    val activeEvents : List<Event> get() = events
+    val activeEvents : List<EventShape<Event>> get() = events
     val currentTime : Float get() = time
 
     fun advance(t : Float, onRemove : (Event) -> Unit) {
         time += t
 
+        lastAnchor.lastAnchorTime = time + horizon
+
         val it = events.iterator()
         while (it.hasNext()) {
             val e = it.next()
             if (e.endTime < time) {
-                onRemove(e)
+                onRemove(e.event)
                 it.remove()
             }
         }
 
-        while (position < song.size && song[position].time < time + horizon)
-            events.add(song[position++])
+        while (position < song.size && song[position].time < time + horizon) {
+            when (val event = song[position++]) {
+                is Event.Anchor -> {
+                    lastAnchor.lastAnchorTime = event.time
+                    lastAnchor = Anchor(event, time + horizon)
+                    events.add(lastAnchor)
+                }
+                is Event.Note ->
+                    if (event.fret > 0)
+                        events.add(Note(event))
+                    else
+                        events.add(EmptyStringNote(event, lastAnchor.event))
+                is Event.Beat ->
+                    events.add(Beat(event, lastAnchor.event))
+            }
+        }
     }
 }
 
 class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSurfaceView.Renderer {
     private lateinit var neck : Neck
-    private lateinit var tab : Tab
     private lateinit var textures : Textures
     private lateinit var fretNumbers : FretNumbers
-    private lateinit var note : Note
-    private lateinit var emptyStringNote : EmptyStringNote
-    private lateinit var beat : Beat
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private var lastFrameTime : Long = 0
     private var scrollSpeed : Float = 13f
-    private val scroller : SongScroller = SongScroller(song, 100f / scrollSpeed)
+    private lateinit var scroller : SongScroller
     private var awayAnchor : Event.Anchor = Event.Anchor(0f, 1 , 4)
     private var finalAnchor : Event.Anchor = awayAnchor
     private var leftFret : Int = 0
@@ -541,23 +568,20 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         //glEnable(GL_DEPTH_TEST)
         Neck.initialize()
         FretNumbers.initialize()
-        Tab.initialize()
+        Anchor.initialize()
         Note.initialize()
         EmptyStringNote.initialize()
         Beat.initialize()
         textures = Textures(context)
         neck = Neck()
         fretNumbers = FretNumbers(textures)
-        tab = Tab()
-        note = Note()
-        emptyStringNote = EmptyStringNote()
-        beat = Beat()
         lastFrameTime = SystemClock.elapsedRealtime()
+        scroller = SongScroller(song, 40f / scrollSpeed)
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -579,26 +603,21 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY * 2.1f, eyeZ, eyeX, eyeY * 1.1f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
-        val anchors = ArrayList<Event.Anchor>()
-        anchors.add(Event.Anchor(currentTime + scroller.horizon, -1, 0))
         leftFret = 24
         rightFret = 1
         fun updateFretBounds(evt : Event.Anchor) {
             if (evt.fret < leftFret) leftFret = evt.fret.toInt()
             if (evt.fret + evt.width > rightFret) rightFret = evt.fret + evt.width
-            anchors.add(evt)
         }
-        for (evt in scroller.activeEvents.reversed()) {
-            when (evt) {
+        for (evt in scroller.activeEvents.sortedWith(compareByDescending(EventShape<Event>::endTime).thenBy { it.sortLevel.level() })) {
+            evt.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+            when (evt.event) {
                 is Event.Anchor -> {
-                    tab.draw(vPMatrix, scroller.currentTime, evt, anchors.last(), scrollSpeed)
-                    updateFretBounds(evt)
+                    updateFretBounds(evt.event)
                 }
             }
         }
-        awayAnchor = Event.Anchor(scroller.currentTime, finalAnchor.fret, finalAnchor.width)
-        tab.draw(vPMatrix, scroller.currentTime, awayAnchor, anchors.last(), scrollSpeed)
-        updateFretBounds(awayAnchor)
+
         val targetEyeX = (leftFret + rightFret)/2.0f - 1f
         val targetEyeY = (rightFret - leftFret + 2)/6.0f*1.2f
         val targetEyeZ = (rightFret - leftFret + 2)/6.0f*3f
@@ -606,26 +625,8 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         eyeY = 0.02f*targetEyeY + 0.98f*eyeY
         eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
 
-        var anchorsIdx = 0
-        for (evt in scroller.activeEvents.reversed()) {
-            while (anchors[anchorsIdx].time > evt.time) anchorsIdx++
-            when (evt) {
-                is Event.Note ->
-                    if (evt.fret > 0)
-                        note.draw(vPMatrix, scroller.currentTime, evt, scrollSpeed)
-                    else
-                        emptyStringNote.draw(vPMatrix, scroller.currentTime, evt,
-                            anchors[anchorsIdx].fret.toInt(), anchors[anchorsIdx].width.toInt(),
-                        scrollSpeed)
-                is Event.Beat ->
-                    beat.draw(vPMatrix, scroller.currentTime, evt,
-                        anchors[anchorsIdx].fret.toInt(), anchors[anchorsIdx].width.toInt(),
-                        scrollSpeed)
-            }
-        }
-
-        neck.draw(vPMatrix)
-        fretNumbers.draw(vPMatrix)
+        neck.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+        fretNumbers.draw(vPMatrix, scroller.currentTime, scrollSpeed)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
