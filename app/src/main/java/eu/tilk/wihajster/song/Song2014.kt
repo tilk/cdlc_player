@@ -111,7 +111,8 @@ class Song2014 {
                 list.add(TEvent.Note(
                     note.time,
                     note.fret,
-                    note.string
+                    note.string,
+                    note.sustain
                 ))
         }
         for (chord in levels[level].chords) {
@@ -122,7 +123,8 @@ class Song2014 {
                         list.add(TEvent.Note(
                             note.time,
                             note.fret,
-                            note.string
+                            note.string,
+                            note.sustain
                         ))
                 else
                     for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0)

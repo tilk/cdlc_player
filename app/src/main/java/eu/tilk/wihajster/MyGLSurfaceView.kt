@@ -94,7 +94,7 @@ class SongScroller(
                         Anchor(event, time + horizon)
                     events.add(lastAnchor)
                 }
-                is Event.Note ->
+                is Event.Note -> {
                     if (event.fret > 0)
                         events.add(Note(event))
                     else
@@ -104,6 +104,9 @@ class SongScroller(
                                 lastAnchor.event
                             )
                         )
+                    if (event.sustain > 0)
+                        events.add(NoteTail(event))
+                }
                 is Event.Beat ->
                     events.add(
                         Beat(
@@ -153,6 +156,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         FretNumbers.initialize()
         Anchor.initialize()
         Note.initialize()
+        NoteTail.initialize()
         EmptyStringNote.initialize()
         Beat.initialize()
         textures = Textures(context)
@@ -187,7 +191,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
             if (evt.fret < leftFret) leftFret = evt.fret.toInt()
             if (evt.fret + evt.width > rightFret) rightFret = evt.fret + evt.width
         }
-        for (evt in scroller.activeEvents.sortedWith(compareByDescending(EventShape<Event>::endTime).thenBy { it.sortLevel.level() })) {
+        for (evt in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level() }.thenByDescending(EventShape<Event>::endTime))) {
             evt.draw(vPMatrix, scroller.currentTime, scrollSpeed)
             when (evt.event) {
                 is Event.Anchor -> {

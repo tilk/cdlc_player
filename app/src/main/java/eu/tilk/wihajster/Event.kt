@@ -6,7 +6,8 @@ sealed class Event {
     data class Note(
         override val time : Float,
         val fret : Byte,
-        val string : Byte
+        val string : Byte,
+        val sustain : Float = 0f
     ) : Event()
 
     data class Beat(
