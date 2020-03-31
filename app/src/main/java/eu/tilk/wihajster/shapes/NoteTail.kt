@@ -37,10 +37,10 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
                     0 -> {
                         var v = ((i % 2).toFloat() - 0.5f) / 4f
                         // add slide effect
-                        if (slideLen != 0) v = v * (1f + 20f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
+                        if (slideLen != 0) v = v * (1f + 10f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
                             slideLen * logistic(pct * 10f - 5f)
                         // add tremolo effect
-                        if (note.tremolo >= 0)
+                        if (note.tremolo > 0)
                             when (z % 8) {
                                 1,3 -> v += 0.05f
                                 2 -> v += 0.1f
