@@ -61,8 +61,10 @@ class Textures(context : Context) {
 
 class SongScroller(
     private val song : List<Event>,
-    private val horizon : Float
+    zHorizon : Float,
+    private val scrollSpeed : Float // TODO I don't really want scrollSpeed here
 ) {
+    private val horizon = zHorizon / scrollSpeed
     private var time : Float = 0F
     private var position : Int = 0
     private var lastAnchor =
@@ -104,8 +106,8 @@ class SongScroller(
                                 lastAnchor.event
                             )
                         )
-                    if (event.sustain > 0)
-                        events.add(NoteTail(event))
+                    if (event.sustain > 0f)
+                        events.add(NoteTail(event, lastAnchor.event, scrollSpeed))
                 }
                 is Event.Beat ->
                     events.add(
@@ -163,7 +165,7 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         neck = Neck()
         fretNumbers = FretNumbers(textures)
         lastFrameTime = SystemClock.elapsedRealtime()
-        scroller = SongScroller(song, 40f / scrollSpeed)
+        scroller = SongScroller(song, 40f, scrollSpeed)
     }
 
     override fun onDrawFrame(gl: GL10?) {

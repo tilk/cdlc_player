@@ -4,34 +4,59 @@ import eu.tilk.wihajster.Event
 import eu.tilk.wihajster.SortLevel
 import android.opengl.GLES31.*
 import kotlin.math.ceil
+import kotlin.math.tanh
 
-class NoteTail(note : Event.Note) : EventShape<Event.Note>(makeVertexCoords(note), makeDrawOrder(note), mProgram, note) {
+class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
+    EventShape<Event.Note>(
+        makeVertexCoords(note, scrollSpeed),
+        makeDrawOrder(note, scrollSpeed),
+        mProgram,
+        note
+    ) {
     companion object {
         private const val scaling = 10
-        private fun sizeFor(note : Event.Note) : Int = ceil(note.sustain * scaling).toInt()
-        private fun makeVertexCoords(note : Event.Note) = FloatArray(6 + 6 * sizeFor(note)) {
-            val i = it / 3
-            when (it % 3) {
-                0 -> ((i % 2).toFloat() - 0.5f) / 2f
-                1 -> 0f
-                2 -> -i.toFloat() / scaling
-                else -> error("Should not happen!")
+        private fun sizeFor(note : Event.Note, scrollSpeed : Float) : Int =
+            ceil(note.sustain * scrollSpeed * scaling).toInt()
+        private fun makeVertexCoords(note : Event.Note, scrollSpeed : Float) : FloatArray {
+            val slideLen = when {
+                note.slideTo > 0 -> note.slideTo - note.fret
+                note.slideUnpitchedTo >= 0 -> note.slideUnpitchedTo - note.fret
+                else -> 0
+            }
+            val sz = sizeFor(note, scrollSpeed)
+            fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
+            return FloatArray(6 + 6 * sz) {
+                val i = it / 3 // vertex number
+                val z = i / 2  // Z axis distance
+                val pct = z.toFloat() / sz
+                when (it % 3) {
+                    0 -> ((i % 2).toFloat() - 0.5f) / 4f +
+                            (if (slideLen != 0) slideLen * logistic(pct * 10f - 5f) else 0f)
+                    1 -> 0f
+                    2 -> -z.toFloat() / scaling
+                    else -> error("Should not happen!")
+                }
             }
         }
         private val drawOrder = shortArrayOf(0, 1, 2, 1, 3, 2)
-        private fun makeDrawOrder(note : Event.Note) = ShortArray(6 * sizeFor(note)) {
-            (drawOrder[it % 6] + 2 * (it / 6)).toShort()
+        private fun makeDrawOrder(note : Event.Note, scrollSpeed : Float) : ShortArray {
+            return ShortArray(6 * sizeFor(note, scrollSpeed)) {
+                (drawOrder[it % 6] + 2 * (it / 6)).toShort()
+            }
         }
         private val vertexShaderCode = """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
+            uniform float uMaxZ;
             in vec4 vPosition;
             out float zPos;
+            out vec2 vTexCoord;
             void main() {
                 vec4 pos = vPosition + uPosition;
                 gl_Position = uMVPMatrix * pos;
                 zPos = pos.z;
+                vTexCoord = vec2(vPosition.x / 0.125, vPosition.z / uMaxZ);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
@@ -39,10 +64,14 @@ class NoteTail(note : Event.Note) : EventShape<Event.Note>(makeVertexCoords(note
             precision mediump float;
             uniform int uString;
             in float zPos;
+            in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
-                FragColor = vec4(stringColors[uString], step(zPos, 0.0));
+                float dist = abs(vTexCoord.x);
+                float scaling = min(1.0, 1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14);
+                FragColor = vec4(scaling * stringColors[uString], 
+                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0));
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -74,6 +103,8 @@ class NoteTail(note : Event.Note) : EventShape<Event.Note>(makeVertexCoords(note
             0f)
         val stringHandle = glGetUniformLocation(mProgram, "uString")
         glUniform1i(stringHandle, event.string.toInt())
+        val maxZHandle = glGetUniformLocation(mProgram, "uMaxZ")
+        glUniform1f(maxZHandle, event.sustain * scrollSpeed)
         super.internalDraw(time, scrollSpeed)
     }
 }
