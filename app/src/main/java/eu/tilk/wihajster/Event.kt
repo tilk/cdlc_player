@@ -9,7 +9,8 @@ sealed class Event {
         val string : Byte,
         val sustain : Float = 0f,
         val slideTo : Byte = -1,
-        val slideUnpitchedTo : Byte = -1
+        val slideUnpitchedTo : Byte = -1,
+        val tremolo : Byte = -1
     ) : Event()
 
     data class Beat(

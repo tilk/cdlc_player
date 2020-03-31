@@ -114,7 +114,8 @@ class Song2014 {
                     note.string,
                     note.sustain,
                     note.slideTo,
-                    note.slideUnpitchTo
+                    note.slideUnpitchTo,
+                    note.tremolo
                 ))
         }
         for (chord in levels[level].chords) {
@@ -128,7 +129,8 @@ class Song2014 {
                             note.string,
                             note.sustain,
                             note.slideTo,
-                            note.slideUnpitchTo
+                            note.slideUnpitchTo,
+                            note.tremolo
                         ))
                 else
                     for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0)

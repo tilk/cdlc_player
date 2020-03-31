@@ -3,6 +3,9 @@ package eu.tilk.wihajster.shapes
 import eu.tilk.wihajster.Event
 import eu.tilk.wihajster.SortLevel
 import android.opengl.GLES31.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import kotlin.math.ceil
 import kotlin.math.tanh
 
@@ -25,13 +28,27 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
             }
             val sz = sizeFor(note, scrollSpeed)
             fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
+            fun dLogistic(x : Float) = logistic(x) * logistic(-x)
             return FloatArray(6 + 6 * sz) {
                 val i = it / 3 // vertex number
                 val z = i / 2  // Z axis distance
                 val pct = z.toFloat() / sz
                 when (it % 3) {
-                    0 -> ((i % 2).toFloat() - 0.5f) / 4f +
-                            (if (slideLen != 0) slideLen * logistic(pct * 10f - 5f) else 0f)
+                    0 -> {
+                        var v = ((i % 2).toFloat() - 0.5f) / 4f
+                        // add slide effect
+                        if (slideLen != 0) v = v * (1f + 20f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
+                            slideLen * logistic(pct * 10f - 5f)
+                        // add tremolo effect
+                        if (note.tremolo >= 0)
+                            when (z % 8) {
+                                1,3 -> v += 0.05f
+                                2 -> v += 0.1f
+                                5,7 -> v -= 0.05f
+                                6 -> v -= 0.1f
+                            }
+                        v
+                    }
                     1 -> 0f
                     2 -> -z.toFloat() / scaling
                     else -> error("Should not happen!")
@@ -50,13 +67,14 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
             uniform vec4 uPosition;
             uniform float uMaxZ;
             in vec4 vPosition;
+            in float vParity;
             out float zPos;
             out vec2 vTexCoord;
             void main() {
                 vec4 pos = vPosition + uPosition;
                 gl_Position = uMVPMatrix * pos;
                 zPos = pos.z;
-                vTexCoord = vec2(vPosition.x / 0.125, vPosition.z / uMaxZ);
+                vTexCoord = vec2(vParity, vPosition.z / uMaxZ);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
@@ -91,10 +109,27 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
             )
         }
     }
+
+    private val parityBuffer : FloatBuffer =
+        ByteBuffer.allocateDirect(8 + sizeFor(note, scrollSpeed) * 8).run {
+            order(ByteOrder.nativeOrder())
+            asFloatBuffer().apply {
+                for (i in 0..sizeFor(note, scrollSpeed)) {
+                    put(-1f)
+                    put(1f)
+                }
+                position(0)
+            }
+        }
     override val endTime = note.time + note.sustain
     override val sortLevel =
         SortLevel.StringTail(note.string.toInt())
     override fun internalDraw(time : Float, scrollSpeed : Float) {
+        val parityHandle = glGetAttribLocation(mProgram, "vParity")
+        glEnableVertexAttribArray(parityHandle)
+        glVertexAttribPointer(parityHandle,
+            1, GL_FLOAT, false,
+            4, parityBuffer)
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
             event.fret - 0.5f,
@@ -106,5 +141,6 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
         val maxZHandle = glGetUniformLocation(mProgram, "uMaxZ")
         glUniform1f(maxZHandle, event.sustain * scrollSpeed)
         super.internalDraw(time, scrollSpeed)
+        glDisableVertexAttribArray(parityHandle)
     }
 }
