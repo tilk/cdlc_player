@@ -9,6 +9,7 @@ import java.nio.FloatBuffer
 import kotlin.math.ceil
 import kotlin.math.tanh
 
+// TODO vibrato, bendy, zanikanie przy unpitched slide
 class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
     EventShape<Event.Note>(
         makeVertexCoords(note, scrollSpeed),

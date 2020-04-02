@@ -122,9 +122,7 @@ class SongScroller(
 }
 
 class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSurfaceView.Renderer {
-    private lateinit var neck : Neck
     private lateinit var textures : Textures
-    private lateinit var fretNumbers : FretNumbers
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
@@ -133,8 +131,6 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     private lateinit var scroller : SongScroller
     private var awayAnchor : Event.Anchor = Event.Anchor(0f, 1 , 4)
     private var finalAnchor : Event.Anchor = awayAnchor
-    private var leftFret : Int = 0
-    private var rightFret : Int = 0
     private var eyeX : Float = 2f
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
@@ -162,8 +158,6 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         EmptyStringNote.initialize()
         Beat.initialize()
         textures = Textures(context)
-        neck = Neck()
-        fretNumbers = FretNumbers(textures)
         lastFrameTime = SystemClock.elapsedRealtime()
         scroller = SongScroller(song, 40f, scrollSpeed)
     }
@@ -187,17 +181,22 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY * 2.1f, eyeZ, eyeX, eyeY * 1.1f, 0f, 0f, 1.0f, 0.0f)
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
-        leftFret = 24
-        rightFret = 1
-        fun updateFretBounds(evt : Event.Anchor) {
-            if (evt.fret < leftFret) leftFret = evt.fret.toInt()
-            if (evt.fret + evt.width > rightFret) rightFret = evt.fret + evt.width
-        }
-        for (evt in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level() }.thenByDescending(EventShape<Event>::endTime))) {
-            evt.draw(vPMatrix, scroller.currentTime, scrollSpeed)
-            when (evt.event) {
+        var leftFret = 24
+        var rightFret = 1
+        var frontLeftFret = 24
+        var frontRightFret = 1
+        var activeStrings = 0
+        for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level() }.thenByDescending(EventShape<Event>::endTime))) {
+            shape.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+            when (val evt = shape.event) {
                 is Event.Anchor -> {
-                    updateFretBounds(evt.event)
+                    frontLeftFret = evt.fret.toInt()
+                    frontRightFret = evt.fret + evt.width
+                    if (evt.fret < leftFret) leftFret = frontLeftFret
+                    if (evt.fret + evt.width > rightFret) rightFret = frontRightFret
+                }
+                is Event.Note -> {
+                    activeStrings = activeStrings or (1 shl evt.string.toInt())
                 }
             }
         }
@@ -209,8 +208,9 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
         eyeY = 0.02f*targetEyeY + 0.98f*eyeY
         eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
 
-        neck.draw(vPMatrix, scroller.currentTime, scrollSpeed)
-        fretNumbers.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+        Neck(activeStrings).draw(vPMatrix, scroller.currentTime, scrollSpeed)
+        FretNumbers(textures, frontLeftFret, frontRightFret)
+            .draw(vPMatrix, scroller.currentTime, scrollSpeed)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -230,7 +230,7 @@ class MyGLSurfaceView(context : Context) : GLSurfaceView(context) {
     init {
         setEGLContextClientVersion(3)
         setEGLConfigChooser(8, 8, 8, 8, 16, 4)
-        val song = loadSong("songs/sabaprim_lead.xml")
+        val song = loadSong("songs/funsome_lead.xml")
         renderer = MyGLRenderer(song.makeEventList(), context)
         setRenderer(renderer)
     }
