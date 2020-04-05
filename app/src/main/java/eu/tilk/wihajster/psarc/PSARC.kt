@@ -1,13 +1,10 @@
 package eu.tilk.wihajster.psarc
 
-import android.util.Log
 import loggersoft.kotlin.streams.ByteOrder
-import loggersoft.kotlin.streams.Stream
 import loggersoft.kotlin.streams.StreamAdapter
 import java.io.*
 import java.util.zip.Inflater
 import javax.crypto.Cipher
-import javax.crypto.CipherInputStream
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.math.log
@@ -20,31 +17,29 @@ class PSARC(private val inputStream : FileInputStream) {
     private val initPosition = inputStream.channel.position()
     private val header : Header = Header.read(stream)
     private val tocStream = {
-        Log.d("header", header.toString())
         if (header.archiveFlags == 4u) {
-            // TODO: wanted to use NoPadding but failed
-            val cipher = Cipher.getInstance("AES/CFB/PKCS5Padding")
+            val cipher = Cipher.getInstance("AES/CFB/NoPadding")
             cipher.init(Cipher.DECRYPT_MODE,
                 SecretKeySpec(psarcKey, "AES"),
                 IvParameterSpec(ByteArray(16)))
-            val store = ByteArray(header.totalTOCSize - 32 + 512)
+            fun ceilTo(x : Int, y : Int) = if (x % y == 0) x else x + y - x % y
+            val store = ByteArray(ceilTo(header.totalTOCSize - 32, 128))
             stream.readBytes(store, header.totalTOCSize - 32)
-            StreamAdapter(CipherInputStream(ByteArrayInputStream(store), cipher)).also {
+            val result = cipher.doFinal(store)
+            StreamAdapter(ByteArrayInputStream(result)).also {
                 it.defaultByteOrder = ByteOrder.BigEndian
             }
         } else stream
     }()
-    private val entries : ArrayList<Entry> = ArrayList<Entry>();
+    private val entries : ArrayList<Entry> = ArrayList()
     init {
         for (i in 0 until header.numFiles)
             entries.add(Entry.read(tocStream))
-        for (i in 0 until header.numFiles)
-            Log.d("entry", entries[i].toString())
     }
     private val bNum = log(header.blockSizeAlloc.toDouble(), 256.0).toInt()
     private val tocSize = header.totalTOCSize - 32
     private val tocChunkSize = header.numFiles * header.TOCEntrySize
-    private val zBlocksSizeList : IntArray = IntArray((tocSize - tocChunkSize) / bNum);
+    private val zBlocksSizeList : IntArray = IntArray((tocSize - tocChunkSize) / bNum)
     init {
         for (i in zBlocksSizeList.indices)
             zBlocksSizeList[i] = tocStream.readInt(bNum, false).toInt()
@@ -55,10 +50,15 @@ class PSARC(private val inputStream : FileInputStream) {
         inflateEntry(entries[0], data)
         val names = data.toString().split('\n')
         for (i in names.indices) manifest[names[i]] = i + 1
-        for (i in names) Log.d("filename", i)
     }
 
-    fun inflateEntry(entry : Entry, outputStream : OutputStream) {
+    fun inflateFile(name : String, outputStream : OutputStream) {
+        val entryIdx = manifest[name]
+        if (entryIdx == null) throw Exception("File not found")
+        else inflateEntry(entries[entryIdx], outputStream)
+    }
+
+    private fun inflateEntry(entry : Entry, outputStream : OutputStream) {
         var length = 0
         fun output(data : ByteArray, count : Int = data.size) {
             outputStream.write(data, 0, count)
@@ -67,7 +67,6 @@ class PSARC(private val inputStream : FileInputStream) {
         var zChunkID = entry.zIndexBegin
         inputStream.channel.position(initPosition + entry.offset)
         while (length < entry.length) {
-            Log.d("inflateEntry", "zChunkID: $zChunkID sl: ${zBlocksSizeList[zChunkID]} length: $length")
             if (zBlocksSizeList[zChunkID] == 0) {
                 val buffer = ByteArray(header.blockSizeAlloc)
                 stream.readBytes(buffer, header.blockSizeAlloc)
@@ -77,14 +76,13 @@ class PSARC(private val inputStream : FileInputStream) {
                 inputStream.channel.position(inputStream.channel.position() - 2)
                 val buffer = ByteArray(zBlocksSizeList[zChunkID])
                 stream.readBytes(buffer)
-                Log.d("num", num.toString())
                 if (num == 0x78da) { // wtf, hacky
                     val inflater = Inflater()
                     inflater.setInput(buffer)
                     val obuf = ByteArray(65536)
                     while (true) {
                         val bytes = inflater.inflate(obuf)
-                        if (bytes == 0) break;
+                        if (bytes == 0) break
                         output(obuf, bytes)
                     }
                 } else output(buffer)
