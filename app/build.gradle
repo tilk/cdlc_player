@@ -34,6 +34,9 @@ android {
         exclude 'META-INF/ASL2.0'
         exclude("META-INF/*.kotlin_module")
     }
+    aaptOptions {
+        noCompress "psarc"
+    }
 }
 
 dependencies {
@@ -48,6 +51,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.3'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.3"
     implementation 'javax.xml.stream:stax-api:1.0-2'
+    implementation 'net.sf.loggersoft.kotlin:binary-streams:0.33'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
