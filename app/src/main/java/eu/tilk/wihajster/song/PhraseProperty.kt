@@ -8,7 +8,7 @@ data class PhraseProperty(
     @JacksonXmlProperty(isAttribute = true, localName = "redundant")
     var redundant : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "levelJump")
-    var levelJump : Short,
+    var levelJump : Byte,
     @JacksonXmlProperty(isAttribute = true, localName = "empty")
     var empty : Int,
     @JacksonXmlProperty(isAttribute = true, localName = "difficulty")

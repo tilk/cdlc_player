@@ -10,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.math.log
 
 @ExperimentalUnsignedTypes
-class PSARC(private val inputStream : FileInputStream) {
+class PSARCReader(private val inputStream : FileInputStream) {
     private val stream = StreamAdapter(inputStream).also {
         it.defaultByteOrder = ByteOrder.BigEndian
     }

@@ -15,4 +15,13 @@ data class Tuning(
     var string4 : Int,
     @JacksonXmlProperty(isAttribute = true, localName = "string5")
     var string5 : Int
-)
+) {
+    constructor(strings : List<Short>) : this(
+        (strings.getOrNull(0) ?: -1).toInt(),
+        (strings.getOrNull(1) ?: -1).toInt(),
+        (strings.getOrNull(2) ?: -1).toInt(),
+        (strings.getOrNull(3) ?: -1).toInt(),
+        (strings.getOrNull(4) ?: -1).toInt(),
+        (strings.getOrNull(5) ?: -1).toInt()
+    ){}
+}
