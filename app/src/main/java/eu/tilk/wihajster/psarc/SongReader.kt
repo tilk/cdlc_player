@@ -1,16 +1,11 @@
 package eu.tilk.wihajster.psarc
 
 import eu.tilk.wihajster.song.*
-import loggersoft.kotlin.streams.ByteOrder
-import loggersoft.kotlin.streams.StreamAdapter
-import java.io.FileInputStream
+import loggersoft.kotlin.streams.Stream
 
 @ExperimentalUnsignedTypes
-class SongReader(private val inputStream : FileInputStream) {
-    private val stream = StreamAdapter(inputStream).also {
-        it.defaultByteOrder = ByteOrder.BigEndian
-    }
-    
+class SongReader(private val stream : Stream) {
+
     private fun readEBeat() = stream.run {
         val time = readFloat()
         val measure = readShort()
@@ -23,7 +18,7 @@ class SongReader(private val inputStream : FileInputStream) {
     private fun <T> readMany(read : () -> T) = stream.run {
         val count = readInt()
         val list = ArrayList<T>(count)
-        for (i in 0 until count) list[i] = read()
+        for (i in 0 until count) list.add(read())
         list
     }
 
@@ -116,6 +111,15 @@ class SongReader(private val inputStream : FileInputStream) {
         Anchor2014(startBeatTime, fretId, width.toShort())
     }
 
+    private fun readAnchorExtension() = stream.run {
+        val beatTime = readFloat()
+        val fretId = readByte()
+        val unk2 = readInt()
+        val unk3 = readShort()
+        val unk4 = readByte()
+        Unit
+    }
+
     private fun readBendValue32() = stream.run {
         val time = readFloat()
         val step = readFloat()
@@ -129,6 +133,7 @@ class SongReader(private val inputStream : FileInputStream) {
         val bv = List(32) { readBendValue32() }
         val usedCount = readInt()
         bv.slice(0 until usedCount)
+//        bv.filter { it.time != 0f && it.step != 0f } // is it better?
     }
 
     private fun readNoteOrChord(
@@ -161,7 +166,7 @@ class SongReader(private val inputStream : FileInputStream) {
         val vibrato = readShort()
         val sustain = readFloat()
         val maxBend = readFloat()
-        val bendData = readMany { readBendValue() }
+        val bendData = readMany { readBendValue32() }
         fun maskValue(flag : Int) : Byte =
             if (noteMask and flag != 0) 1 else 0
         if (chordId == -1)
@@ -172,7 +177,7 @@ class SongReader(private val inputStream : FileInputStream) {
                 maskValue(NOTE_MASK_PALMMUTE), pluck, maskValue(NOTE_MASK_PULLOFF), slap, slideTo,
                 stringIndex, sustain, maskValue(NOTE_MASK_TREMOLO), maskValue(NOTE_MASK_PINCHHARMONIC),
                 pickDirection, maskValue(NOTE_MASK_RIGHTHAND),
-                slideUnpitchTo, tap, vibrato, bendData.fold(listOf()) { a, b -> a + b })
+                slideUnpitchTo, tap, vibrato, bendData)//.fold(listOf()) { a, b -> a + b })
         else {
             val chordNotes = ArrayList<Note2014>()
             if (chordNotesId != -1 && chordNotesId < cNotes.size) {
@@ -215,6 +220,7 @@ class SongReader(private val inputStream : FileInputStream) {
     ) = stream.run {
         val difficulty = readInt()
         val anchors = readMany { readAnchor() }
+        val anchorExtensions = readMany { readAnchorExtension() }
         val fingerprints1 = readMany { readHandShape() }
         val fingerprints2 = readMany { readHandShape() }
         val notesAndChords = readMany { readNoteOrChord(chordTemplates, cNotes) }
