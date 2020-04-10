@@ -11,7 +11,7 @@ import kotlin.math.ceil
 import kotlin.math.sin
 import kotlin.math.tanh
 
-// TODO bendy, zanikanie przy unpitched slide
+// TODO sustain dla pustej struny
 class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
     EventShape<Event.Note>(
         makeVertexCoords(note, scrollSpeed),
@@ -96,22 +96,25 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
                 vec4 pos = vPosition + uPosition;
                 gl_Position = uMVPMatrix * pos;
                 zPos = pos.z;
-                vTexCoord = vec2(vParity, vPosition.z / uMaxZ);
+                vTexCoord = vec2(vParity, -vPosition.z / uMaxZ);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
             uniform int uString;
+            uniform float unpitched;
             in float zPos;
             in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
+            $logisticGLSL
             void main() {
                 float dist = abs(vTexCoord.x);
                 float scaling = min(1.0, 1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14);
                 FragColor = vec4(scaling * stringColors[uString], 
-                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0));
+                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0) * 
+                        max(1.0 - unpitched, 1.0 - logistic(4.0*(vTexCoord.y - 0.5))));
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -147,21 +150,28 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
     override val sortLevel =
         SortLevel.StringTail(note.string.toInt())
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val parityHandle = glGetAttribLocation(mProgram, "vParity")
-        glEnableVertexAttribArray(parityHandle)
-        glVertexAttribPointer(parityHandle,
-            1, GL_FLOAT, false,
-            4, parityBuffer)
-        val positionHandle = glGetUniformLocation(mProgram, "uPosition")
-        glUniform4f(positionHandle,
-            event.fret - 0.5f,
-            1.5f * (event.string + 0.5f) / 6f,
-            (time - event.time) * scrollSpeed,
-            0f)
-        val stringHandle = glGetUniformLocation(mProgram, "uString")
-        glUniform1i(stringHandle, event.string.toInt())
-        val maxZHandle = glGetUniformLocation(mProgram, "uMaxZ")
-        glUniform1f(maxZHandle, event.sustain * scrollSpeed)
+        val parityHandle = glGetAttribLocation(mProgram, "vParity").also {
+            glEnableVertexAttribArray(it)
+            glVertexAttribPointer(it, 1, GL_FLOAT, false, 4, parityBuffer)
+        }
+        glGetUniformLocation(mProgram, "uPosition").also {
+            glUniform4f(
+                it,
+                event.fret - 0.5f,
+                1.5f * (event.string + 0.5f) / 6f,
+                (time - event.time) * scrollSpeed,
+                0f
+            )
+        }
+        glGetUniformLocation(mProgram, "uString").also {
+            glUniform1i(it, event.string.toInt())
+        }
+        glGetUniformLocation(mProgram, "uMaxZ").also {
+            glUniform1f(it, event.sustain * scrollSpeed)
+        }
+        glGetUniformLocation(mProgram, "unpitched").also {
+            glUniform1f(it, if (event.slideUnpitchedTo >= 0) 1f else 0f)
+        }
         super.internalDraw(time, scrollSpeed)
         glDisableVertexAttribArray(parityHandle)
     }

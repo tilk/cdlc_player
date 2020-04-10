@@ -6,6 +6,11 @@ import android.opengl.GLES31.*
 
 const val COORDS_PER_VERTEX = 3
 
+const val logisticGLSL = """
+float logistic(float x) {
+    return 0.5 + 0.5 * tanh(x);
+}
+"""
 const val stringColorsGLSL = """
 const vec3 stringColors[6] = vec3[](
     vec3(0.87, 0.33, 0.42),
