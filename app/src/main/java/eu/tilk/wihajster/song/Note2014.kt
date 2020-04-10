@@ -7,6 +7,7 @@ class Note2014() {
     constructor(
         time : Float,
         linkNext : Byte,
+        linked : Byte,
         accent : Byte,
         bend : Float,
         fret : Byte,
@@ -34,6 +35,7 @@ class Note2014() {
     ) : this() {
         this.time = time
         this.linkNext = linkNext
+        this.linked = linked
         this.accent = accent
         this.bend = bend
         this.fret = fret
@@ -63,6 +65,8 @@ class Note2014() {
     var time : Float = 0f
     @JacksonXmlProperty(isAttribute = true, localName = "linkNext")
     var linkNext : Byte = -1
+    @JacksonXmlProperty(isAttribute = true, localName = "linked")
+    var linked : Byte = -1
     @JacksonXmlProperty(isAttribute = true, localName = "accent")
     var accent : Byte = -1
     @JacksonXmlProperty(isAttribute = true, localName = "bend")

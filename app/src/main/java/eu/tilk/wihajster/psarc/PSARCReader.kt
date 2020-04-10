@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import eu.tilk.wihajster.manifest.Attributes
 import eu.tilk.wihajster.manifest.Manifest
 import eu.tilk.wihajster.song.Song2014
 import loggersoft.kotlin.streams.ByteOrder
@@ -74,7 +75,7 @@ class PSARCReader(private val inputStream : FileInputStream) {
         return mapper.readValue(str)
     }
 
-    fun inflateSng(name : String) : Song2014 {
+    fun inflateSng(name : String, attributes : Attributes) : Song2014 {
         val data = inflateFile(name)
         val stream = ByteArrayOutputStream(data.size - 24)
         decryptedSngStream(StreamAdapter(ByteArrayInputStream(data)), stream, data.size, sngKeyPC)
@@ -83,7 +84,7 @@ class PSARCReader(private val inputStream : FileInputStream) {
         val sngStream = StreamAdapter(ByteArrayInputStream(sngData)).also {
             it.defaultByteOrder = ByteOrder.LittleEndian
         }
-        return SongReader(sngStream).song
+        return SongReader(sngStream, attributes).song
     }
 
     private fun inflateEntry(entry : Entry, outputStream : OutputStream) {

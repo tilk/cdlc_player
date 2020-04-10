@@ -17,7 +17,8 @@ class MainActivity : Activity() {
         val song = resources.assets.openFd("songs/numberbeast_p.psarc").use {
             val psarc = PSARCReader(it.createInputStream())
             val file = psarc.inflateManifest("manifests/songs_dlc_numberbeast/numberbeast_lead.json")
-            psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng")
+            psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng",
+                file.entries.values.first().values.first())
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         glView = MyGLSurfaceView(this, song)

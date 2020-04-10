@@ -6,10 +6,12 @@ import android.opengl.GLES31.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.math.PI
 import kotlin.math.ceil
+import kotlin.math.sin
 import kotlin.math.tanh
 
-// TODO vibrato, bendy, zanikanie przy unpitched slide
+// TODO bendy, zanikanie przy unpitched slide
 class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
     EventShape<Event.Note>(
         makeVertexCoords(note, scrollSpeed),
@@ -41,7 +43,7 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
                         if (slideLen != 0) v = v * (1f + 10f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
                             slideLen * logistic(pct * 10f - 5f)
                         // add tremolo effect
-                        if (note.tremolo > 0)
+                        if (note.tremolo)
                             when (z % 8) {
                                 1,3 -> v += 0.05f
                                 2 -> v += 0.1f
@@ -50,7 +52,26 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
                             }
                         v
                     }
-                    1 -> 0f
+                    1 -> {
+                        var v = 0f
+                        // add vibrato effect
+                        if (note.vibrato > 0) {
+                            v += 0.15f * sin(4.0f * z.toFloat() / scaling) * sin(pct * PI.toFloat())
+                        }
+                        // add bend effect
+                        if (note.bend.isNotEmpty()) {
+                            val bi = note.bend.indexOfFirst { p -> p.first <= pct }
+                            val start = if (bi == -1) Pair(0f, 0f) else note.bend[bi]
+                            val end = if (note.bend.lastIndex < bi+1)
+                                Pair(1f, note.bend.last().second) else note.bend[bi+1]
+                            val prog = (pct - start.first)/(end.first - start.first)
+                            val amnt = start.second + logistic(prog * 10f - 5f) *
+                                    (end.second - start.second)
+                            val dir = if (note.string > 2) -1f else 1f
+                            v += 0.25f * amnt * dir
+                        }
+                        v
+                    }
                     2 -> -z.toFloat() / scaling
                     else -> error("Should not happen!")
                 }

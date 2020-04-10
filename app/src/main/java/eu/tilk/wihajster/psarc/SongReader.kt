@@ -1,10 +1,11 @@
 package eu.tilk.wihajster.psarc
 
+import eu.tilk.wihajster.manifest.Attributes
 import eu.tilk.wihajster.song.*
 import loggersoft.kotlin.streams.Stream
 
 @ExperimentalUnsignedTypes
-class SongReader(private val stream : Stream) {
+class SongReader(private val stream : Stream, private val attributes : Attributes) {
 
     private fun readEBeat() = stream.run {
         val time = readFloat()
@@ -171,7 +172,8 @@ class SongReader(private val stream : Stream) {
             if (noteMask and flag != 0) 1 else 0
         if (chordId == -1)
             Note2014(
-                time, maskValue(NOTE_MASK_PARENT), maskValue(NOTE_MASK_ACCENT), maxBend, fretId,
+                time, maskValue(NOTE_MASK_PARENT), maskValue(NOTE_MASK_CHILD),
+                maskValue(NOTE_MASK_ACCENT), maxBend, fretId,
                 maskValue(NOTE_MASK_HAMMERON), maskValue(NOTE_MASK_HARMONIC), 0,
                 maskValue(NOTE_MASK_IGNORE), leftHand, maskValue(NOTE_MASK_MUTE),
                 maskValue(NOTE_MASK_PALMMUTE), pluck, maskValue(NOTE_MASK_PULLOFF), slap, slideTo,
@@ -187,7 +189,7 @@ class SongReader(private val stream : Stream) {
                         continue // TODO is this right?
                     val note = cNotes[chordNotesId][i]
                     chordNotes.add(Note2014(
-                        time, note.linkNext, note.accent, note.bend, template.fret[i],
+                        time, note.linkNext, note.linked, note.accent, note.bend, template.fret[i],
                         note.hammerOn, note.harmonic, note.hopo, note.ignore,
                         template.finger[i], note.mute, note.palmMute, note.pluck, note.pullOff,
                         note.slap, note.slideTo, note.string, sustain, note.tremolo,
@@ -286,7 +288,8 @@ class SongReader(private val stream : Stream) {
                 if (noteMask[i] and flag != 0) 1 else 0
             val maxBend = bendData[i].map { it.step }.max() ?: 0f
             Note2014(
-                0f, maskValue(NOTE_MASK_PARENT), maskValue(NOTE_MASK_ACCENT), maxBend,
+                0f, maskValue(NOTE_MASK_PARENT), maskValue(NOTE_MASK_CHILD),
+                maskValue(NOTE_MASK_ACCENT), maxBend,
                 -1, maskValue(NOTE_MASK_HAMMERON), maskValue(NOTE_MASK_HARMONIC), 0,
                 maskValue(NOTE_MASK_IGNORE), -1, maskValue(NOTE_MASK_MUTE),
                 maskValue(NOTE_MASK_PALMMUTE), -1, maskValue(NOTE_MASK_PULLOFF), -1, slideTo[i],
@@ -299,6 +302,28 @@ class SongReader(private val stream : Stream) {
 
     private fun readSong2014() = stream.run {
         val song = Song2014()
+        song.title = attributes.songName
+        song.arrangement = when (attributes.arrangementType) {
+            0 -> "Lead"
+            1 -> "Rhythm"
+            2 -> "Combo"
+            3 -> "Bass"
+            4 -> "Vocals"
+            5 -> "JVocals"
+            6 -> "ShowLights"
+            else -> ""
+        }
+        song.offset = attributes.songOffset
+        song.centOffset = attributes.centOffset
+        song.songNameSort = attributes.songNameSort
+        song.averageTempo = attributes.songAverageTempo
+        song.artistName = attributes.artistName
+        song.artistNameSort = attributes.artistNameSort
+        song.albumName = attributes.albumName
+        song.albumNameSort = attributes.albumNameSort
+        song.albumYear = attributes.songYear
+        song.albumArt = attributes.albumArt
+
         song.ebeats = readMany { readEBeat() }
         song.startBeat = song.ebeats[0].time
         song.phrases = readMany { readPhrase() }

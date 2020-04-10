@@ -16,7 +16,7 @@ class Song2014 {
     @JacksonXmlProperty(localName = "offset")
     var offset: Float = 0F
     @JacksonXmlProperty(localName = "centOffset")
-    lateinit var centOffset: String
+    var centOffset: Float = 0f
     @JacksonXmlProperty(localName = "songLength")
     var songLength: Float = 0F
     @JacksonXmlProperty(localName = "songNameSort")
@@ -38,7 +38,7 @@ class Song2014 {
     @JacksonXmlProperty(localName = "albumNameSort")
     lateinit var albumNameSort: String
     @JacksonXmlProperty(localName = "albumYear")
-    lateinit var albumYear: String
+    var albumYear: Int = 0
     @JacksonXmlProperty(localName = "albumArt")
     lateinit var albumArt: String
     @JacksonXmlProperty(localName = "crowdSpeed")
@@ -106,32 +106,28 @@ class Song2014 {
             if (ebeat.time >= startTime && ebeat.time < endTime)
                 list.add(TEvent.Beat(ebeat.time, ebeat.measure))
         }
+        fun noteFrom(note : Note2014) = TEvent.Note(
+            note.time,
+            note.fret,
+            note.string,
+            note.sustain,
+            note.slideTo,
+            note.slideUnpitchTo,
+            note.tremolo > 0,
+            note.linked > 0,
+            note.vibrato,
+            note.bendValues.map { bv -> Pair((bv.time - note.time) / note.sustain, bv.step) }
+        )
         for (note in levels[level].notes) {
             if (note.time >= startTime && note.time < endTime)
-                list.add(TEvent.Note(
-                    note.time,
-                    note.fret,
-                    note.string,
-                    note.sustain,
-                    note.slideTo,
-                    note.slideUnpitchTo,
-                    note.tremolo
-                ))
+                list.add(noteFrom(note))
         }
         for (chord in levels[level].chords) {
             val chordTpl = chordTemplates[chord.chordId]
             if (chord.time >= startTime && chord.time < endTime)
                 if (chord.chordNotes.isNotEmpty())
                     for (note in chord.chordNotes)
-                        list.add(TEvent.Note(
-                            note.time,
-                            note.fret,
-                            note.string,
-                            note.sustain,
-                            note.slideTo,
-                            note.slideUnpitchTo,
-                            note.tremolo
-                        ))
+                        list.add(noteFrom(note))
                 else
                     for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0)
                         list.add(TEvent.Note(

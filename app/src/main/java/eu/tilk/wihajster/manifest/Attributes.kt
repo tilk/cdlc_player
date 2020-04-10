@@ -11,6 +11,8 @@ class Attributes {
     var albumNameSort : String = ""
     @JsonProperty("ArrangementName")
     var arrangementName : String = ""
+    @JsonProperty("ArrangementType")
+    var arrangementType : Int = 0
     @JsonProperty("ArrangementProperties")
     var arrangementProperties : Map<String, Int> = HashMap()
     @JsonProperty("ArtistName")
@@ -41,6 +43,8 @@ class Attributes {
     var sections : List<Section> = ArrayList()
     @JsonProperty("SongAsset")
     var songAsset : String = ""
+    @JsonProperty("SongAverageTempo")
+    var songAverageTempo : Float = 0f
     @JsonProperty("SongDifficulty")
     var songDifficulty : Float = 0f
     @JsonProperty("SongEvent")
@@ -53,6 +57,8 @@ class Attributes {
     var songName : String = ""
     @JsonProperty("SongNameSort")
     var songNameSort : String = ""
+    @JsonProperty("SongOffset")
+    var songOffset : Float = 0f
     @JsonProperty("SongPartition")
     var songPartition : Int = 0
     @JsonProperty("SongYear")
@@ -61,7 +67,4 @@ class Attributes {
     var vocalsAssetId : String = ""
     @JsonProperty("FirstArrangementInSong")
     var firstArrangementInSong : Boolean = false
-    @JsonProperty("SongAverageTempo")
-    var songAverageTempo : Int = 0
-
 }

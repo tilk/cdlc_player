@@ -97,15 +97,16 @@ class SongScroller(
                     events.add(lastAnchor)
                 }
                 is Event.Note -> {
-                    if (event.fret > 0)
-                        events.add(Note(event))
-                    else
-                        events.add(
-                            EmptyStringNote(
-                                event,
-                                lastAnchor.event
+                    if (!event.linked)
+                        if (event.fret > 0)
+                            events.add(Note(event))
+                        else
+                            events.add(
+                                EmptyStringNote(
+                                    event,
+                                    lastAnchor.event
+                                )
                             )
-                        )
                     if (event.sustain > 0f)
                         events.add(NoteTail(event, lastAnchor.event, scrollSpeed))
                 }
