@@ -14,14 +14,13 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        resources.assets.openFd("songs/numberbeast_p.psarc").use {
+        val song = resources.assets.openFd("songs/numberbeast_p.psarc").use {
             val psarc = PSARCReader(it.createInputStream())
             val file = psarc.inflateManifest("manifests/songs_dlc_numberbeast/numberbeast_lead.json")
-            val song = psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng")
-            Unit
+            psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng")
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        glView = MyGLSurfaceView(this)
+        glView = MyGLSurfaceView(this, song)
         setContentView(glView)
     }
 }

@@ -12,7 +12,7 @@ class SongReader(private val stream : Stream) {
         val beat = readShort()
         val phraseIteration = readInt()
         val mask = readInt()
-        EBeat(time, measure)
+        EBeat(time, if (mask != 0) measure else -1)
     }
 
     private fun <T> readMany(read : () -> T) = stream.run {

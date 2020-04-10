@@ -225,22 +225,12 @@ class MyGLRenderer(val song : List<Event>, private val context : Context) : GLSu
     }
 }
 
-class MyGLSurfaceView(context : Context) : GLSurfaceView(context) {
+class MyGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(context) {
     private val renderer : MyGLRenderer
     init {
         setEGLContextClientVersion(3)
         setEGLConfigChooser(8, 8, 8, 8, 16, 4)
-        val song = loadSong("songs/funsome_lead.xml")
         renderer = MyGLRenderer(song.makeEventList(), context)
         setRenderer(renderer)
-    }
-    private fun loadSong(name : String) : Song2014 {
-        val xmlMapper = XmlMapper().apply {
-            registerModule(KotlinModule())
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        }
-        return context.resources.assets.open(name).use { input ->
-            xmlMapper.readValue(input)
-        }
     }
 }
