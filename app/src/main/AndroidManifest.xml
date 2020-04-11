@@ -35,12 +35,13 @@
             android:screenOrientation="landscape"
             android:keepScreenOn="true"
             android:configChanges="orientation|keyboardHidden"
-            android:name=".MainActivity"
+            android:name=".ViewerActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             tools:ignore="LockedOrientationActivity">
+        </activity>
+        <activity android:name=".SongListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

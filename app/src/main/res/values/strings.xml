@@ -17,4 +17,5 @@
 
 <resources>
     <string name="app_name">Wihajster</string>
+    <string name="add_song">Add song</string>
 </resources>

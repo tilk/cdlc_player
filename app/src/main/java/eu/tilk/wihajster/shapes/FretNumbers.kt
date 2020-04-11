@@ -17,7 +17,7 @@
 
 package eu.tilk.wihajster.shapes
 
-import eu.tilk.wihajster.Textures
+import eu.tilk.wihajster.viewer.Textures
 import android.opengl.GLES31.*
 
 class FretNumbers(

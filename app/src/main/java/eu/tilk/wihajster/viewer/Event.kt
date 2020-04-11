@@ -15,22 +15,32 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package eu.tilk.wihajster
+package eu.tilk.wihajster.viewer
 
-sealed class SortLevel {
-    abstract fun level() : Int
+sealed class Event {
+    abstract val time : Float
 
-    abstract class Const(private val level : Int) : SortLevel() {
-        override fun level() = level
-    }
+    data class Note(
+        override val time : Float,
+        val fret : Byte,
+        val string : Byte,
+        val sustain : Float = 0f,
+        val slideTo : Byte = -1,
+        val slideUnpitchedTo : Byte = -1,
+        val tremolo : Boolean = false,
+        val linked : Boolean = false,
+        val vibrato : Short = 0,
+        val bend : List<Pair<Float, Float>> = ArrayList()
+    ) : Event()
 
-    object Tab : Const(-2)
-    object Beat : Const(-1)
-    data class String(val string : Int) : SortLevel() {
-        override fun level() = 2*string+1
-    }
-    data class StringTail(val string : Int) : SortLevel() {
-        override fun level() = 2*string
-    }
-    object Chord : Const(13)
+    data class Beat(
+        override val time : Float,
+        val measure : Short
+    ) : Event()
+
+    data class Anchor(
+        override val time : Float,
+        val fret : Byte,
+        val width : Short
+    ) : Event()
 }

@@ -17,8 +17,8 @@
 
 package eu.tilk.wihajster.shapes
 
-import eu.tilk.wihajster.Event
-import eu.tilk.wihajster.SortLevel
+import eu.tilk.wihajster.viewer.Event
+import eu.tilk.wihajster.viewer.SortLevel
 import android.opengl.GLES31.*
 
 class Note(note : Event.Note) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {

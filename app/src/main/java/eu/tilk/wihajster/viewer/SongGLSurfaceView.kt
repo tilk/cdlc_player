@@ -15,17 +15,21 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package eu.tilk.wihajster.shapes
+package eu.tilk.wihajster.viewer
 
-import eu.tilk.wihajster.viewer.Event
-import eu.tilk.wihajster.viewer.SortLevel
+import android.content.Context
+import android.opengl.GLSurfaceView
+import eu.tilk.wihajster.song.Song2014
 
-abstract class EventShape<out T : Event>(
-    vertexCoords : FloatArray,
-    drawOrder : ShortArray,
-    mProgram : Int,
-    val event : T
-) : StaticShape(vertexCoords, drawOrder, mProgram) {
-    open val endTime : Float get() = event.time
-    abstract val sortLevel : SortLevel
+class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(context) {
+    private val renderer : SongGLRenderer
+    init {
+        setEGLContextClientVersion(3)
+        setEGLConfigChooser(8, 8, 8, 8, 16, 4)
+        renderer = SongGLRenderer(
+            song.makeEventList(),
+            context
+        )
+        setRenderer(renderer)
+    }
 }

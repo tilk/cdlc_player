@@ -15,17 +15,22 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package eu.tilk.wihajster.shapes
+package eu.tilk.wihajster.viewer
 
-import eu.tilk.wihajster.viewer.Event
-import eu.tilk.wihajster.viewer.SortLevel
+sealed class SortLevel {
+    abstract fun level() : Int
 
-abstract class EventShape<out T : Event>(
-    vertexCoords : FloatArray,
-    drawOrder : ShortArray,
-    mProgram : Int,
-    val event : T
-) : StaticShape(vertexCoords, drawOrder, mProgram) {
-    open val endTime : Float get() = event.time
-    abstract val sortLevel : SortLevel
+    abstract class Const(private val level : Int) : SortLevel() {
+        override fun level() = level
+    }
+
+    object Tab : Const(-2)
+    object Beat : Const(-1)
+    data class String(val string : Int) : SortLevel() {
+        override fun level() = 2*string+1
+    }
+    data class StringTail(val string : Int) : SortLevel() {
+        override fun level() = 2*string
+    }
+    object Chord : Const(13)
 }

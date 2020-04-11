@@ -21,6 +21,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -58,17 +60,37 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.10.3'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.10.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.3'
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.3"
+    implementation "androidx.recyclerview:recyclerview:1.1.0"
+    implementation "com.fasterxml.jackson.core:jackson-core:$rootProject.jacksonVersion"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$rootProject.jacksonVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$rootProject.jacksonVersion"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$rootProject.jacksonVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$rootProject.jacksonVersion"
     implementation 'javax.xml.stream:stax-api:1.0-2'
     implementation 'net.sf.loggersoft.kotlin:binary-streams:0.33'
+
+    // Material design
+    implementation "com.google.android.material:material:$rootProject.materialVersion"
+
+    // Room
+    implementation "androidx.room:room-runtime:$rootProject.roomVersion"
+    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+
+    // Lifecycle components
+    implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
+    kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.archLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.archLifecycleVersion"
+
+    // Kotlin components
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutines"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutines"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

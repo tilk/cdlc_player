@@ -21,24 +21,42 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 data class Tuning(
     @JacksonXmlProperty(isAttribute = true, localName = "string0")
-    var string0 : Int,
+    var string0 : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "string1")
-    var string1 : Int,
+    var string1 : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "string2")
-    var string2 : Int,
+    var string2 : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "string3")
-    var string3 : Int,
+    var string3 : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "string4")
-    var string4 : Int,
+    var string4 : Short,
     @JacksonXmlProperty(isAttribute = true, localName = "string5")
-    var string5 : Int
+    var string5 : Short
 ) {
     constructor(strings : List<Short>) : this(
-        (strings.getOrNull(0) ?: -1).toInt(),
-        (strings.getOrNull(1) ?: -1).toInt(),
-        (strings.getOrNull(2) ?: -1).toInt(),
-        (strings.getOrNull(3) ?: -1).toInt(),
-        (strings.getOrNull(4) ?: -1).toInt(),
-        (strings.getOrNull(5) ?: -1).toInt()
+        (strings.getOrNull(0) ?: -1),
+        (strings.getOrNull(1) ?: -1),
+        (strings.getOrNull(2) ?: -1),
+        (strings.getOrNull(3) ?: -1),
+        (strings.getOrNull(4) ?: -1),
+        (strings.getOrNull(5) ?: -1)
     ){}
+    fun name() : String = when {
+        strings.all { it == string0 } -> "Standard " + stringName(string0)
+        strings.subList(1, 5).all { it == (string0 - 1).toShort() } -> "Drop " + stringName(string0)
+        else -> "Custom"
+    }
+    val strings : List<Short>
+        get() = arrayListOf(string0, string1, string2, string3, string4, string5)
+    companion object {
+        private fun stringName(s : Short) = when(s.toInt()) {
+            0 -> "E"
+            1 -> "D♯"
+            2 -> "D"
+            3 -> "C♯"
+            4 -> "C"
+            5 -> "B"
+            else -> "?"
+        }
+    }
 }

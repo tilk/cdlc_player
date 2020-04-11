@@ -23,9 +23,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
 import eu.tilk.wihajster.psarc.PSARCReader
-import java.nio.charset.Charset
+import eu.tilk.wihajster.viewer.SongGLSurfaceView
 
-class MainActivity : Activity() {
+class ViewerActivity : Activity() {
 
     private lateinit var glView : GLSurfaceView
 
@@ -38,7 +38,7 @@ class MainActivity : Activity() {
                 file.entries.values.first().values.first())
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        glView = MyGLSurfaceView(this, song)
+        glView = SongGLSurfaceView(this, song)
         setContentView(glView)
     }
 }

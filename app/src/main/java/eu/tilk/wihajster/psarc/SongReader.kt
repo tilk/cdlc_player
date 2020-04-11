@@ -340,6 +340,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.albumNameSort = attributes.albumNameSort
         song.albumYear = attributes.songYear
         song.albumArt = attributes.albumArt
+        song.persistentID = attributes.persistentID
 
         song.ebeats = readMany { readEBeat() }
         song.startBeat = song.ebeats[0].time

@@ -20,14 +20,16 @@ package eu.tilk.wihajster.song
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import eu.tilk.wihajster.Event as TEvent
+import eu.tilk.wihajster.viewer.Event as TEvent
 
 @JacksonXmlRootElement(localName = "Song")
 class Song2014 {
+    @JacksonXmlProperty(localName = "persistentID")
+    var persistentID: String = ""
     @JacksonXmlProperty(localName = "title")
-    lateinit var title: String
+    var title: String = ""
     @JacksonXmlProperty(localName = "arrangement")
-    lateinit var arrangement: String
+    var arrangement: String = ""
     @JacksonXmlProperty(localName = "part")
     var part: Int = -1
     @JacksonXmlProperty(localName = "offset")
@@ -37,7 +39,7 @@ class Song2014 {
     @JacksonXmlProperty(localName = "songLength")
     var songLength: Float = 0F
     @JacksonXmlProperty(localName = "songNameSort")
-    lateinit var songNameSort: String
+    var songNameSort: String = ""
     @JacksonXmlProperty(localName = "startBeat")
     var startBeat: Float = 0F
     @JacksonXmlProperty(localName = "averageTempo")
@@ -47,23 +49,23 @@ class Song2014 {
     @JacksonXmlProperty(localName = "capo")
     var capo: Int = -1
     @JacksonXmlProperty(localName = "artistName")
-    lateinit var artistName: String
+    var artistName: String = ""
     @JacksonXmlProperty(localName = "artistNameSort")
-    lateinit var artistNameSort: String
+    var artistNameSort: String = ""
     @JacksonXmlProperty(localName = "albumName")
-    lateinit var albumName: String
+    var albumName: String = ""
     @JacksonXmlProperty(localName = "albumNameSort")
-    lateinit var albumNameSort: String
+    var albumNameSort: String = ""
     @JacksonXmlProperty(localName = "albumYear")
     var albumYear: Int = 0
     @JacksonXmlProperty(localName = "albumArt")
-    lateinit var albumArt: String
+    var albumArt: String = ""
     @JacksonXmlProperty(localName = "crowdSpeed")
-    lateinit var crowdSpeed: String
+    var crowdSpeed: String = ""
     @JacksonXmlProperty(localName = "arrangementProperties")
-    lateinit var arrangementProperties: ArrangementProperties2014
+    var arrangementProperties: ArrangementProperties2014? = null
     @JacksonXmlProperty(localName = "lastConversionDateTime")
-    lateinit var lastConversionDateTime: String
+    var lastConversionDateTime: String = ""
     @JacksonXmlProperty(localName = "phrase")
     @JacksonXmlElementWrapper(localName = "phrases")
     var phrases: List<Phrase> = ArrayList()
@@ -108,7 +110,7 @@ class Song2014 {
     @JacksonXmlElementWrapper(localName = "controls")
     var controls: List<Control> = ArrayList()
     @JacksonXmlProperty(localName = "transcriptionTrack")
-    lateinit var transcriptionTrack: TranscriptionTrack2014
+    var transcriptionTrack: TranscriptionTrack2014? = null
     @JacksonXmlElementWrapper(localName = "levels")
     @JacksonXmlProperty(localName = "level")
     var levels: List<Level2014> = ArrayList()
