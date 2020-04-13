@@ -47,7 +47,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val padding = readByte()
         val maxDifficulty = readInt()
         val phraseIterationLinks = readInt()
-        val name = readString(length = 32)
+        val name = readString(length = 32).trimEnd('\u0000')
         Phrase(disparity, ignore, maxDifficulty, name, solo)
     }
 
@@ -56,7 +56,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val frets = Array(6) { readByte() }
         val fingers = Array(6) { readByte() }
         val notes = Array(6) { readInt() }
-        val name = readString(length = 32)
+        val name = readString(length = 32).trimEnd('\u0000')
         // TODO: arpeggio and nop, see SongChordTemplate2014.parse
         ChordTemplate2014(
             name, name,
@@ -95,7 +95,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
 
     private fun readEvent() = stream.run {
         val time = readFloat()
-        val eventName = readString(length = 256)
+        val eventName = readString(length = 256).trimEnd('\u0000')
         Event(time, eventName)
     }
 
@@ -107,7 +107,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
     }
 
     private fun readSection() = stream.run {
-        val name = readString(length = 32)
+        val name = readString(length = 32).trimEnd('\u0000')
         val number = readInt()
         val startTime = readFloat()
         val endTime = readFloat()
@@ -259,7 +259,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val firstBeatLength = readFloat()
         val startTime = readFloat()
         val capoFretId = readByte()
-        val lastConversionDateTime = readString(length = 32)
+        val lastConversionDateTime = readString(length = 32).trimEnd('\u0000')
         val part = readShort()
         val songLength = readFloat()
         val stringCount = readInt()
@@ -282,7 +282,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
 
     private fun readAction() = stream.run {
         val time = readFloat()
-        val actionName = readString(length = 256)
+        val actionName = readString(length = 256).trimEnd('\u0000')
         Unit
     }
 
@@ -290,7 +290,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val time = readFloat()
         val note = readInt()
         val length = readFloat()
-        val lyric = readString(length = 48)
+        val lyric = readString(length = 48).trimEnd('\u0000')
         Unit
     }
 
@@ -341,6 +341,13 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.albumYear = attributes.songYear
         song.albumArt = attributes.albumArt
         song.persistentID = attributes.persistentID
+        song.arrangementProperties = ArrangementProperties2014(attributes.arrangementProperties)
+        song.toneA = attributes.toneA
+        song.toneB = attributes.toneB
+        song.toneC = attributes.toneC
+        song.toneD = attributes.toneD
+        song.toneBase = attributes.toneBase
+
 
         song.ebeats = readMany { readEBeat() }
         song.startBeat = song.ebeats[0].time
@@ -358,6 +365,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.sections = readMany { readSection() }
         song.levels = readMany { readLevel(song.chordTemplates, cNotes) }
         readMetadata(song)
+        song.transcriptionTrack = TranscriptionTrack2014()
         song
     }
 

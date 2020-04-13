@@ -42,7 +42,12 @@ class SongListActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list);
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
-        val adapter = SongListAdapter(this)
+        val adapter = SongListAdapter(this) {
+            val intent = Intent(this, ViewerActivity::class.java).apply {
+                putExtra(ViewerActivity.SONG_ID, it.persistentID)
+            }
+            startActivity(intent)
+        }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
         songViewModel = ViewModelProvider(this).get(SongViewModel::class.java)

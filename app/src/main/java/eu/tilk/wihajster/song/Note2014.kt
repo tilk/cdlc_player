@@ -17,6 +17,8 @@
 
 package eu.tilk.wihajster.song
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
@@ -130,6 +132,7 @@ class Note2014() {
     var tap : Byte = -1
     @JacksonXmlProperty(isAttribute = true, localName = "vibrato")
     var vibrato : Short = -1
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "bendValue")
     @JacksonXmlElementWrapper(localName = "bendValues")
     var bendValues : List<BendValue> = ArrayList()

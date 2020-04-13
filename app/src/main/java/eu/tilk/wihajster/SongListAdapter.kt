@@ -18,15 +18,18 @@
 package eu.tilk.wihajster
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import eu.tilk.wihajster.data.Song
 
 class SongListAdapter internal constructor(
-    context : Context
+    context : Context,
+    val playCallback : (Song) -> Unit
 ) : RecyclerView.Adapter<SongListAdapter.SongViewHolder>() {
 
     private val inflater : LayoutInflater = LayoutInflater.from(context)
@@ -34,6 +37,9 @@ class SongListAdapter internal constructor(
 
     inner class SongViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
         val songTitleView : TextView = itemView.findViewById(R.id.titleView)
+        val songArtistView : TextView = itemView.findViewById(R.id.artistView)
+        val songArrangementView : TextView = itemView.findViewById(R.id.arrangementView)
+        val playButton : ImageButton = itemView.findViewById(R.id.playButton)
     }
 
     override fun onCreateViewHolder(parent : ViewGroup, viewType : Int) : SongViewHolder {
@@ -46,6 +52,11 @@ class SongListAdapter internal constructor(
     override fun onBindViewHolder(holder : SongViewHolder, position : Int) {
         val current = songs[position]
         holder.songTitleView.text = current.title
+        holder.songArtistView.text = current.artistName
+        holder.songArrangementView.text = current.arrangement
+        holder.playButton.setOnClickListener {
+            playCallback(current)
+        }
     }
 
     internal fun setSongs(songs : List<Song>) {

@@ -84,4 +84,14 @@ class Attributes {
     var vocalsAssetId : String = ""
     @JsonProperty("FirstArrangementInSong")
     var firstArrangementInSong : Boolean = false
+    @JsonProperty("Tone_A")
+    var toneA : String = ""
+    @JsonProperty("Tone_B")
+    var toneB : String = ""
+    @JsonProperty("Tone_C")
+    var toneC : String = ""
+    @JsonProperty("Tone_D")
+    var toneD : String = ""
+    @JsonProperty("Tone_Base")
+    var toneBase : String = ""
 }

@@ -22,7 +22,13 @@ import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import eu.tilk.wihajster.psarc.PSARCReader
+import eu.tilk.wihajster.song.Song2014
 import eu.tilk.wihajster.viewer.SongGLSurfaceView
 
 class ViewerActivity : Activity() {
@@ -31,14 +37,24 @@ class ViewerActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val songId = intent.getStringExtra(SONG_ID)
+        /*
         val song = resources.assets.openFd("songs/numberbeast_p.psarc").use {
             val psarc = PSARCReader(it.createInputStream())
             val file = psarc.inflateManifest("manifests/songs_dlc_numberbeast/numberbeast_lead.json")
             psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng",
                 file.entries.values.first().values.first())
-        }
+        }*/
+        val song : Song2014 = XmlMapper()
+            .registerModule(KotlinModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(openFileInput("$songId.xml"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         glView = SongGLSurfaceView(this, song)
         setContentView(glView)
+    }
+
+    companion object {
+        const val SONG_ID = "eu.tilk.wihajster.SONG_ID"
     }
 }

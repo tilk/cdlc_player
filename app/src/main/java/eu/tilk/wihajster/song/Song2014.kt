@@ -17,6 +17,8 @@
 
 package eu.tilk.wihajster.song
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
@@ -63,27 +65,34 @@ class Song2014 {
     @JacksonXmlProperty(localName = "crowdSpeed")
     var crowdSpeed: String = ""
     @JacksonXmlProperty(localName = "arrangementProperties")
-    var arrangementProperties: ArrangementProperties2014? = null
+    lateinit var arrangementProperties: ArrangementProperties2014
     @JacksonXmlProperty(localName = "lastConversionDateTime")
     var lastConversionDateTime: String = ""
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "phrase")
     @JacksonXmlElementWrapper(localName = "phrases")
     var phrases: List<Phrase> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "newLinkedDiff")
     @JacksonXmlElementWrapper(localName = "newLinkedDiffs")
     var newLinkedDiffs: List<NewLinkedDiff> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "phraseIteration")
     @JacksonXmlElementWrapper(localName = "phraseIterations")
     var phraseIterations: List<PhraseIteration2014> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "linkedDiff")
     @JacksonXmlElementWrapper(localName = "linkedDiffs")
     var linkedDiffs: List<LinkedDiff> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "phraseProperty")
     @JacksonXmlElementWrapper(localName = "phraseProperties")
     var phraseProperties: List<PhraseProperty> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "chordTemplate")
     @JacksonXmlElementWrapper(localName = "chordTemplates")
     var chordTemplates: List<ChordTemplate2014> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "ebeat")
     @JacksonXmlElementWrapper(localName = "ebeats")
     var ebeats: List<EBeat> = ArrayList()
@@ -97,20 +106,24 @@ class Song2014 {
     var toneC: String? = null
     @JacksonXmlProperty(localName = "toned")
     var toneD: String? = null
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "tone")
     @JacksonXmlElementWrapper(localName = "tones")
     var tones: List<Tone2014> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "section")
     @JacksonXmlElementWrapper(localName = "sections")
     var sections: List<Section> = ArrayList()
     @JacksonXmlProperty(localName = "event")
     @JacksonXmlElementWrapper(localName = "events")
     var events: List<Event> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "control")
     @JacksonXmlElementWrapper(localName = "controls")
     var controls: List<Control> = ArrayList()
     @JacksonXmlProperty(localName = "transcriptionTrack")
     var transcriptionTrack: TranscriptionTrack2014? = null
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlElementWrapper(localName = "levels")
     @JacksonXmlProperty(localName = "level")
     var levels: List<Level2014> = ArrayList()

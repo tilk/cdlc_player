@@ -17,6 +17,7 @@
 
 package eu.tilk.wihajster.song
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 data class ChordTemplate2014(
@@ -49,6 +50,8 @@ data class ChordTemplate2014(
     @JacksonXmlProperty(isAttribute = true, localName = "finger5")
     var finger5 : Byte = -1
 ) {
-    val fret : Array<Byte> get() = arrayOf(fret0, fret1, fret2, fret3, fret4, fret5)
-    val finger : Array<Byte> get() = arrayOf(finger0, finger1, finger2, finger3, finger4, finger5)
+    val fret : Array<Byte>
+        @JsonIgnore get() = arrayOf(fret0, fret1, fret2, fret3, fret4, fret5)
+    val finger : Array<Byte>
+        @JsonIgnore get() = arrayOf(finger0, finger1, finger2, finger3, finger4, finger5)
 }

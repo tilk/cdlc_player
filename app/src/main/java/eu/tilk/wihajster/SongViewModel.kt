@@ -21,6 +21,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -32,14 +33,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SongViewModel(private val app : Application) : AndroidViewModel(app) {
+    private val database = SongRoomDatabase.getDatabase(app)
     private val dao : SongDao = SongRoomDatabase.getDatabase(app).songDao()
 
     fun insert(song : Song2014) = viewModelScope.launch(Dispatchers.IO) {
-        dao.insert(Song(song))
-        app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
-            it.write(XmlMapper().registerModule(KotlinModule())
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-                .writeValueAsBytes(song))
+        database.withTransaction {
+            dao.insert(Song(song))
+            app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
+                it.write(XmlMapper().registerModule(KotlinModule())
+                    .writeValueAsBytes(song))
+            }
         }
     }
 

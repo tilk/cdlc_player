@@ -32,6 +32,8 @@ data class Song(
     val title : String,
     @ColumnInfo(index = true)
     val songNameSort : String,
+    val artistName : String,
+    val artistNameSort : String,
     val arrangement : String,
     val part : Int,
     val songLength : Float,
@@ -47,6 +49,8 @@ data class Song(
         song.persistentID,
         song.title,
         song.songNameSort,
+        song.artistName,
+        song.artistNameSort,
         song.arrangement,
         song.part,
         song.songLength,

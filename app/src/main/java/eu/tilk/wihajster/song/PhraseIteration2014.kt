@@ -17,6 +17,8 @@
 
 package eu.tilk.wihajster.song
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
@@ -33,6 +35,7 @@ class PhraseIteration2014() {
     var time : Float = 0f
     @JacksonXmlProperty(isAttribute = true, localName = "phraseId")
     var phraseId : Int = -1
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "heroLevel")
     @JacksonXmlElementWrapper(localName = "heroLevels")
     var heroLevels : List<HeroLevel> = ArrayList()
