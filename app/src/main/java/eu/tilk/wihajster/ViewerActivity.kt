@@ -38,13 +38,6 @@ class ViewerActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val songId = intent.getStringExtra(SONG_ID)
-        /*
-        val song = resources.assets.openFd("songs/numberbeast_p.psarc").use {
-            val psarc = PSARCReader(it.createInputStream())
-            val file = psarc.inflateManifest("manifests/songs_dlc_numberbeast/numberbeast_lead.json")
-            psarc.inflateSng("songs/bin/generic/numberbeast_lead.sng",
-                file.entries.values.first().values.first())
-        }*/
         val song : Song2014 = XmlMapper()
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

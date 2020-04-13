@@ -17,6 +17,7 @@
 
 package eu.tilk.wihajster.viewer
 
+import android.app.Activity
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
@@ -29,9 +30,11 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.tan
 import android.opengl.GLES31.*
+import eu.tilk.wihajster.song.Song2014
 
-class SongGLRenderer(val song : List<Event>, private val context : Context) :
+class SongGLRenderer(val data : Song2014, private val context : Context) :
     GLSurfaceView.Renderer {
+    val song : List<Event> = data.makeEventList()
     private lateinit var textures : Textures
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
@@ -150,6 +153,8 @@ class SongGLRenderer(val song : List<Event>, private val context : Context) :
             frontRightFret
         )
             .draw(vPMatrix, scroller.currentTime, scrollSpeed)
+
+        if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
