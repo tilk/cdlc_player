@@ -56,6 +56,11 @@ class SongScroller(
 
         while (position < song.size && song[position].time < time + horizon) {
             when (val event = song[position++]) {
+                is Event.Chord -> {
+                    events.add(
+                        ChordInfo(event, lastAnchor.event)
+                    )
+                }
                 is Event.Anchor -> {
                     lastAnchor.lastAnchorTime = event.time
                     lastAnchor =

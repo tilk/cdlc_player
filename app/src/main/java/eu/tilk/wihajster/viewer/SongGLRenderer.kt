@@ -67,6 +67,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         //glEnable(GL_DEPTH_TEST)
+        textures = Textures(context, data)
         Neck.initialize()
         FretNumbers.initialize()
         Anchor.initialize()
@@ -74,7 +75,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         NoteTail.initialize()
         EmptyStringNote.initialize()
         Beat.initialize()
-        textures = Textures(context)
+        ChordInfo.initialize(textures, data.chordTemplates.size)
         lastFrameTime = SystemClock.elapsedRealtime()
         scroller = SongScroller(song, 40f, scrollSpeed)
     }

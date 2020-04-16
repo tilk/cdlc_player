@@ -43,4 +43,9 @@ sealed class Event {
         val fret : Byte,
         val width : Short
     ) : Event()
+
+    data class Chord(
+        override val time : Float,
+        val id : Int
+    ) : Event()
 }

@@ -156,17 +156,21 @@ class Song2014 {
         }
         for (chord in levels[level].chords) {
             val chordTpl = chordTemplates[chord.chordId]
-            if (chord.time >= startTime && chord.time < endTime)
+            if (chord.time >= startTime && chord.time < endTime) {
+                list.add(TEvent.Chord(chord.time, chord.chordId))
                 if (chord.chordNotes.isNotEmpty())
                     for (note in chord.chordNotes)
                         list.add(noteFrom(note))
                 else
                     for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0)
-                        list.add(TEvent.Note(
-                            chord.time,
-                            chordTpl.fret[stringNo],
-                            stringNo.toByte()
-                        ))
+                        list.add(
+                            TEvent.Note(
+                                chord.time,
+                                chordTpl.fret[stringNo],
+                                stringNo.toByte()
+                            )
+                        )
+            }
         }
         list.sortBy { it.time }
         return list
