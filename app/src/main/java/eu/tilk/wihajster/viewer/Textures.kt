@@ -40,7 +40,7 @@ class Textures(context : Context, song : Song2014) {
         fun makeChordTextures(
             chordTemplates : List<ChordTemplate2014>
         ) : Int {
-            val bitmap = Bitmap.createBitmap(256, 64 * chordTemplates.size, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(256, 64 * maxOf(1, chordTemplates.size), Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             bitmap.eraseColor(0)
             val textPaint = Paint()
