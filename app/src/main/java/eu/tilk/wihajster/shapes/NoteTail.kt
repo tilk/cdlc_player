@@ -28,10 +28,9 @@ import kotlin.math.ceil
 import kotlin.math.sin
 import kotlin.math.tanh
 
-// TODO sustain dla pustej struny
-class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
+class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float) :
     EventShape<Event.Note>(
-        makeVertexCoords(note, scrollSpeed),
+        makeVertexCoords(note, anchor, scrollSpeed),
         makeDrawOrder(note, scrollSpeed),
         mProgram,
         note
@@ -40,12 +39,14 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
         private const val scaling = 10
         private fun sizeFor(note : Event.Note, scrollSpeed : Float) : Int =
             ceil(note.sustain * scrollSpeed * scaling).toInt()
-        private fun makeVertexCoords(note : Event.Note, scrollSpeed : Float) : FloatArray {
+        private fun makeVertexCoords(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) : FloatArray {
             val slideLen = when {
                 note.slideTo > 0 -> note.slideTo - note.fret
                 note.slideUnpitchedTo >= 0 -> note.slideUnpitchedTo - note.fret
                 else -> 0
             }
+            val suswidth = if (note.fret > 0) 1
+                           else anchor.width
             val sz = sizeFor(note, scrollSpeed)
             fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
             fun dLogistic(x : Float) = logistic(x) * logistic(-x)
@@ -55,7 +56,7 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
                 val pct = z.toFloat() / sz
                 when (it % 3) {
                     0 -> {
-                        var v = ((i % 2).toFloat() - 0.5f) / 4f
+                        var v = (suswidth - 0.75f) * ((i % 2).toFloat() - 0.5f)
                         // add slide effect
                         if (slideLen != 0) v = v * (1f + 10f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
                             slideLen * logistic(pct * 10f - 5f)
@@ -172,9 +173,11 @@ class NoteTail(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) :
             glVertexAttribPointer(it, 1, GL_FLOAT, false, 4, parityBuffer)
         }
         glGetUniformLocation(mProgram, "uPosition").also {
+            val x = if (event.fret > 0) event.fret - 0.5f
+                    else anchor.fret + anchor.width/2f - 1f
             glUniform4f(
                 it,
-                event.fret - 0.5f,
+                x,
                 1.5f * (event.string + 0.5f) / 6f,
                 (time - event.time) * scrollSpeed,
                 0f
