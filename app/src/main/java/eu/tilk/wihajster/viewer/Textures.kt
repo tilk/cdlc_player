@@ -44,7 +44,7 @@ class Textures(context : Context, song : Song2014) {
             val canvas = Canvas(bitmap)
             bitmap.eraseColor(0)
             val textPaint = Paint()
-            textPaint.textSize = 64f
+            textPaint.textSize = 48f
             textPaint.isAntiAlias = true
             textPaint.setARGB(0xff, 0xff, 0xff, 0xff)
             for (i in chordTemplates.indices)
