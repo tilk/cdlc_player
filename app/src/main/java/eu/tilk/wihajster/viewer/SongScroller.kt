@@ -54,46 +54,45 @@ class SongScroller(
             }
         }
 
-        while (position < song.size && song[position].time < time + horizon) {
-            when (val event = song[position++]) {
-                is Event.Chord -> {
+        fun addNote(event : Event.Note) {
+            if (!event.linked)
+                if (event.fret > 0)
+                    events.add(Note(event))
+                else
                     events.add(
-                        ChordInfo(event, lastAnchor.event)
-                    )
-                }
-                is Event.Anchor -> {
-                    lastAnchor.lastAnchorTime = event.time
-                    lastAnchor =
-                        Anchor(event, time + horizon)
-                    events.add(lastAnchor)
-                }
-                is Event.Note -> {
-                    if (!event.linked)
-                        if (event.fret > 0)
-                            events.add(Note(event))
-                        else
-                            events.add(
-                                EmptyStringNote(
-                                    event,
-                                    lastAnchor.event
-                                )
-                            )
-                    if (event.sustain > 0f)
-                        events.add(
-                            NoteTail(
-                                event,
-                                lastAnchor.event,
-                                scrollSpeed
-                            )
-                        )
-                }
-                is Event.Beat ->
-                    events.add(
-                        Beat(
+                        EmptyStringNote(
                             event,
                             lastAnchor.event
                         )
                     )
+            if (event.sustain > 0f)
+                events.add(
+                    NoteTail(
+                        event,
+                        lastAnchor.event,
+                        scrollSpeed
+                    )
+                )
+        }
+
+        while (position < song.size && song[position].time < time + horizon) {
+            when (val event = song[position++]) {
+                is Event.Chord -> {
+                    events.add(Chord(event, lastAnchor.event))
+                    if (!event.repeated) {
+                        events.add(ChordInfo(event, lastAnchor.event))
+                        for (note in event.notes)
+                            addNote(note)
+                    }
+                }
+                is Event.Anchor -> {
+                    lastAnchor.lastAnchorTime = event.time
+                    lastAnchor = Anchor(event, time + horizon)
+                    events.add(lastAnchor)
+                }
+                is Event.Note -> addNote(event)
+                is Event.Beat ->
+                    events.add(Beat(event, lastAnchor.event))
             }
         }
     }

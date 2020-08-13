@@ -46,6 +46,8 @@ sealed class Event {
 
     data class Chord(
         override val time : Float,
-        val id : Int
+        val id : Int,
+        val notes : List<Note>,
+        val repeated : Boolean
     ) : Event()
 }
