@@ -159,7 +159,7 @@ class Song2014 {
             val chordTpl = chordTemplates[chord.chordId]
             if (chord.time >= startTime && chord.time < endTime) {
                 val notes = ArrayList<TEvent.Note>()
-                val repeated = chord.chordId == lastChordId
+                val repeated = chord.chordId == lastChordId && !chord.chordNotes.isNotEmpty()
                 if (chord.chordNotes.isNotEmpty())
                     for (note in chord.chordNotes)
                         notes.add(noteFrom(note))

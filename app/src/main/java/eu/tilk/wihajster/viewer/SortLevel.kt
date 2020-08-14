@@ -18,19 +18,22 @@
 package eu.tilk.wihajster.viewer
 
 sealed class SortLevel {
-    abstract fun level() : Int
+    abstract val level : Int
 
-    abstract class Const(private val level : Int) : SortLevel() {
-        override fun level() = level
+    abstract class Const(c_level : Int) : SortLevel() {
+        override val level = c_level
     }
 
     object Tab : Const(-2)
     object Beat : Const(-1)
+    data class ChordBox(val string : Int) : SortLevel() {
+        override val level = 3*string+1
+    }
     data class String(val string : Int) : SortLevel() {
-        override fun level() = 2*string+1
+        override val level = 3*string+2
     }
     data class StringTail(val string : Int) : SortLevel() {
-        override fun level() = 2*string
+        override val level = 3*string
     }
     object Chord : Const(13)
 }

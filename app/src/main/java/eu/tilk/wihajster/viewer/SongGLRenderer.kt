@@ -124,7 +124,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         var frontLeftFret = 24
         var frontRightFret = 1
         var activeStrings = 0
-        for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level() }.thenByDescending(
+        for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level }.thenByDescending(
             EventShape<Event>::endTime))) {
             shape.draw(vPMatrix, scroller.currentTime, scrollSpeed)
             when (val evt = shape.event) {
