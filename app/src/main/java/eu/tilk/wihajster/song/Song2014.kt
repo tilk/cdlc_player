@@ -154,6 +154,11 @@ class Song2014 {
             if (note.time >= startTime && note.time < endTime)
                 list.add(noteFrom(note))
         }
+        for (handShape in levels[level].handShapes) {
+            if (handShape.startTime >= startTime && handShape.startTime < endTime)
+                list.add(TEvent.HandShape(handShape.startTime,
+                    handShape.endTime - handShape.startTime))
+        }
         var lastChordId = -1
         for (chord in levels[level].chords) {
             val chordTpl = chordTemplates[chord.chordId]

@@ -77,6 +77,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         Beat.initialize()
         Chord.initialize()
         ChordInfo.initialize(textures, data.chordTemplates.size)
+        ChordSustain.initialize()
         lastFrameTime = SystemClock.elapsedRealtime()
         scroller = SongScroller(song, 40f, scrollSpeed)
     }

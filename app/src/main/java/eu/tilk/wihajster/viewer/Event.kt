@@ -50,4 +50,9 @@ sealed class Event {
         val notes : List<Note>,
         val repeated : Boolean
     ) : Event()
+
+    data class HandShape(
+        override val time : Float,
+        val sustain : Float
+    ) : Event()
 }
