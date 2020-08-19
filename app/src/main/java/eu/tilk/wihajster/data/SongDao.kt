@@ -29,6 +29,18 @@ interface SongDao {
     @Query("SELECT * FROM Song ORDER BY songNameSort")
     fun getSongsByTitle() : LiveData<List<SongWithArrangements>>
 
+    @Transaction
+    @Query("SELECT * FROM Song ORDER BY artistNameSort, songNameSort")
+    fun getSongsByArtist() : LiveData<List<SongWithArrangements>>
+
+    @Transaction
+    @Query("SELECT * FROM Song ORDER BY albumNameSort, songNameSort")
+    fun getSongsByAlbumName() : LiveData<List<SongWithArrangements>>
+
+    @Transaction
+    @Query("SELECT * FROM Song ORDER BY albumYear, songNameSort")
+    fun getSongsByAlbumYear() : LiveData<List<SongWithArrangements>>
+
     @Insert
     suspend fun insert(song : Song)
 }

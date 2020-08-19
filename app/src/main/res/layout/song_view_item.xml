@@ -45,6 +45,13 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         tools:text="Artist" />
 
+    <TextView
+        android:id="@+id/albumView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        tools:text="Album" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/arrangementsView"
         android:layout_width="match_parent"

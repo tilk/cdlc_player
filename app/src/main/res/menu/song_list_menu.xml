@@ -18,6 +18,26 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/sort"
+        android:title="Sort"
+        android:icon="@drawable/ic_sort_white_24dp"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/sortByTitle"
+                android:title="Sort by title"/>
+            <item
+                android:id="@+id/sortByArtist"
+                android:title="Sort by artist"/>
+            <item
+                android:id="@+id/sortByAlbumName"
+                android:title="Sort by album name"/>
+            <item
+                android:id="@+id/sortByAlbumYear"
+                android:title="Sort by album year"/>
+        </menu>
+    </item>
+    <item
         android:id="@+id/add_song"
         android:title="Add song"
         app:showAsAction="always"

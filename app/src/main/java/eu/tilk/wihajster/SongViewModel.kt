@@ -50,5 +50,8 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
         }
     }
 
-    fun list() = songDao.getSongsByTitle()
+    fun listByTitle() = songDao.getSongsByTitle()
+    fun listByArtist() = songDao.getSongsByArtist()
+    fun listByAlbumName() = songDao.getSongsByAlbumName()
+    fun listByAlbumYear() = songDao.getSongsByAlbumYear()
 }

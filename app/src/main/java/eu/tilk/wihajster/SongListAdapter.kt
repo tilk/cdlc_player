@@ -17,6 +17,7 @@
 
 package eu.tilk.wihajster
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
@@ -40,6 +41,7 @@ class SongListAdapter internal constructor(
     inner class SongViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
         val songTitleView : TextView = itemView.findViewById(R.id.titleView)
         val songArtistView : TextView = itemView.findViewById(R.id.artistView)
+        val songAlbumView : TextView = itemView.findViewById(R.id.albumView)
         val songArrangementsView : RecyclerView = itemView.findViewById(R.id.arrangementsView)
     }
 
@@ -50,10 +52,12 @@ class SongListAdapter internal constructor(
 
     override fun getItemCount() = songs.size
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder : SongViewHolder, position : Int) {
         val current = songs[position]
         holder.songTitleView.text = current.song.title
         holder.songArtistView.text = current.song.artistName
+        holder.songAlbumView.text = "${current.song.albumName} (${current.song.albumYear})"
         holder.songArrangementsView.adapter = ArrangementListAdapter(context, current.arrangements)
             { playCallback(current.song, it) }
     }

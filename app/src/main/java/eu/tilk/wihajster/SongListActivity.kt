@@ -26,10 +26,12 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toFile
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import eu.tilk.wihajster.data.SongWithArrangements
 import eu.tilk.wihajster.psarc.PSARCReader
 import eu.tilk.wihajster.song.Song2014
 import java.io.File
@@ -38,6 +40,8 @@ import java.io.FileOutputStream
 
 class SongListActivity: AppCompatActivity() {
     private lateinit var songViewModel : SongViewModel
+    private lateinit var observer : Observer<List<SongWithArrangements>>
+    private lateinit var data : LiveData<List<SongWithArrangements>>
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,10 +54,10 @@ class SongListActivity: AppCompatActivity() {
             startActivity(intent)
         }
         recyclerView.adapter = adapter
+        observer = Observer { songs -> songs?.let { adapter.setSongs(it) } }
         songViewModel = ViewModelProvider(this).get(SongViewModel::class.java)
-        songViewModel.list().observe(this, Observer { songs ->
-            songs?.let { adapter.setSongs(it) }
-        })
+        data = songViewModel.listByTitle()
+        data.observe(this, observer)
     }
 
     override fun onCreateOptionsMenu(menu : Menu?) : Boolean {
@@ -69,6 +73,23 @@ class SongListActivity: AppCompatActivity() {
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             startActivityForResult(intent, READ_REQUEST_CODE)
             return true
+        }
+        fun sort(newData : LiveData<List<SongWithArrangements>>) {
+            data.removeObserver(observer)
+            data = newData
+            data.observe(this, observer)
+        }
+        if (id == R.id.sortByAlbumName) {
+            sort(songViewModel.listByAlbumName())
+        }
+        if (id == R.id.sortByAlbumYear) {
+            sort(songViewModel.listByAlbumYear())
+        }
+        if (id == R.id.sortByArtist) {
+            sort(songViewModel.listByArtist())
+        }
+        if (id == R.id.sortByTitle) {
+            sort(songViewModel.listByTitle())
         }
         return super.onOptionsItemSelected(item)
     }
