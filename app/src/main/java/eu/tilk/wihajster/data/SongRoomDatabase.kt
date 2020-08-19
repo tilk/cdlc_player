@@ -22,9 +22,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = arrayOf(Song::class), version = 1, exportSchema = false)
+@Database(entities = [Song::class, Arrangement::class], version = 1, exportSchema = false)
 abstract class SongRoomDatabase : RoomDatabase() {
     abstract fun songDao() : SongDao
+    abstract fun arrangementDao() : ArrangementDao
 
     companion object {
         @Volatile

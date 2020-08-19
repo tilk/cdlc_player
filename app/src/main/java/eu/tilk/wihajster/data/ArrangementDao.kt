@@ -17,18 +17,11 @@
 
 package eu.tilk.wihajster.data
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
 
 @Dao
-interface SongDao {
-    @Transaction
-    @Query("SELECT * FROM Song ORDER BY songNameSort")
-    fun getSongsByTitle() : LiveData<List<SongWithArrangements>>
-
+interface ArrangementDao {
     @Insert
-    suspend fun insert(song : Song)
+    suspend fun insert(arrangement : Arrangement)
 }

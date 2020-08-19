@@ -17,41 +17,25 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingStart="5dp"
-    android:paddingEnd="5dp"
-    android:paddingBottom="5dp">
+    android:gravity="left|center_vertical"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/playButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Play button"
+        android:src="@drawable/ic_play_circle_outline_black_24dp" />
 
     <TextView
-        android:id="@+id/titleView"
+        android:id="@+id/arrangementView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_light"
-        android:paddingLeft="5dp"
-        android:paddingTop="2dp"
-        android:paddingRight="5dp"
-        android:paddingBottom="2dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        tools:text="Title" />
-
-    <TextView
-        android:id="@+id/artistView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:textAlignment="inherit"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
-        tools:text="Artist" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/arrangementsView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="false"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:itemCount="2"
-        tools:listitem="@layout/arrangement_view_item" />
+        tools:text="Arrangement" />
 
 </LinearLayout>

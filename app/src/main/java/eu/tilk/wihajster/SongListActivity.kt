@@ -31,6 +31,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import eu.tilk.wihajster.psarc.PSARCReader
+import eu.tilk.wihajster.song.Song2014
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -42,14 +43,13 @@ class SongListActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list);
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
-        val adapter = SongListAdapter(this) {
+        val adapter = SongListAdapter(this) { _, arrangement ->
             val intent = Intent(this, ViewerActivity::class.java).apply {
-                putExtra(ViewerActivity.SONG_ID, it.persistentID)
+                putExtra(ViewerActivity.SONG_ID, arrangement.persistentID)
             }
             startActivity(intent)
         }
         recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
         songViewModel = ViewModelProvider(this).get(SongViewModel::class.java)
         songViewModel.list().observe(this, Observer { songs ->
             songs?.let { adapter.setSongs(it) }
@@ -86,6 +86,7 @@ class SongListActivity: AppCompatActivity() {
                 FileInputStream(outputFile).use { stream ->
                     outputFile.delete()
                     val psarc = PSARCReader(stream)
+                    val songs = ArrayList<Song2014>()
                     for (f in psarc.listFiles("""manifests/.*\.json""".toRegex())) {
                         val baseNameMatch = """manifests/.*/([^/]*)\.json""".toRegex().matchEntire(f)
                         val baseName = baseNameMatch!!.groupValues[1]
@@ -94,13 +95,13 @@ class SongListActivity: AppCompatActivity() {
                         val attributes = manifest.entries.values.first().values.first()
                         Log.w("arrangement", attributes.arrangementName)
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm" -> {
-                                val sng = psarc.inflateSng("songs/bin/generic/$baseName.sng", attributes)
-                                songViewModel.insert(sng).start()
-                                Unit
-                            }
+                            "Lead", "Rhythm" ->
+                                songs.add(psarc.inflateSng(
+                                    "songs/bin/generic/$baseName.sng",
+                                    attributes))
                         }
                     }
+                    songViewModel.insert(songs).start()
                 }
             }
         }

@@ -17,10 +17,7 @@
 
 package eu.tilk.wihajster.data
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room.*
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import eu.tilk.wihajster.song.Song2014
@@ -28,36 +25,28 @@ import eu.tilk.wihajster.song.Song2014
 @Entity(tableName = "Song")
 data class Song(
     @PrimaryKey
-    val persistentID : String,
+    val key : String,
     val title : String,
     @ColumnInfo(index = true)
     val songNameSort : String,
     val artistName : String,
     val artistNameSort : String,
-    val arrangement : String,
-    val part : Int,
     val songLength : Float,
     val albumName : String,
     @ColumnInfo(index = true)
     val albumNameSort : String,
     @ColumnInfo(index = true)
-    val albumYear : Int,
-    val capo : Int,
-    val tuning : String
+    val albumYear : Int
 ) {
     constructor(song : Song2014) : this(
-        song.persistentID,
+        song.songKey,
         song.title,
         song.songNameSort,
         song.artistName,
         song.artistNameSort,
-        song.arrangement,
-        song.part,
         song.songLength,
         song.albumName,
         song.albumNameSort,
-        song.albumYear,
-        song.capo,
-        song.tuning.name()
+        song.albumYear
     )
 }

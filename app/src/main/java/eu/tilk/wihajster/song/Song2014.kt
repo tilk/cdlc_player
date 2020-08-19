@@ -28,6 +28,8 @@ import eu.tilk.wihajster.viewer.Event as TEvent
 class Song2014 {
     @JacksonXmlProperty(localName = "persistentID")
     var persistentID: String = ""
+    @JacksonXmlProperty(localName = "songKey")
+    var songKey: String = ""
     @JacksonXmlProperty(localName = "title")
     var title: String = ""
     @JacksonXmlProperty(localName = "arrangement")

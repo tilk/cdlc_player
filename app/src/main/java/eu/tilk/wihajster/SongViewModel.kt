@@ -25,26 +25,30 @@ import androidx.room.withTransaction
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import eu.tilk.wihajster.data.Song
-import eu.tilk.wihajster.data.SongDao
-import eu.tilk.wihajster.data.SongRoomDatabase
+import eu.tilk.wihajster.data.*
 import eu.tilk.wihajster.song.Song2014
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
-    private val dao : SongDao = SongRoomDatabase.getDatabase(app).songDao()
+    private val songDao : SongDao = SongRoomDatabase.getDatabase(app).songDao()
+    private val arrangementDao : ArrangementDao = SongRoomDatabase.getDatabase(app).arrangementDao()
 
-    fun insert(song : Song2014) = viewModelScope.launch(Dispatchers.IO) {
+    fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.IO) {
         database.withTransaction {
-            dao.insert(Song(song))
-            app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
-                it.write(XmlMapper().registerModule(KotlinModule())
-                    .writeValueAsBytes(song))
+            songDao.insert(Song(songs[0]))
+            for (song in songs) {
+                arrangementDao.insert(Arrangement(song))
+                app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
+                    it.write(
+                        XmlMapper().registerModule(KotlinModule())
+                            .writeValueAsBytes(song)
+                    )
+                }
             }
         }
     }
 
-    fun list() = dao.getSongsByTitle()
+    fun list() = songDao.getSongsByTitle()
 }

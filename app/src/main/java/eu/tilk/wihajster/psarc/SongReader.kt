@@ -347,7 +347,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.toneC = attributes.toneC
         song.toneD = attributes.toneD
         song.toneBase = attributes.toneBase
-
+        song.songKey = attributes.songKey
 
         song.ebeats = readMany { readEBeat() }
         song.startBeat = song.ebeats[0].time

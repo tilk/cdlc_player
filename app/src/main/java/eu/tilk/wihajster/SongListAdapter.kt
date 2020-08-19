@@ -25,21 +25,22 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import eu.tilk.wihajster.data.Arrangement
 import eu.tilk.wihajster.data.Song
+import eu.tilk.wihajster.data.SongWithArrangements
 
 class SongListAdapter internal constructor(
-    context : Context,
-    val playCallback : (Song) -> Unit
+    private val context : Context,
+    private val playCallback : (Song, Arrangement) -> Unit
 ) : RecyclerView.Adapter<SongListAdapter.SongViewHolder>() {
 
     private val inflater : LayoutInflater = LayoutInflater.from(context)
-    private var songs = emptyList<Song>()
+    private var songs = emptyList<SongWithArrangements>()
 
     inner class SongViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
         val songTitleView : TextView = itemView.findViewById(R.id.titleView)
         val songArtistView : TextView = itemView.findViewById(R.id.artistView)
-        val songArrangementView : TextView = itemView.findViewById(R.id.arrangementView)
-        val playButton : ImageButton = itemView.findViewById(R.id.playButton)
+        val songArrangementsView : RecyclerView = itemView.findViewById(R.id.arrangementsView)
     }
 
     override fun onCreateViewHolder(parent : ViewGroup, viewType : Int) : SongViewHolder {
@@ -51,15 +52,13 @@ class SongListAdapter internal constructor(
 
     override fun onBindViewHolder(holder : SongViewHolder, position : Int) {
         val current = songs[position]
-        holder.songTitleView.text = current.title
-        holder.songArtistView.text = current.artistName
-        holder.songArrangementView.text = current.arrangement
-        holder.playButton.setOnClickListener {
-            playCallback(current)
-        }
+        holder.songTitleView.text = current.song.title
+        holder.songArtistView.text = current.song.artistName
+        holder.songArrangementsView.adapter = ArrangementListAdapter(context, current.arrangements)
+            { playCallback(current.song, it) }
     }
 
-    internal fun setSongs(songs : List<Song>) {
+    internal fun setSongs(songs : List<SongWithArrangements>) {
         this.songs = songs
         notifyDataSetChanged()
     }
