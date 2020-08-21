@@ -18,29 +18,35 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/add_song"
+        android:title="@string/add_song"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_add_white_24dp"
+        />
+    <item
         android:id="@+id/sort"
-        android:title="Sort"
+        android:title="@string/sort"
         android:icon="@drawable/ic_sort_white_24dp"
         app:showAsAction="ifRoom">
         <menu>
             <item
                 android:id="@+id/sortByTitle"
-                android:title="Sort by title"/>
+                android:title="@string/sort_by_title"/>
             <item
                 android:id="@+id/sortByArtist"
-                android:title="Sort by artist"/>
+                android:title="@string/sort_by_artist"/>
             <item
                 android:id="@+id/sortByAlbumName"
-                android:title="Sort by album name"/>
+                android:title="@string/sort_by_album_name"/>
             <item
                 android:id="@+id/sortByAlbumYear"
-                android:title="Sort by album year"/>
+                android:title="@string/sort_by_album_year"/>
         </menu>
     </item>
     <item
-        android:id="@+id/add_song"
-        android:title="Add song"
+        android:id="@+id/settings"
+        android:title="@string/settings"
         app:showAsAction="always"
-        android:icon="@drawable/ic_add_white_24dp"
+        android:icon="@drawable/ic_settings_white_24dp"
         />
 </menu>

@@ -74,6 +74,10 @@ class SongListActivity: AppCompatActivity() {
             startActivityForResult(intent, READ_REQUEST_CODE)
             return true
         }
+        if (id == R.id.settings) {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
         fun sort(newData : LiveData<List<SongWithArrangements>>) {
             data.removeObserver(observer)
             data = newData

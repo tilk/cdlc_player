@@ -39,6 +39,10 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             tools:ignore="LockedOrientationActivity">
         </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings">
+        </activity>
         <activity android:name=".SongListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
