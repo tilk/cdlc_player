@@ -202,7 +202,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
             if (chordNotesId != -1 && chordNotesId < cNotes.size) {
                 val template = chordTemplates[chordId];
                 for (i in cNotes[chordNotesId].indices) {
-                    if (template.fret[i].toInt() == -1 || template.finger[i].toInt() == -1)
+                    if (template.fret[i].toInt() == -1)
                         continue // TODO is this right?
                     val note = cNotes[chordNotesId][i]
                     chordNotes.add(Note2014(
