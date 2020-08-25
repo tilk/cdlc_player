@@ -85,6 +85,7 @@ class ChordInfo(chord : Event.Chord,
     }
 
     override val sortLevel = SortLevel.Chord
+    override val derived = true
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uTime").also {
             glUniform1f(it, (time - event.time) * scrollSpeed)

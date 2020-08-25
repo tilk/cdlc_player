@@ -23,6 +23,7 @@ import android.opengl.GLES31.*
 
 class EmptyStringNote(
     note : Event.Note,
+    override val derived : Boolean,
     private val anchor : Event.Anchor
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {

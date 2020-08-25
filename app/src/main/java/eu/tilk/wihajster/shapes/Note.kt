@@ -21,7 +21,8 @@ import eu.tilk.wihajster.viewer.Event
 import eu.tilk.wihajster.viewer.SortLevel
 import android.opengl.GLES31.*
 
-class Note(note : Event.Note) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
+class Note(note : Event.Note, override val derived : Boolean = false) :
+    EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {
         private val vertexCoords = floatArrayOf(
             -0.25f, -0.12f, 0.0f,
@@ -76,15 +77,19 @@ class Note(note : Event.Note) : EventShape<Event.Note>(vertexCoords, drawOrder, 
             )
         }
     }
+
     override val sortLevel =
         SortLevel.String(note.string.toInt())
+
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
-        glUniform4f(positionHandle,
+        glUniform4f(
+            positionHandle,
             event.fret - 0.5f,
             1.5f * (event.string + 0.5f) / 6f,
             (time - event.time) * scrollSpeed,
-            0f)
+            0f
+        )
         val stringHandle = glGetUniformLocation(mProgram, "uString")
         glUniform1i(stringHandle, event.string.toInt())
         super.internalDraw(time, scrollSpeed)

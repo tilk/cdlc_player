@@ -165,6 +165,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             }
         }
     override val endTime = note.time + note.sustain
+    override val derived = true
     override val sortLevel =
         SortLevel.StringTail(note.string.toInt())
     override fun internalDraw(time : Float, scrollSpeed : Float) {

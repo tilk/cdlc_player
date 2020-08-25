@@ -28,4 +28,5 @@ abstract class EventShape<out T : Event>(
 ) : StaticShape(vertexCoords, drawOrder, mProgram) {
     open val endTime : Float get() = event.time
     abstract val sortLevel : SortLevel
+    open val derived = false
 }

@@ -40,7 +40,7 @@ class SongScroller(
     val activeEvents : List<EventShape<Event>> get() = events
     val currentTime : Float get() = time
 
-    fun advance(t : Float, onRemove : (Event) -> Unit) {
+    fun advance(t : Float, onRemove : (Event, Boolean) -> Unit) {
         time += t
 
         lastAnchor.lastAnchorTime = time + horizon
@@ -49,19 +49,20 @@ class SongScroller(
         while (it.hasNext()) {
             val e = it.next()
             if (e.endTime < time) {
-                onRemove(e.event)
+                onRemove(e.event, e.derived)
                 it.remove()
             }
         }
 
-        fun addNote(event : Event.Note) {
+        fun addNote(event : Event.Note, derived : Boolean = false) {
             if (!event.linked)
                 if (event.fret > 0)
-                    events.add(Note(event))
+                    events.add(Note(event, derived))
                 else
                     events.add(
                         EmptyStringNote(
                             event,
+                            derived,
                             lastAnchor.event
                         )
                     )
@@ -83,7 +84,7 @@ class SongScroller(
                     if (!event.repeated) {
                         events.add(ChordInfo(event, lastAnchor.event))
                         for (note in event.notes)
-                            addNote(note)
+                            addNote(note, true)
                     }
                 }
                 is Event.Anchor -> {
