@@ -38,6 +38,17 @@ const vec3 stringColors[6] = vec3[](
     vec3(0.77, 0.29, 0.81)
 );
 """
+const val specialFretsGLSL = """
+bool isOneDotFret(int x) {
+    return x % 2 == 1 && (x + 1) % 12 > 2; 
+}
+bool isTwoDotFret(int x) {
+    return x > 0 && x % 12 == 0;
+}
+bool isSpecialFret(int x) {
+    return isOneDotFret(x) || isTwoDotFret(x);
+}
+"""
 const val beltColorGLSL = "const vec3 beltColor = vec3(0.063, 0.231, 0.365);"
 const val bumpColorGLSL = "const vec3 bumpColor = vec3(0.051, 0.388, 0.478);"
 fun loadShader(type : Int, shaderCode : String): Int {
