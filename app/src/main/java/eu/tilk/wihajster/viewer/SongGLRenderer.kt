@@ -30,6 +30,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.tan
 import android.opengl.GLES31.*
+import androidx.preference.PreferenceManager
 import eu.tilk.wihajster.song.Song2014
 
 class SongGLRenderer(val data : Song2014, private val context : Context) :
@@ -87,11 +88,24 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         val deltaTime = currentTime - lastFrameTime
         lastFrameTime = currentTime
 
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val clickPref = sharedPreferences.getString("click", "on_beats")
+
+        fun play(sound : Int) {
+            sounds.play(sound, 1f, 1f, 0, 0, 1f)
+        }
+
         scroller.advance(deltaTime / 1000.0F) { evt : Event ->
             when (evt) {
                 is Event.Beat ->
-                    sounds.play(if (evt.measure >= 0) metronome2 else metronome1,
-                        1f, 1f, 0, 0, 1f)
+                    if (clickPref == "on_beats")
+                      play(if (evt.measure >= 0) metronome2 else metronome1)
+                is Event.Note ->
+                    if (clickPref == "on_notes")
+                        play(metronome1)
+                is Event.Chord ->
+                    if (clickPref == "on_notes")
+                        play(metronome1)
                 is Event.Anchor ->
                     finalAnchor = evt
             }

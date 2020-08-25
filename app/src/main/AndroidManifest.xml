@@ -32,20 +32,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:screenOrientation="landscape"
-            android:keepScreenOn="true"
-            android:configChanges="orientation|keyboardHidden"
             android:name=".ViewerActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:keepScreenOn="true"
+            android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-            tools:ignore="LockedOrientationActivity">
-        </activity>
+            tools:ignore="LockedOrientationActivity"></activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/settings">
-        </activity>
+            android:label="@string/settings"></activity>
         <activity android:name=".SongListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
