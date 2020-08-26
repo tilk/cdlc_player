@@ -70,6 +70,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         //glEnable(GL_DEPTH_TEST)
         textures = Textures(context, data)
         Neck.initialize()
+        NeckInlays.initialize()
         FretNumbers.initialize()
         Anchor.initialize()
         Note.initialize()
@@ -134,6 +135,10 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             0
         )
 
+        fun draw(shape : Shape) {
+            shape.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+        }
+
         var leftFret = 24
         var rightFret = 1
         var frontLeftFret = 24
@@ -141,7 +146,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         var activeStrings = 0
         for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level }.thenByDescending(
             EventShape<Event>::endTime))) {
-            shape.draw(vPMatrix, scroller.currentTime, scrollSpeed)
+            draw(shape)
             when (val evt = shape.event) {
                 is Event.Anchor -> {
                     frontLeftFret = evt.fret.toInt()
@@ -162,14 +167,13 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         eyeY = 0.02f*targetEyeY + 0.98f*eyeY
         eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
 
-        Neck(activeStrings)
-            .draw(vPMatrix, scroller.currentTime, scrollSpeed)
-        FretNumbers(
+        draw(Neck(activeStrings))
+        draw(NeckInlays(frontLeftFret, frontRightFret))
+        draw(FretNumbers(
             textures,
             frontLeftFret,
             frontRightFret
-        )
-            .draw(vPMatrix, scroller.currentTime, scrollSpeed)
+        ))
 
         if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
     }

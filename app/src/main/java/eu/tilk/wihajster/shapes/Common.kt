@@ -51,6 +51,12 @@ bool isSpecialFret(int x) {
 """
 const val beltColorGLSL = "const vec3 beltColor = vec3(0.063, 0.231, 0.365);"
 const val bumpColorGLSL = "const vec3 bumpColor = vec3(0.051, 0.388, 0.478);"
+const val laneColorsGLSL = """
+const vec3 laneColors[2] = vec3[](
+    vec3(0.573, 0.573, 0.573),
+    vec3(1.0, 0.94, 0.0)
+);    
+"""
 fun loadShader(type : Int, shaderCode : String): Int {
     return glCreateShader(type).also {
         glShaderSource(it, shaderCode)
