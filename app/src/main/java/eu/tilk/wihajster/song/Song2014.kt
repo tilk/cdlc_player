@@ -116,6 +116,7 @@ class Song2014 {
     @JacksonXmlProperty(localName = "section")
     @JacksonXmlElementWrapper(localName = "sections")
     var sections: List<Section> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     @JacksonXmlProperty(localName = "event")
     @JacksonXmlElementWrapper(localName = "events")
     var events: List<Event> = ArrayList()
