@@ -163,7 +163,14 @@ class Song2014 {
                     handShape.endTime - handShape.startTime))
         }
         var lastChordId = -1
+        var noteidx = 0
         for (chord in levels[level].chords) {
+            // if note between chords, chord not repeated
+            while (noteidx < levels[level].notes.size
+                && levels[level].notes[noteidx].time < chord.time) {
+                noteidx++
+                lastChordId = -1
+            }
             val chordTpl = chordTemplates[chord.chordId]
             if (chord.time >= startTime && chord.time < endTime) {
                 val notes = ArrayList<TEvent.Note>()
