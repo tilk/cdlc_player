@@ -115,5 +115,6 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
         val fretHandle = glGetUniformLocation(mProgram, "uFret")
         glUniform2i(fretHandle, leftFret, rightFret)
         super.internalDraw(time, scrollSpeed)
+        glVertexAttribDivisor(inlayFretHandle, 0)
     }
 }
