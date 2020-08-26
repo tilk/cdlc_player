@@ -71,6 +71,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         textures = Textures(context, data)
         Neck.initialize()
         NeckInlays.initialize()
+        Frets.initialize()
         FretNumbers.initialize()
         Anchor.initialize()
         Note.initialize()
@@ -169,6 +170,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
 
         draw(Neck(activeStrings))
         draw(NeckInlays(frontLeftFret, frontRightFret))
+        draw(Frets())
         draw(FretNumbers(
             textures,
             frontLeftFret,
