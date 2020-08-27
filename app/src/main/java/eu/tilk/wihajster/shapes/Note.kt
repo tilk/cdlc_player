@@ -71,8 +71,10 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
                     1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14,
                     step(dist, 0.8) * (0.85 + vTexCoord.y / 4.0)
                 ));
-                FragColor = vec4(aEffColor + (1.0 - effColor.a) * scaling * stringColors[uString],
-                    max(effColor.a, step(dist, 1.0)));
+                float alp = step(dist, 1.0);
+                FragColor = vec4(max(1.0 - alp, effColor.a) * aEffColor 
+                        + (1.0 - effColor.a) * scaling * stringColors[uString],
+                    max(effColor.a, alp));
             }
         """.trimIndent()
         private var mProgram : Int = -1
