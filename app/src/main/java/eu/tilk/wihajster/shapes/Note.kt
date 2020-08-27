@@ -48,7 +48,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
                 int ex = uEffect / 5;
                 int ey = uEffect % 5;
                 aTexCoord = step(0.0, float(uEffect)) * (
-                    (vTexCoord + vec2(2.0, 2.0)) / vec2(8.0, -20.0) 
+                    (vTexCoord + vec2(2.0, 2.0)) / vec2(4.0 * 2.0, -4.0 * 5.0) 
                     + vec2(float(ex) / 2.0, float(ey) / 5.0 + 0.2)
                 );
             }

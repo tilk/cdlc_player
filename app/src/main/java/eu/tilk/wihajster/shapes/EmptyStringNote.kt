@@ -20,6 +20,7 @@ package eu.tilk.wihajster.shapes
 import eu.tilk.wihajster.viewer.Event
 import eu.tilk.wihajster.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.wihajster.viewer.Textures
 
 class EmptyStringNote(
     note : Event.Note,
@@ -28,10 +29,10 @@ class EmptyStringNote(
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {
         private val vertexCoords = floatArrayOf(
-            0f, -0.12f, 0.0f,
-            0f, 0.12f, 0.0f,
-            1f, 0.12f, 0.0f,
-            1f, -0.12f, 0.0f
+            0f, -0.24f, 0.0f,
+            0f, 0.24f, 0.0f,
+            1f, 0.24f, 0.0f,
+            1f, -0.24f, 0.0f
         )
         private val drawOrder = shortArrayOf(
             0, 1, 2, 0, 2, 3
@@ -41,28 +42,48 @@ class EmptyStringNote(
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
             uniform int uWidth;
+            uniform int uEffect;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out vec2 aTexCoord;
             void main() {
                 vec4 rPosition = vec4(vPosition.x * float(uWidth), vPosition.y, vPosition.z, vPosition.w); 
                 gl_Position = uMVPMatrix * (rPosition + uPosition);
-                vTexCoord = vec2((vPosition.x - 0.5) / 0.5, vPosition.y / 0.12);
+                vTexCoord = vec2((vPosition.x - 0.5) * float(uWidth), vPosition.y / 0.12);
+                int ex = uEffect / 5;
+                int ey = uEffect % 5;
+                vec2 inTexCoord = vec2(
+                    (vTexCoord.x * float(uWidth) / 2.0) + 0.5,
+                    (vTexCoord.y + 2.0) / 4.0
+                );
+                aTexCoord = step(1.0, float(uEffect)) * (
+                    inTexCoord / vec2(2.0, -5.0) 
+                    + vec2(float(ex) / 2.0, float(ey) / 5.0 + 0.2)
+                );
             }
         """.trimIndent()
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
+            uniform sampler2D uTexture;
             uniform int uString;
             in vec2 vTexCoord;
+            in vec2 aTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
+                float zer = step(-0.5, vTexCoord.x) * step(vTexCoord.x, 0.5);
+                vec4 effColor = zer * texture(uTexture, aTexCoord);
+                vec3 aEffColor = effColor.r * stringColors[uString] 
+                    + effColor.g * vec3(1.0, 1.0, 1.0);
                 float scl = (tanh(-abs(vTexCoord.y*10.0)+3.0) + 1.0) / 2.0;
-                FragColor = vec4(stringColors[uString], scl);
+                FragColor = vec4(aEffColor + (1.0 - effColor.a) * stringColors[uString], 
+                    max(effColor.a, scl));
             }
         """.trimIndent()
         private var mProgram : Int = -1
-        fun initialize() {
+        private lateinit var textures : Textures
+        fun initialize(textures : Textures) {
             val vertexShader =
                 loadShader(
                     GL_VERTEX_SHADER,
@@ -76,6 +97,7 @@ class EmptyStringNote(
                 vertexShader,
                 fragmentShader
             )
+            this.textures = textures
         }
     }
     override val sortLevel =
@@ -91,6 +113,16 @@ class EmptyStringNote(
         glUniform1i(fretHandle, anchor.width.toInt())
         val stringHandle = glGetUniformLocation(mProgram, "uString")
         glUniform1i(stringHandle, event.string.toInt())
+        glGetUniformLocation(mProgram, "uTexture").also {
+            glUniform1i(it, 0)
+        }
+        glGetUniformLocation(mProgram, "uEffect").also {
+            glUniform1i(it, event.effect?.ordinal ?: -1)
+        }
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, textures.effects)
         super.internalDraw(time, scrollSpeed)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, 0)
     }
 }

@@ -76,7 +76,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         Anchor.initialize()
         Note.initialize(textures)
         NoteTail.initialize()
-        EmptyStringNote.initialize()
+        EmptyStringNote.initialize(textures)
         Beat.initialize()
         Chord.initialize()
         ChordInfo.initialize(textures, data.chordTemplates.size)
