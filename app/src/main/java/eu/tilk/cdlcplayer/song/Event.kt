@@ -15,5 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class Event(
+    @JacksonXmlProperty(isAttribute = true, localName = "time")
+    var time : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "code")
+    var code : String
+)

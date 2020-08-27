@@ -15,5 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.data
+
+import androidx.room.Dao
+import androidx.room.Insert
+
+@Dao
+interface ArrangementDao {
+    @Insert
+    suspend fun insert(arrangement : Arrangement)
+}

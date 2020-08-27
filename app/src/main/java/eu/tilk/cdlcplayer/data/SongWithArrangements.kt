@@ -15,5 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.data
+
+import androidx.room.Embedded
+import androidx.room.Relation
+
+data class SongWithArrangements(
+    @Embedded
+    val song : Song,
+    @Relation(
+        parentColumn = "key",
+        entityColumn = "key"
+    )
+    val arrangements : List<Arrangement>
+)

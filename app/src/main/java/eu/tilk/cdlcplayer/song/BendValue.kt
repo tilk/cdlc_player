@@ -15,5 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class BendValue(
+    @JacksonXmlProperty(isAttribute = true, localName = "time")
+    var time : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "step")
+    var step : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "unk5")
+    var unk5 : Byte
+)

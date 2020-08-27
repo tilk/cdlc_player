@@ -15,5 +15,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.shapes
+
+import eu.tilk.cdlcplayer.viewer.Event
+import eu.tilk.cdlcplayer.viewer.SortLevel
+
+abstract class EventShape<out T : Event>(
+    vertexCoords : FloatArray,
+    drawOrder : ShortArray,
+    mProgram : Int,
+    val event : T
+) : StaticShape(vertexCoords, drawOrder, mProgram) {
+    open val endTime : Float get() = event.time
+    abstract val sortLevel : SortLevel
+    open val derived = false
+}

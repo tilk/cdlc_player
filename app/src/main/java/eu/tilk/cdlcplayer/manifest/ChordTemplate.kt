@@ -15,5 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.manifest
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+class ChordTemplate {
+    @JsonProperty("ChordId")
+    var chordId : Int = 0
+    @JsonProperty("ChordName")
+    var chordName : String = ""
+    @JsonProperty("Fingers")
+    var fingers : List<Int> = ArrayList()
+    @JsonProperty("Frets")
+    var frets : List<Int> = ArrayList()
+}

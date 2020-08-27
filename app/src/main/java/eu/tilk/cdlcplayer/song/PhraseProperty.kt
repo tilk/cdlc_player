@@ -15,5 +15,19 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class PhraseProperty(
+    @JacksonXmlProperty(isAttribute = true, localName = "phraseId")
+    var phraseId : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "redundant")
+    var redundant : Short,
+    @JacksonXmlProperty(isAttribute = true, localName = "levelJump")
+    var levelJump : Byte,
+    @JacksonXmlProperty(isAttribute = true, localName = "empty")
+    var empty : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "difficulty")
+    var difficulty : Int
+)

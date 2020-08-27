@@ -15,5 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class HandShape(
+    @JacksonXmlProperty(isAttribute = true, localName = "chordId")
+    var chordId : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "endTime")
+    var endTime : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "startTime")
+    var startTime : Float
+)

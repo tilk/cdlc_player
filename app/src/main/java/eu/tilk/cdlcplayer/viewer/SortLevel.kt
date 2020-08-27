@@ -15,5 +15,25 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.viewer
+
+sealed class SortLevel {
+    abstract val level : Int
+
+    abstract class Const(c_level : Int) : SortLevel() {
+        override val level = c_level
+    }
+
+    object Tab : Const(-2)
+    object Beat : Const(-1)
+    data class ChordBox(val string : Int) : SortLevel() {
+        override val level = 3*string+1
+    }
+    data class String(val string : Int) : SortLevel() {
+        override val level = 3*string+2
+    }
+    data class StringTail(val string : Int) : SortLevel() {
+        override val level = 3*string
+    }
+    object Chord : Const(19)
+}

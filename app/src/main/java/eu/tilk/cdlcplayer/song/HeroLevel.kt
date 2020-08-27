@@ -15,5 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class HeroLevel(
+    @JacksonXmlProperty(isAttribute = true, localName = "difficulty")
+    var difficulty : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "hero")
+    var hero : Int
+)

@@ -15,5 +15,28 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.data
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import eu.tilk.cdlcplayer.song.Song2014
+
+@Entity(tableName = "Arrangement")
+data class Arrangement(
+    @PrimaryKey
+    val persistentID : String,
+    val key : String,
+    val arrangement : String,
+    val part : Int,
+    val capo : Int,
+    val tuning : String
+) {
+    constructor(song : Song2014) : this(
+        song.persistentID,
+        song.songKey,
+        song.arrangement,
+        song.part,
+        song.capo,
+        song.tuning.name()
+    )
+}

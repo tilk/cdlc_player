@@ -15,5 +15,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.viewer
+
+enum class Effect {
+    Accent, HammerOn, PullOff, PalmMute, FrethandMute, Harmonic,
+    PinchHarmonic, Tap, Slap, Pop
+}

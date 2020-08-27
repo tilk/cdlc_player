@@ -18,7 +18,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="eu.tilk.wihajster">
+    package="eu.tilk.cdlcplayer">
 
     <uses-feature
         android:glEsVersion="0x00030001"
@@ -32,16 +32,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ViewerActivity"
+            android:name="eu.tilk.cdlcplayer.ViewerActivity"
             android:configChanges="orientation|keyboardHidden"
             android:keepScreenOn="true"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             tools:ignore="LockedOrientationActivity"></activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="eu.tilk.cdlcplayer.SettingsActivity"
             android:label="@string/settings"></activity>
-        <activity android:name=".SongListActivity">
+        <activity android:name="eu.tilk.cdlcplayer.SongListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

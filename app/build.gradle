@@ -27,7 +27,7 @@ android {
     compileSdkVersion 30
     buildToolsVersion '30.0.2'
     defaultConfig {
-        applicationId "eu.tilk.wihajster"
+        applicationId "eu.tilk.cdlcplayer"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1

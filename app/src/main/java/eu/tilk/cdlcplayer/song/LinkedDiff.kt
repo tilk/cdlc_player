@@ -15,5 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.song
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+data class LinkedDiff(
+    @JacksonXmlProperty(isAttribute = true, localName = "parentId")
+    var parentId : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "childId")
+    var childId : Int
+)

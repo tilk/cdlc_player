@@ -15,5 +15,21 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.viewer
+
+import android.content.Context
+import android.opengl.GLSurfaceView
+import eu.tilk.cdlcplayer.song.Song2014
+
+class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(context) {
+    private val renderer : SongGLRenderer
+    init {
+        setEGLContextClientVersion(3)
+        setEGLConfigChooser(8, 8, 8, 8, 16, 4)
+        renderer = SongGLRenderer(
+            song,
+            context
+        )
+        setRenderer(renderer)
+    }
+}

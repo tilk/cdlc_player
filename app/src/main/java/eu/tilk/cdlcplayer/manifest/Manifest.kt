@@ -15,5 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include ':app'
-rootProject.name='CDLC Player'
+package eu.tilk.cdlcplayer.manifest
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+class Manifest {
+    @JsonProperty("Entries")
+    var entries : Map<String, Map<String, Attributes>> = HashMap()
+    @JsonProperty("ModelName")
+    var modelName : String = ""
+    @JsonProperty("IterationVersion")
+    var iterationVersion : Int = -1
+}
