@@ -35,5 +35,5 @@ sealed class SortLevel {
     data class StringTail(val string : Int) : SortLevel() {
         override val level = 3*string
     }
-    object Chord : Const(13)
+    object Chord : Const(19)
 }
