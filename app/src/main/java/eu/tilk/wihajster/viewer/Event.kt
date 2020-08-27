@@ -30,6 +30,7 @@ sealed class Event {
         val tremolo : Boolean = false,
         val linked : Boolean = false,
         val vibrato : Short = 0,
+        val effect : Effect? = null,
         val bend : List<Pair<Float, Float>> = ArrayList()
     ) : Event()
 

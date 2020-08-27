@@ -20,15 +20,16 @@ package eu.tilk.wihajster.shapes
 import eu.tilk.wihajster.viewer.Event
 import eu.tilk.wihajster.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.wihajster.viewer.Textures
 
 class Note(note : Event.Note, override val derived : Boolean = false) :
     EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object {
         private val vertexCoords = floatArrayOf(
-            -0.25f, -0.12f, 0.0f,
-            -0.25f, 0.12f, 0.0f,
-            0.25f, 0.12f, 0.0f,
-            0.25f, -0.12f, 0.0f
+            -0.5f, -0.24f, 0.0f,
+            -0.5f, 0.24f, 0.0f,
+            0.5f, 0.24f, 0.0f,
+            0.5f, -0.24f, 0.0f
         )
         private val drawOrder = shortArrayOf(
             0, 1, 2, 0, 2, 3
@@ -37,31 +38,46 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
+            uniform int uEffect;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out vec2 aTexCoord;
             void main() {
                 gl_Position = uMVPMatrix * (vPosition + uPosition);
                 vTexCoord = vec2(vPosition.x / 0.25, vPosition.y / 0.12);
+                int ex = uEffect / 5;
+                int ey = uEffect % 5;
+                aTexCoord = step(0.0, float(uEffect)) * (
+                    (vTexCoord + vec2(2.0, 2.0)) / vec2(8.0, -20.0) 
+                    + vec2(float(ex) / 2.0, float(ey) / 5.0 + 0.2)
+                );
             }
         """.trimIndent()
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
             uniform int uString;
+            uniform sampler2D uTexture;
             in vec2 vTexCoord;
+            in vec2 aTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
+                vec4 effColor = texture(uTexture, aTexCoord);
+                vec3 aEffColor = effColor.r * stringColors[uString] 
+                    + effColor.g * vec3(1.0, 1.0, 1.0);
                 float dist = max(abs(vTexCoord.x), abs(vTexCoord.y));
                 float scaling = min(1.0, max(
                     1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14,
                     step(dist, 0.8) * (0.85 + vTexCoord.y / 4.0)
                 ));
-                FragColor = vec4(scaling * stringColors[uString], 1.0);
+                FragColor = vec4(aEffColor + (1.0 - effColor.a) * scaling * stringColors[uString],
+                    max(effColor.a, step(dist, 1.0)));
             }
         """.trimIndent()
         private var mProgram : Int = -1
-        fun initialize() {
+        private lateinit var textures : Textures
+        fun initialize(textures : Textures) {
             val vertexShader =
                 loadShader(
                     GL_VERTEX_SHADER,
@@ -75,6 +91,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
                 vertexShader,
                 fragmentShader
             )
+            this.textures = textures
         }
     }
 
@@ -82,16 +99,28 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         SortLevel.String(note.string.toInt())
 
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val positionHandle = glGetUniformLocation(mProgram, "uPosition")
-        glUniform4f(
-            positionHandle,
-            event.fret - 0.5f,
-            1.5f * (event.string + 0.5f) / 6f,
-            (time - event.time) * scrollSpeed,
-            0f
-        )
-        val stringHandle = glGetUniformLocation(mProgram, "uString")
-        glUniform1i(stringHandle, event.string.toInt())
+        glGetUniformLocation(mProgram, "uPosition").also {
+            glUniform4f(
+                it,
+                event.fret - 0.5f,
+                1.5f * (event.string + 0.5f) / 6f,
+                (time - event.time) * scrollSpeed,
+                0f
+            )
+        }
+        glGetUniformLocation(mProgram, "uString").also {
+            glUniform1i(it, event.string.toInt())
+        }
+        glGetUniformLocation(mProgram, "uTexture").also {
+            glUniform1i(it, 0)
+        }
+        glGetUniformLocation(mProgram, "uEffect").also {
+            glUniform1i(it, event.effect?.ordinal ?: -1)
+        }
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, textures.effects)
         super.internalDraw(time, scrollSpeed)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, 0)
     }
 }

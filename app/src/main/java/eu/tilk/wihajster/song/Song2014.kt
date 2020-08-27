@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import eu.tilk.wihajster.viewer.Effect
 import eu.tilk.wihajster.viewer.Event as TEvent
 
 @JacksonXmlRootElement(localName = "Song")
@@ -141,6 +142,19 @@ class Song2014 {
             if (ebeat.time >= startTime && ebeat.time < endTime)
                 list.add(TEvent.Beat(ebeat.time, ebeat.measure))
         }
+        fun effectFrom(note : Note2014) =
+            when {
+                note.accent > 0 -> Effect.Accent
+                note.hammerOn > 0 -> Effect.HammerOn
+                note.pullOff > 0 -> Effect.PullOff
+                note.palmMute > 0 -> Effect.PalmMute
+                note.mute > 0 -> Effect.FrethandMute
+                note.harmonic > 0 -> Effect.Harmonic
+                note.harmonicPinch > 0 -> Effect.PinchHarmonic
+                note.tap > 0 -> Effect.Tap
+                note.slap > 0 -> Effect.Slap
+                else -> null
+            }
         fun noteFrom(note : Note2014) = TEvent.Note(
             note.time,
             note.fret,
@@ -151,6 +165,7 @@ class Song2014 {
             note.tremolo > 0,
             note.linked > 0,
             note.vibrato,
+            effectFrom(note),
             note.bendValues.map { bv -> Pair((bv.time - note.time) / note.sustain, bv.step) }
         )
         for (note in levels[level].notes) {

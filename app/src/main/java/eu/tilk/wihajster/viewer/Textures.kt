@@ -31,6 +31,8 @@ import eu.tilk.wihajster.song.Song2014
 class Textures(context : Context, song : Song2014) {
     val fretNumbers =
         loadTexture(context, "textures/fretNumbers", 9)
+    val effects =
+        loadTexture(context, "textures/effects", 9)
     val chordTextures =
         makeChordTextures(song.chordTemplates)
     companion object {

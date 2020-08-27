@@ -74,7 +74,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         Frets.initialize()
         FretNumbers.initialize()
         Anchor.initialize()
-        Note.initialize()
+        Note.initialize(textures)
         NoteTail.initialize()
         EmptyStringNote.initialize()
         Beat.initialize()
@@ -170,12 +170,12 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
 
         draw(Neck(activeStrings))
         draw(NeckInlays(frontLeftFret, frontRightFret))
-        draw(Frets())
         draw(FretNumbers(
             textures,
             frontLeftFret,
             frontRightFret
         ))
+        draw(Frets())
 
         if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
     }
