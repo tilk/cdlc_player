@@ -60,7 +60,7 @@ class Anchor(
             void main() {
                 float fdist = 2.0 * distance(fract(pos), 0.5);
                 float cdist = 1.0 - fdist;
-                int fret = int(pos) + uFret.x;
+                int fret = int(pos) + 1;
                 float coef = isSpecialFret(fret) ? 0.7 : 1.0;
                 FragColor = vec4(coef * (
                     step(float(uFret.x - 1), pos) * step(pos, float(uFret.x + uFret.y - 1)) * (cos(2.0*fdist)+1.0)/2.0 * beltColor
