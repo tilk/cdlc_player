@@ -20,6 +20,7 @@ package eu.tilk.cdlcplayer.shapes
 import android.opengl.GLES31.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
@@ -33,6 +34,16 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             -0.015f, 1.45f, 0.05f,
             0.015f, 1.45f, 0.05f,
             0.015f, 0.05f, 0.05f
+        )
+        private val normals = floatArrayOf(
+            -0.5f, -0.1f, 0.5f,
+            -0.5f, 0.1f, 0.5f,
+            0.5f, 0.1f, 0.5f,
+            0.5f, -0.1f, 0.5f,
+            -0.3f, 0f, 1f,
+            -0.3f, 0f, 1f,
+            0.3f, 0f, 1f,
+            0.3f, 0f, 1f
         )
         private val drawOrder = shortArrayOf(
             0, 1, 5,
@@ -51,18 +62,25 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             #version 300 es
             uniform mat4 uMVPMatrix;
             in vec4 vPosition;
+            in vec3 vNormal;
             in int vFret;
+            out vec3 normal;
             void main() {
                 vec4 actPosition = vec4(vPosition.x + float(vFret - 1), vPosition.yzw); 
                 gl_Position = uMVPMatrix * actPosition;
+                normal = normalize(vNormal);
             }
         """.trimIndent()
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
+            uniform vec3 uLight;
+            in vec3 normal;
             out vec4 FragColor;
             void main() {
-                FragColor = vec4(0.84, 0.52, 0.3, 1.0);
+                float diff = max(dot(normalize(normal), normalize(uLight)), 0.0);
+                vec3 col = vec3(0.84, 0.52, 0.3);
+                FragColor = vec4(diff * col, 1.0);
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -91,7 +109,20 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
                 position(0)
             }
         }
+    private val normalsBuffer : FloatBuffer = ByteBuffer.allocateDirect(normals.size * 4)
+        .run {
+            order(ByteOrder.nativeOrder())
+            asFloatBuffer().apply {
+                put(normals)
+                position(0)
+            }
+        }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
+        val normalHandle = glGetAttribLocation(mProgram, "vNormal")
+        glEnableVertexAttribArray(normalHandle)
+        glVertexAttribPointer(normalHandle,
+            COORDS_PER_VERTEX, GL_FLOAT, false,
+            COORDS_PER_VERTEX * 4, normalsBuffer)
         val fretHandle = glGetAttribLocation(mProgram, "vFret")
         glEnableVertexAttribArray(fretHandle)
         glVertexAttribDivisor(fretHandle, 1)
@@ -100,7 +131,12 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             1, GL_SHORT,
             2, fretsBuffer
         )
+        glGetUniformLocation(mProgram, "uLight").also {
+            glUniform3f(it, 0.5f, 0.1f, 1f)
+        }
         super.internalDraw(time, scrollSpeed)
         glVertexAttribDivisor(fretHandle, 0)
+        glDisableVertexAttribArray(fretHandle)
+        glDisableVertexAttribArray(normalHandle)
     }
 }
