@@ -92,7 +92,12 @@ class SongScroller(
                     lastAnchor = Anchor(event, time + horizon)
                     events.add(lastAnchor)
                 }
-                is Event.Note -> addNote(event)
+                is Event.Note -> {
+                    if (!event.linked)
+                        for (string in 0 until event.string)
+                            events.add(NoteLocator(event, string))
+                    addNote(event)
+                }
                 is Event.Beat -> events.add(Beat(event, lastAnchor.event))
                 is Event.HandShape -> events.add(ChordSustain(event, lastAnchor.event))
             }
