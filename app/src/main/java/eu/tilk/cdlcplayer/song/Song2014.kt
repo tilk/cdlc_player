@@ -155,6 +155,12 @@ class Song2014 {
                 note.slap > 0 -> Effect.Slap
                 else -> null
             }
+        fun effectFromChord(chord : Chord2014) =
+            when {
+                chord.palmMute > 0 -> Effect.PalmMute
+                chord.fretHandMute > 0 -> Effect.FrethandMute
+                else -> null
+            }
         fun noteFrom(note : Note2014) = TEvent.Note(
             note.time,
             note.fret,
@@ -202,7 +208,7 @@ class Song2014 {
                                 stringNo.toByte()
                             )
                         )
-                list.add(TEvent.Chord(chord.time, chord.chordId, notes, repeated))
+                list.add(TEvent.Chord(chord.time, chord.chordId, notes, repeated, effectFromChord(chord)))
             }
             lastChordId = chord.chordId
         }

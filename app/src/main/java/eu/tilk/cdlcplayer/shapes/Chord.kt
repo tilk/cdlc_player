@@ -58,6 +58,7 @@ class Chord(
         private val fragmentShaderCode = """
             #version 300 es
             precision mediump float;
+            uniform int uEffect;
             in vec2 vTexCoord;
             out vec4 FragColor;
             $beltColorGLSL
@@ -65,8 +66,12 @@ class Chord(
             $logisticGLSL
             void main() {
                 float dist = max(abs(vTexCoord.x), abs(vTexCoord.y));
+                float xdist = min(abs(vTexCoord.x - vTexCoord.y),
+                                  abs(vTexCoord.x + vTexCoord.y));
                 float coef = logistic(5.0 * (dist - 0.8));
-                FragColor = vec4(coef * bumpColor + (1.0 - coef) * beltColor, 0.2 + coef * 0.8);
+                float effc = uEffect >= 0 ? step(0.2, xdist) : 1.0;
+                FragColor = vec4(effc * (coef * bumpColor + (1.0 - coef) * beltColor), 
+                                 0.2 + coef * 0.8);
             }
         """.trimIndent()
         private var mProgram : Int = -1
@@ -101,6 +106,9 @@ class Chord(
         }
         glGetUniformLocation(mProgram, "uFret").also {
             glUniform2i(it, anchor.fret.toInt(), anchor.width.toInt())
+        }
+        glGetUniformLocation(mProgram, "uEffect").also {
+            glUniform1i(it, if (repeated) event.effect?.ordinal ?: -1 else -1)
         }
         super.internalDraw(time, scrollSpeed)
     }

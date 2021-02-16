@@ -49,7 +49,8 @@ sealed class Event {
         override val time : Float,
         val id : Int,
         val notes : List<Note>,
-        val repeated : Boolean
+        val repeated : Boolean,
+        val effect : Effect? = null
     ) : Event()
 
     data class HandShape(
