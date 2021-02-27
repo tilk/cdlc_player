@@ -106,25 +106,33 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             }
         }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val normalHandle = glGetAttribLocation(mProgram, "vNormal")
-        glEnableVertexAttribArray(normalHandle)
-        glVertexAttribPointer(normalHandle,
-            COORDS_PER_VERTEX, GL_FLOAT, false,
-            COORDS_PER_VERTEX * 4, normalsBuffer)
-        val fretHandle = glGetAttribLocation(mProgram, "vFret")
-        glEnableVertexAttribArray(fretHandle)
-        glVertexAttribDivisor(fretHandle, 1)
-        glVertexAttribIPointer(
-            fretHandle,
-            1, GL_SHORT,
-            2, fretsBuffer
-        )
+        val normalHandle = glGetAttribLocation(mProgram, "vNormal").also {
+            glEnableVertexAttribArray(it)
+            glVertexAttribPointer(
+                it,
+                COORDS_PER_VERTEX, GL_FLOAT, false,
+                COORDS_PER_VERTEX * 4, normalsBuffer
+            )
+        }
+        val fretHandle = glGetAttribLocation(mProgram, "vFret").also {
+            glEnableVertexAttribArray(it)
+            glVertexAttribDivisor(it, 1)
+            glVertexAttribIPointer(
+                it,
+                1, GL_SHORT,
+                2, fretsBuffer
+            )
+        }
         glGetUniformLocation(mProgram, "uLight").also {
             glUniform3f(it, 0.5f, 0.1f, 1f)
         }
         super.internalDraw(time, scrollSpeed)
-        glVertexAttribDivisor(fretHandle, 0)
-        glDisableVertexAttribArray(fretHandle)
-        glDisableVertexAttribArray(normalHandle)
+        fretHandle.also {
+            glVertexAttribDivisor(it, 0)
+            glDisableVertexAttribArray(it)
+        }
+        normalHandle.also {
+            glDisableVertexAttribArray(it)
+        }
     }
 }

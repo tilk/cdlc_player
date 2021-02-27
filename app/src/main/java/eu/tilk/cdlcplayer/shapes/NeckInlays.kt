@@ -91,17 +91,22 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
         }
     override val instances = inlayFrets.size
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val inlayFretHandle = glGetAttribLocation(mProgram, "vInlayFret")
-        glEnableVertexAttribArray(inlayFretHandle)
-        glVertexAttribDivisor(inlayFretHandle, 1)
-        glVertexAttribIPointer(
-            inlayFretHandle,
-            1, GL_SHORT,
-            2, inlayFretsBuffer
-        )
-        val fretHandle = glGetUniformLocation(mProgram, "uFret")
-        glUniform2i(fretHandle, leftFret, rightFret)
+        val inlayFretHandle = glGetAttribLocation(mProgram, "vInlayFret").also {
+            glEnableVertexAttribArray(it)
+            glVertexAttribDivisor(it, 1)
+            glVertexAttribIPointer(
+                it,
+                1, GL_SHORT,
+                2, inlayFretsBuffer
+            )
+        }
+        glGetUniformLocation(mProgram, "uFret").also {
+            glUniform2i(it, leftFret, rightFret)
+        }
         super.internalDraw(time, scrollSpeed)
-        glVertexAttribDivisor(inlayFretHandle, 0)
+        inlayFretHandle.also {
+            glVertexAttribDivisor(it, 0)
+            glDisableVertexAttribArray(it)
+        }
     }
 }
