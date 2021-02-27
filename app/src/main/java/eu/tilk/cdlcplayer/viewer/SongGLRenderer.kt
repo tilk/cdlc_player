@@ -77,6 +77,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         Note.initialize(textures)
         NoteLocator.initialize()
         NoteTail.initialize()
+        NotePredictor.initialize()
         EmptyStringNote.initialize(textures)
         Beat.initialize()
         Chord.initialize()
@@ -146,6 +147,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         var frontLeftFret = 24
         var frontRightFret = 1
         var activeStrings = 0
+        val noteInfos = mutableListOf<NoteInfo>()
         for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level }.thenByDescending(
             EventShape<Event>::endTime))) {
             draw(shape)
@@ -160,6 +162,12 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
                     activeStrings = activeStrings or (1 shl evt.string.toInt())
                 }
             }
+            when (shape) {
+                is NoteyShape -> {
+                    val noteInfo = shape.noteInfo(scroller.currentTime, scrollSpeed)
+                    if (noteInfo != null) noteInfos.add(noteInfo)
+                }
+            }
         }
 
         val targetEyeX = (leftFret + rightFret)/2.0f - 1f
@@ -171,6 +179,8 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
 
         draw(Neck(activeStrings))
         draw(NeckInlays(frontLeftFret, frontRightFret))
+        if (noteInfos.isNotEmpty())
+            draw(NotePredictor(noteInfos))
         draw(FretNumbers(
             textures,
             frontLeftFret,

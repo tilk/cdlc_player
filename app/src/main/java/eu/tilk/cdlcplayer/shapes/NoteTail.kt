@@ -20,16 +20,16 @@ package eu.tilk.cdlcplayer.shapes
 import eu.tilk.cdlcplayer.viewer.Event
 import eu.tilk.cdlcplayer.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.viewer.NoteInfo
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.sin
-import kotlin.math.tanh
 
 class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float) :
-    EventShape<Event.Note>(
+    NoteyShape<Event.Note>(
         makeVertexCoords(note, anchor, scrollSpeed),
         makeDrawOrder(note, scrollSpeed),
         mProgram,
@@ -75,16 +75,9 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
         private fun sizeFor(note : Event.Note, scrollSpeed : Float) : Int =
             ceil(note.sustain * scrollSpeed * scaling).toInt()
         private fun makeVertexCoords(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) : FloatArray {
-            val slideLen = when {
-                note.slideTo > 0 -> note.slideTo - note.fret
-                note.slideUnpitchedTo >= 0 -> note.slideUnpitchedTo - note.fret
-                else -> 0
-            }
             val suswidth = if (note.fret > 0) 1
                            else anchor.width
             val sz = sizeFor(note, scrollSpeed)
-            fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
-            fun dLogistic(x : Float) = logistic(x) * logistic(-x)
             return FloatArray(6 + 6 * sz) {
                 val i = it / 3 // vertex number
                 val z = i / 2  // Z axis distance
@@ -93,8 +86,9 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
                     0 -> {
                         var v = (suswidth - 0.75f) * ((i % 2).toFloat() - 0.5f)
                         // add slide effect
-                        if (slideLen != 0) v = v * (1f + 10f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * slideLen) +
-                            slideLen * logistic(pct * 10f - 5f)
+                        if (note.slideLen != 0)
+                            v = v * (1f + 10f * dLogistic(pct * 10f - 5f) / note.sustain / scrollSpeed * note.slideLen) +
+                                note.slideValue(pct)
                         // add tremolo effect
                         if (note.tremolo)
                             when (z % 8) {
@@ -113,15 +107,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
                         }
                         // add bend effect
                         if (note.bend.isNotEmpty()) {
-                            val bi = note.bend.indexOfFirst { p -> p.first <= pct }
-                            val start = if (bi == -1) Pair(0f, 0f) else note.bend[bi]
-                            val end = if (note.bend.lastIndex < bi+1)
-                                Pair(1f, note.bend.last().second) else note.bend[bi+1]
-                            val prog = (pct - start.first)/(end.first - start.first)
-                            val amnt = start.second + logistic(prog * 10f - 5f) *
-                                    (end.second - start.second)
-                            val dir = if (note.string > 2) -1f else 1f
-                            v += 0.25f * amnt * dir
+                            v += 0.25f * note.bendValue(pct)
                         }
                         v
                     }
@@ -153,6 +139,18 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
     override val derived = true
     override val sortLevel =
         SortLevel.StringTail(note.string.toInt())
+
+    override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? {
+        val pct = (time - event.time) / event.sustain
+        return if (event.fret > 0 && pct >= 0 && pct <= 1)
+            NoteInfo(
+                0f, event.fret, event.string,
+                event.bendValue(pct),
+                event.slideValue(pct)
+            )
+        else
+            null
+    }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         val parityHandle = glGetAttribLocation(mProgram, "vParity").also {
             glEnableVertexAttribArray(it)

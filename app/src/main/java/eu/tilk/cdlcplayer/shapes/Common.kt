@@ -20,6 +20,7 @@ package eu.tilk.cdlcplayer.shapes
 import android.util.Log
 import java.nio.IntBuffer
 import android.opengl.GLES31.*
+import kotlin.math.tanh
 
 const val COORDS_PER_VERTEX = 3
 
@@ -80,3 +81,6 @@ fun makeProgramFromShaders(vertexShader : Int, fragmentShader : Int) : Int {
         checkProgram(it)
     }
 }
+
+fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
+fun dLogistic(x : Float) = logistic(x) * logistic(-x)

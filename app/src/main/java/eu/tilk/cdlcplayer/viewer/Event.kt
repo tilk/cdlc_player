@@ -17,6 +17,8 @@
 
 package eu.tilk.cdlcplayer.viewer
 
+import eu.tilk.cdlcplayer.shapes.logistic
+
 sealed class Event {
     abstract val time : Float
 
@@ -32,7 +34,31 @@ sealed class Event {
         val vibrato : Short = 0,
         val effect : Effect? = null,
         val bend : List<Pair<Float, Float>> = ArrayList()
-    ) : Event()
+    ) : Event() {
+        val slideLen = when {
+            slideTo > 0 -> slideTo - fret
+            slideUnpitchedTo >= 0 -> slideUnpitchedTo - fret
+            else -> 0
+        }
+        fun slideValue(pct : Float) = slideLen * logistic(pct * 10f - 5f)
+        private fun findBend(pct : Float) : Pair<Pair<Float, Float>, Pair<Float, Float>> {
+            if (bend.isEmpty())
+                return Pair(Pair(0f, 0f), Pair(1f, 0f))
+            val bi = bend.indexOfFirst { p -> p.first <= pct }
+            val start = if (bi == -1) Pair(0f, 0f) else bend[bi]
+            val end = if (bend.lastIndex < bi+1)
+                Pair(1f, bend.last().second) else bend[bi+1]
+            return Pair(start, end)
+        }
+        fun bendValue(pct : Float) : Float {
+            val (start, end) = findBend(pct)
+            val prog = (pct - start.first)/(end.first - start.first)
+            val amnt = start.second + logistic(prog * 10f - 5f) *
+                    (end.second - start.second)
+            val dir = if (string > 2) -1f else 1f
+            return amnt * dir
+        }
+    }
 
     data class Beat(
         override val time : Float,

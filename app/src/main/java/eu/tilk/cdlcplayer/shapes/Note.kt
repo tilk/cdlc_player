@@ -20,10 +20,11 @@ package eu.tilk.cdlcplayer.shapes
 import eu.tilk.cdlcplayer.viewer.Event
 import eu.tilk.cdlcplayer.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.viewer.NoteInfo
 import eu.tilk.cdlcplayer.viewer.Textures
 
 class Note(note : Event.Note, override val derived : Boolean = false) :
-    EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
+    NoteyShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.5f, -0.24f, 0.0f,
@@ -87,6 +88,13 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
 
     override val sortLevel =
         SortLevel.String(note.string.toInt())
+
+    override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? =
+        if (event.time > time)
+            NoteInfo((event.time - time) * scrollSpeed, event.fret, event.string,
+                event.bendValue(0f), 0f)
+        else
+            null
 
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uPosition").also {
