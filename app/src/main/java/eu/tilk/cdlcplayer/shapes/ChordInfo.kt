@@ -25,17 +25,17 @@ import eu.tilk.cdlcplayer.viewer.Textures
 class ChordInfo(chord : Event.Chord,
                 private val anchor : Event.Anchor) :
     EventShape<Event.Chord>(vertexCoords, drawOrder, mProgram, chord) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0.0f, 0.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
             1.0f, 0.5f, 0.0f,
             0.0f, 0.5f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform float uTime;
@@ -51,8 +51,8 @@ class ChordInfo(chord : Event.Chord,
                 vTexCoord = vec2(vPosition.x, 
                     (float(uChord.x) + 1.0 - vPosition.y / 0.5) / float(uChord.y));
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform sampler2D uTexture;
@@ -62,23 +62,11 @@ class ChordInfo(chord : Event.Chord,
                 FragColor = texture(uTexture, vTexCoord);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
+    ) {
         private lateinit var textures : Textures
         private var chordCount : Int = -1
         fun initialize(textures : Textures, chordCount : Int) {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
+            super.initialize()
             this.textures = textures
             this.chordCount = chordCount
         }

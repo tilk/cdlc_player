@@ -27,17 +27,17 @@ class EmptyStringNote(
     override val derived : Boolean,
     private val anchor : Event.Anchor
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0f, -0.24f, 0.0f,
             0f, 0.24f, 0.0f,
             1f, 0.24f, 0.0f,
             1f, -0.24f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
@@ -61,8 +61,8 @@ class EmptyStringNote(
                     + vec2(float(ex) / 2.0, float(ey) / 5.0 + 0.2)
                 );
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform sampler2D uTexture;
@@ -81,22 +81,10 @@ class EmptyStringNote(
                     max(effColor.a, scl));
             }
         """.trimIndent()
-        private var mProgram : Int = -1
+    ) {
         private lateinit var textures : Textures
         fun initialize(textures : Textures) {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
+            super.initialize()
             this.textures = textures
         }
     }

@@ -25,17 +25,17 @@ class Beat(
     beat : Event.Beat,
     private val anchor : Event.Anchor
 ) : EventShape<Event.Beat>(vertexCoords, drawOrder, mProgram, beat) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0f, 0f, 0.0f,
             0f, 0f, 0.15f,
             1f, 0f, 0.15f,
             1f, 0f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform float uTime;
@@ -47,8 +47,8 @@ class Beat(
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vec2(vPosition.x, vPosition.y);
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             in vec2 vTexCoord;
@@ -59,23 +59,7 @@ class Beat(
                 FragColor = vec4(bumpColor, 0.5 + float(uMeasure) / 2.0);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
-    }
+    )
     override val sortLevel = SortLevel.Beat
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         val timeHandle = glGetUniformLocation(mProgram, "uTime")

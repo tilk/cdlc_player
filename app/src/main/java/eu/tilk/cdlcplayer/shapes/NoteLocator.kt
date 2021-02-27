@@ -25,17 +25,17 @@ class NoteLocator(
     note : Event.Note,
     private val string : Int
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             -0.5f, -0.125f, 0.0f,
             -0.5f, 0.125f, 0.0f,
             0.5f, 0.125f, 0.0f,
             0.5f, -0.125f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform vec4 uPosition;
@@ -47,8 +47,8 @@ class NoteLocator(
                     vPosition.x / 0.5,
                     (vPosition.y + uPosition.y) / 0.25);
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform mat4 uMVPMatrix;
@@ -61,23 +61,7 @@ class NoteLocator(
                 FragColor = vec4(stringColors[uString], alp);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
-    }
+    )
     override val sortLevel = SortLevel.ChordBox(string)
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uPosition").also {

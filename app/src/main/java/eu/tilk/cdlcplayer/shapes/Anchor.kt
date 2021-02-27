@@ -26,17 +26,17 @@ class Anchor(
     anchor : Event.Anchor,
     var lastAnchorTime : Float
 ) : EventShape<Event.Anchor>(vertexCoords, drawOrder, mProgram, anchor) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             -0.5f, 0.0f, 0.0f,
             -0.5f, 0.0f, -1.0f,
             24.5f, 0.0f, -1.0f,
             24.5f, 0.0f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             in vec4 vPosition;
@@ -47,8 +47,8 @@ class Anchor(
                 gl_Position = uMVPMatrix * actPosition;
                 pos = vPosition.x;
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform ivec2 uFret;
@@ -67,23 +67,7 @@ class Anchor(
                     + (tanh(20.0*(fdist-0.95))+1.0)/2.0 * bumpColor), 1.0);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
-    }
+    )
     override val endTime : Float get() = lastAnchorTime
     override val sortLevel = SortLevel.Tab
     override fun internalDraw(time : Float, scrollSpeed : Float) {

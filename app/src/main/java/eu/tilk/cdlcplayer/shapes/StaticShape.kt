@@ -27,6 +27,12 @@ abstract class StaticShape(
     drawOrder : ShortArray,
     mProgram : Int
 ) : Shape(mProgram) {
+    open class StaticCompanionBase(
+        protected val vertexCoords : FloatArray,
+        protected val drawOrder : ShortArray,
+        vertexShaderCode : String,
+        fragmentShaderCode : String
+    ) : CompanionBase(vertexShaderCode, fragmentShaderCode)
     override val vertexBuffer : FloatBuffer = ByteBuffer.allocateDirect(vertexCoords.size * 4)
         .run {
             order(ByteOrder.nativeOrder())

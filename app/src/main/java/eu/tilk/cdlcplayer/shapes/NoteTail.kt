@@ -35,7 +35,42 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
         mProgram,
         note
     ) {
-    companion object {
+    companion object : CompanionBase(
+        """
+            #version 300 es
+            uniform mat4 uMVPMatrix;
+            uniform vec4 uPosition;
+            uniform float uMaxZ;
+            in vec4 vPosition;
+            in float vParity;
+            out float zPos;
+            out vec2 vTexCoord;
+            void main() {
+                vec4 pos = vPosition + uPosition;
+                gl_Position = uMVPMatrix * pos;
+                zPos = pos.z;
+                vTexCoord = vec2(vParity, -vPosition.z / uMaxZ);
+            }
+        """.trimIndent(),
+        """
+            #version 300 es
+            precision mediump float;
+            uniform int uString;
+            uniform float unpitched;
+            in float zPos;
+            in vec2 vTexCoord;
+            out vec4 FragColor;
+            $stringColorsGLSL
+            $logisticGLSL
+            void main() {
+                float dist = abs(vTexCoord.x);
+                float scaling = min(1.0, 1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14);
+                FragColor = vec4(scaling * stringColors[uString], 
+                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0) * 
+                        max(1.0 - unpitched, 1.0 - logistic(4.0*(vTexCoord.y - 0.5))));
+            }
+        """.trimIndent()
+    ) {
         private const val scaling = 10
         private fun sizeFor(note : Event.Note, scrollSpeed : Float) : Int =
             ceil(note.sustain * scrollSpeed * scaling).toInt()
@@ -100,56 +135,6 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             return ShortArray(6 * sizeFor(note, scrollSpeed)) {
                 (drawOrder[it % 6] + 2 * (it / 6)).toShort()
             }
-        }
-        private val vertexShaderCode = """
-            #version 300 es
-            uniform mat4 uMVPMatrix;
-            uniform vec4 uPosition;
-            uniform float uMaxZ;
-            in vec4 vPosition;
-            in float vParity;
-            out float zPos;
-            out vec2 vTexCoord;
-            void main() {
-                vec4 pos = vPosition + uPosition;
-                gl_Position = uMVPMatrix * pos;
-                zPos = pos.z;
-                vTexCoord = vec2(vParity, -vPosition.z / uMaxZ);
-            }
-        """.trimIndent()
-        private val fragmentShaderCode = """
-            #version 300 es
-            precision mediump float;
-            uniform int uString;
-            uniform float unpitched;
-            in float zPos;
-            in vec2 vTexCoord;
-            out vec4 FragColor;
-            $stringColorsGLSL
-            $logisticGLSL
-            void main() {
-                float dist = abs(vTexCoord.x);
-                float scaling = min(1.0, 1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14);
-                FragColor = vec4(scaling * stringColors[uString], 
-                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0) * 
-                        max(1.0 - unpitched, 1.0 - logistic(4.0*(vTexCoord.y - 0.5))));
-            }
-        """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
         }
     }
 

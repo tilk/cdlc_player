@@ -28,17 +28,17 @@ class Chord(
     private val string : Int,
     private val repeated : Boolean
 ) : EventShape<Event.Chord>(vertexCoords, drawOrder, mProgram, chord) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0.0f, 0.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
             1.0f, 1.0f, 0.0f,
             0.0f, 1.0f, 0.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform float uTime;
@@ -55,8 +55,8 @@ class Chord(
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vec2(2.0, uMult) * qPosition - vec2(1.0, 1.0);
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform int uEffect;
@@ -76,23 +76,7 @@ class Chord(
                                  0.2 + coef * 0.8);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
-    }
+    )
 
     override val sortLevel = SortLevel.ChordBox(string)
     override val derived = string > 0

@@ -24,6 +24,27 @@ import java.nio.ShortBuffer
 abstract class Shape(
     private val mProgram : Int
 ) {
+    open class CompanionBase(
+        private val vertexShaderCode : String,
+        private val fragmentShaderCode : String
+    ) {
+        protected var mProgram : Int = -1
+        fun initialize() {
+            val vertexShader =
+                loadShader(
+                    GL_VERTEX_SHADER,
+                    vertexShaderCode
+                )
+            val fragmentShader = loadShader(
+                GL_FRAGMENT_SHADER,
+                fragmentShaderCode
+            )
+            mProgram = makeProgramFromShaders(
+                vertexShader,
+                fragmentShader
+            )
+        }
+    }
     protected abstract val vertexBuffer : FloatBuffer
     protected abstract val drawListBuffer : ShortBuffer
     protected abstract val drawListSize : Int

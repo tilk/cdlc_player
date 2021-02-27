@@ -24,8 +24,8 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             -0.04f, 0f, 0f,
             -0.04f, 1.5f, 0f,
             0.04f, 1.5f, 0f,
@@ -34,18 +34,8 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             -0.015f, 1.45f, 0.05f,
             0.015f, 1.45f, 0.05f,
             0.015f, 0.05f, 0.05f
-        )
-        private val normals = floatArrayOf(
-            -0.5f, -0.1f, 0.5f,
-            -0.5f, 0.1f, 0.5f,
-            0.5f, 0.1f, 0.5f,
-            0.5f, -0.1f, 0.5f,
-            -0.3f, 0f, 1f,
-            -0.3f, 0f, 1f,
-            0.3f, 0f, 1f,
-            0.3f, 0f, 1f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 5,
             0, 5, 4,
             7, 6, 2,
@@ -56,9 +46,8 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             0, 7, 3,
             4, 5, 6,
             4, 6, 7
-        )
-        private val frets = (1..24).toList().map { it.toShort() }.toShortArray()
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             in vec4 vPosition;
@@ -73,8 +62,8 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
                 gl_Position = uMVPMatrix * actPosition;
                 normal = normalize(vNormal);
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform vec3 uLight;
@@ -86,22 +75,18 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
                 FragColor = vec4(diff * col, 1.0);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
+    ) {
+        private val normals = floatArrayOf(
+            -0.5f, -0.1f, 0.5f,
+            -0.5f, 0.1f, 0.5f,
+            0.5f, 0.1f, 0.5f,
+            0.5f, -0.1f, 0.5f,
+            -0.3f, 0f, 1f,
+            -0.3f, 0f, 1f,
+            0.3f, 0f, 1f,
+            0.3f, 0f, 1f
+        )
+        private val frets = (1..24).toList().map { it.toShort() }.toShortArray()
     }
     override val instances = frets.size
     private val fretsBuffer : ShortBuffer = ByteBuffer.allocateDirect(frets.size * 2)

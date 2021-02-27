@@ -24,18 +24,17 @@ import eu.tilk.cdlcplayer.viewer.SortLevel
 class ChordSustain(private val chord : Event.HandShape,
                    private val anchor : Event.Anchor) :
     EventShape<Event.HandShape>(vertexCoords, drawOrder, mProgram, chord) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0.0f, 0.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
             1.0f, 0.0f, -1.0f,
             0.0f, 0.0f, -1.0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private var mProgram : Int = -1
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform float uTime;
@@ -54,8 +53,8 @@ class ChordSustain(private val chord : Event.HandShape,
                 zPos = actPosition.z;
                 gl_Position = uMVPMatrix * actPosition;
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             uniform ivec2 uFret;
@@ -74,22 +73,7 @@ class ChordSustain(private val chord : Event.HandShape,
                     col_fun(abs(xCoord - float(uFret.y))))));
             }
         """.trimIndent()
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
-    }
+    )
     override val sortLevel = SortLevel.Beat
     override val endTime = chord.time + chord.sustain
     override fun internalDraw(time : Float, scrollSpeed : Float) {

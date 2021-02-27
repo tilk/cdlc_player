@@ -24,20 +24,17 @@ import java.nio.ShortBuffer
 
 class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
     StaticShape(vertexCoords, drawOrder, mProgram) {
-    companion object {
-        private val vertexCoords = floatArrayOf(
+    companion object : StaticCompanionBase(
+        floatArrayOf(
             0f, 0f, 0f,
             0f, 1.5f, 0f,
             1f, 1.5f, 0f,
             1f, 0f, 0f
-        )
-        private val drawOrder = shortArrayOf(
+        ),
+        shortArrayOf(
             0, 1, 2, 0, 2, 3
-        )
-        private val inlayFrets = shortArrayOf(
-            3, 5, 7, 9, 12, 15, 17, 19, 21, 24
-        )
-        private val vertexShaderCode = """
+        ),
+        """
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform ivec2 uFret;
@@ -57,8 +54,8 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
                 twoDot = int(isTwoDotFret(vInlayFret));
                 actv = int(vInlayFret >= uFret.x && vInlayFret < uFret.y);
             }
-        """.trimIndent()
-        private val fragmentShaderCode = """
+        """.trimIndent(),
+        """
             #version 300 es
             precision mediump float;
             in vec2 vTexCoord;
@@ -79,22 +76,10 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
                 FragColor = vec4(col, coef * 0.7);
             }
         """.trimIndent()
-        private var mProgram : Int = -1
-        fun initialize() {
-            val vertexShader =
-                loadShader(
-                    GL_VERTEX_SHADER,
-                    vertexShaderCode
-                )
-            val fragmentShader = loadShader(
-                GL_FRAGMENT_SHADER,
-                fragmentShaderCode
-            )
-            mProgram = makeProgramFromShaders(
-                vertexShader,
-                fragmentShader
-            )
-        }
+    ) {
+        private val inlayFrets = shortArrayOf(
+            3, 5, 7, 9, 12, 15, 17, 19, 21, 24
+        )
     }
     private val inlayFretsBuffer : ShortBuffer = ByteBuffer.allocateDirect(inlayFrets.size * 2)
         .run {
