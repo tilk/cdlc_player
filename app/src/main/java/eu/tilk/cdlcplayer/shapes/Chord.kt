@@ -20,6 +20,7 @@ package eu.tilk.cdlcplayer.shapes
 import eu.tilk.cdlcplayer.viewer.Event
 import eu.tilk.cdlcplayer.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.viewer.Effect
 
 class Chord(
     chord : Event.Chord,
@@ -66,10 +67,11 @@ class Chord(
             $logisticGLSL
             void main() {
                 float dist = max(abs(vTexCoord.x), abs(vTexCoord.y));
-                float xdist = min(abs(vTexCoord.x - vTexCoord.y),
-                                  abs(vTexCoord.x + vTexCoord.y));
+                float tcox = uEffect == ${Effect.FrethandMute.ordinal} ? vTexCoord.x * 2.0 : vTexCoord.x; 
+                float xdist = min(abs(tcox - vTexCoord.y),
+                                  abs(tcox + vTexCoord.y));
                 float coef = logistic(5.0 * (dist - 0.8));
-                float effc = uEffect >= 0 ? step(0.2, xdist) : 1.0;
+                float effc = uEffect >= 0 ? max(step(0.9, dist), step(0.2, xdist)) : 1.0;
                 FragColor = vec4(effc * (coef * bumpColor + (1.0 - coef) * beltColor), 
                                  0.2 + coef * 0.8);
             }
