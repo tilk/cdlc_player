@@ -95,7 +95,8 @@ class SongScroller(
                 is Event.Note -> {
                     if (!event.linked)
                         for (string in 0 until event.string)
-                            events.add(NoteLocator(event, string))
+                            if (event.fret > 0) // TODO empty string locator
+                                events.add(NoteLocator(event, string))
                     addNote(event)
                 }
                 is Event.Beat -> events.add(Beat(event, lastAnchor.event))
