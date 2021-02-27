@@ -48,10 +48,10 @@ class Chord(
             in vec4 vPosition;
             out vec2 vTexCoord;
             void main() {
-                vec2 qPosition = vec2(vPosition.x, (float(uString) + vPosition.y) * 0.25 / 1.5);
+                vec2 qPosition = vec2(vPosition.x, (float(uString + 1) + vPosition.y) * 0.25 / 2.0);
                 vec4 actPosition = vec4(
                     float(uFret.x-1) + qPosition.x * float(uFret.y), 
-                    qPosition.y * 1.5, vPosition.z + uTime, vPosition.w);
+                    qPosition.y * 2.0, vPosition.z + uTime, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vec2(2.0, uMult) * qPosition - vec2(1.0, 1.0);
             }

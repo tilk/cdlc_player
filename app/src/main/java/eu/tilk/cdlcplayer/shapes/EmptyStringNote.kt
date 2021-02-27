@@ -106,7 +106,7 @@ class EmptyStringNote(
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
             anchor.fret - 1f,
-            1.5f * (event.string + 0.5f) / 6f,
+            1.5f * (event.string + 1.5f) / 6f,
             (time - event.time) * scrollSpeed,
             0f)
         val fretHandle = glGetUniformLocation(mProgram, "uWidth")

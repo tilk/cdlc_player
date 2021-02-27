@@ -105,7 +105,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
             glUniform4f(
                 it,
                 event.fret - 0.5f,
-                1.5f * (event.string + 0.5f) / 6f,
+                1.5f * (event.string + 1.5f) / 6f,
                 (time - event.time) * scrollSpeed,
                 0f
             )

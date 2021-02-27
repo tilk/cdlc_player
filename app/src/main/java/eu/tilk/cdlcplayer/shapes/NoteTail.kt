@@ -179,7 +179,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             glUniform4f(
                 it,
                 x,
-                1.5f * (event.string + 0.5f) / 6f,
+                1.5f * (event.string + 1.5f) / 6f,
                 (time - event.time) * scrollSpeed,
                 0f
             )

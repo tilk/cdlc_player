@@ -79,7 +79,7 @@ class SongScroller(
         while (position < song.size && song[position].time < time + horizon) {
             when (val event = song[position++]) {
                 is Event.Chord -> {
-                    for (string in 0..if (event.repeated) 2 else 5)
+                    for (string in -1..if (event.repeated) 2 else 6)
                         events.add(Chord(event, lastAnchor.event, string, event.repeated))
                     if (!event.repeated) {
                         events.add(ChordInfo(event, lastAnchor.event))
@@ -94,7 +94,7 @@ class SongScroller(
                 }
                 is Event.Note -> {
                     if (!event.linked)
-                        for (string in 0 until event.string)
+                        for (string in -1 until event.string)
                             if (event.fret > 0) // TODO empty string locator
                                 events.add(NoteLocator(event, string))
                     addNote(event)

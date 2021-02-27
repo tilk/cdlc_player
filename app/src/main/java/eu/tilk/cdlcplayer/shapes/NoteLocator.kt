@@ -57,7 +57,7 @@ class NoteLocator(
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
-                float alp = step(abs(vTexCoord.x), 0.1) * max(1.0 - vTexCoord.y / float(uString), 0.0);
+                float alp = step(abs(vTexCoord.x), 0.1) * max(1.0 - vTexCoord.y / float(uString + 1), 0.0);
                 FragColor = vec4(stringColors[uString], alp);
             }
         """.trimIndent()
@@ -84,7 +84,7 @@ class NoteLocator(
             glUniform4f(
                 it,
                 event.fret - 0.5f,
-                1.5f * (string + 0.5f) / 6f,
+                1.5f * (string + 1.5f) / 6f,
                 (time - event.time) * scrollSpeed,
                 0f
             )

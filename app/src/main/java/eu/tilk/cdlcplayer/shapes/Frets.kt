@@ -66,7 +66,10 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             in int vFret;
             out vec3 normal;
             void main() {
-                vec4 actPosition = vec4(vPosition.x + float(vFret - 1), vPosition.yzw); 
+                vec4 actPosition = vec4(
+                    vPosition.x + float(vFret - 1), 
+                    vPosition.y + 0.25, 
+                    vPosition.zw); 
                 gl_Position = uMVPMatrix * actPosition;
                 normal = normalize(vNormal);
             }

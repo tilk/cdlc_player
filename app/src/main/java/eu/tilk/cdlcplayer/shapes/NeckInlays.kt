@@ -48,7 +48,10 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
             flat out int actv;
             $specialFretsGLSL
             void main() {
-                vec4 actPosition = vec4(vPosition.x + float(vInlayFret - 1), vPosition.yzw); 
+                vec4 actPosition = vec4(
+                    vPosition.x + float(vInlayFret - 1), 
+                    vPosition.y + 0.25,
+                    vPosition.zw); 
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vPosition.xy;
                 twoDot = int(isTwoDotFret(vInlayFret));

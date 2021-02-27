@@ -46,7 +46,7 @@ class ChordInfo(chord : Event.Chord,
             void main() {
                 vec4 actPosition = vec4(
                     float(uFret.x-1) + vPosition.x * float(uFret.y), 
-                    vPosition.y + 1.5, vPosition.z + uTime, vPosition.w);
+                    vPosition.y + 2.0, vPosition.z + uTime, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vec2(vPosition.x, 
                     (float(uChord.x) + 1.0 - vPosition.y / 0.5) / float(uChord.y));

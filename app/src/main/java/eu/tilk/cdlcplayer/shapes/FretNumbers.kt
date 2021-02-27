@@ -41,7 +41,7 @@ class FretNumbers(
             in vec4 vPosition;
             out vec2 vTexCoord;
             void main() {
-                gl_Position = uMVPMatrix * vPosition;
+                gl_Position = uMVPMatrix * (vPosition + vec4(0.0, 0.25, 0.0, 0.0));
                 vTexCoord = vec2(vPosition.x, -vPosition.y / 0.5);
             }
         """.trimIndent()
