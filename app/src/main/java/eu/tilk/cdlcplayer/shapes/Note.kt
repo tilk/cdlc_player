@@ -80,14 +80,16 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         """.trimIndent()
     ) {
         private lateinit var textures : Textures
-        fun initialize(textures : Textures) {
+        private lateinit var calculator : NoteCalculator
+        fun initialize(textures : Textures, calculator : NoteCalculator) {
             super.initialize()
             this.textures = textures
+            this.calculator = calculator
         }
     }
 
     override val sortLevel =
-        SortLevel.String(note.string.toInt())
+        SortLevel.String(calculator.sort(note.string.toInt()))
 
     override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? =
         if (event.time > time)
@@ -100,9 +102,9 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         glGetUniformLocation(mProgram, "uPosition").also {
             glUniform4f(
                 it,
-                event.fret - 0.5f,
-                1.5f * (event.string + 1.5f) / 6f,
-                (time - event.time) * scrollSpeed,
+                calculator.calcX(event.fret),
+                calculator.calcY(event.string),
+                calculator.calcZ(event.time, time, scrollSpeed),
                 0f
             )
         }

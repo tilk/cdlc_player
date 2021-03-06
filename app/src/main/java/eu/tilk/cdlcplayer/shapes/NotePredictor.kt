@@ -70,7 +70,13 @@ class NotePredictor(private val notes : Iterable<NoteInfo>) :
                     step(0.65, dist));
             }
         """.trimIndent()
-    )
+    ) {
+        private lateinit var calculator : NoteCalculator
+        fun initialize(calculator: NoteCalculator) {
+            super.initialize()
+            this.calculator = calculator
+        }
+    }
     private val stringBuffer : ShortBuffer = ByteBuffer.allocateDirect(notes.count() * 2)
         .run {
             order(ByteOrder.nativeOrder())
@@ -87,8 +93,8 @@ class NotePredictor(private val notes : Iterable<NoteInfo>) :
                 order(ByteOrder.nativeOrder())
                 asFloatBuffer().apply {
                     notes.forEach {
-                        put(it.fret - 0.5f + it.slide)
-                        put(1.5f * (it.string + 1.5f + it.bend) / 6f)
+                        put(calculator.calcX(it.fret) + it.slide)
+                        put(calculator.calcY(it.string, it.bend))
                         put(it.time)
                     }
                     position(0)

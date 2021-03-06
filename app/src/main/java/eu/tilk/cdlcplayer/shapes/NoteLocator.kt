@@ -61,15 +61,21 @@ class NoteLocator(
                 FragColor = vec4(stringColors[uString], alp);
             }
         """.trimIndent()
-    )
-    override val sortLevel = SortLevel.ChordBox(string)
+    ) {
+        private lateinit var calculator : NoteCalculator
+        fun initialize(calculator: NoteCalculator) {
+            super.initialize()
+            this.calculator = calculator
+        }
+    }
+    override val sortLevel = SortLevel.ChordBox(calculator.sort(string))
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uPosition").also {
             glUniform4f(
                 it,
-                event.fret - 0.5f,
-                1.5f * (string + 1.5f) / 6f,
-                (time - event.time) * scrollSpeed,
+                calculator.calcX(event.fret),
+                calculator.calcY(event.string),
+                calculator.calcZ(event.time, time, scrollSpeed),
                 0f
             )
         }

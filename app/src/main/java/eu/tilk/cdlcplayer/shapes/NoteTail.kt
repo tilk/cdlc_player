@@ -122,6 +122,11 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
                 (drawOrder[it % 6] + 2 * (it / 6)).toShort()
             }
         }
+        private lateinit var calculator : NoteCalculator
+        fun initialize(calculator: NoteCalculator) {
+            super.initialize()
+            this.calculator = calculator
+        }
     }
 
     private val parityBuffer : FloatBuffer =
@@ -138,7 +143,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
     override val endTime = note.time + note.sustain
     override val derived = true
     override val sortLevel =
-        SortLevel.StringTail(note.string.toInt())
+        SortLevel.StringTail(calculator.sort(note.string.toInt()))
 
     override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? {
         val pct = (time - event.time) / event.sustain
@@ -157,13 +162,13 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             glVertexAttribPointer(it, 1, GL_FLOAT, false, 4, parityBuffer)
         }
         glGetUniformLocation(mProgram, "uPosition").also {
-            val x = if (event.fret > 0) event.fret - 0.5f
+            val x = if (event.fret > 0) calculator.calcX(event.fret)
                     else anchor.fret + anchor.width/2f - 1f
             glUniform4f(
                 it,
                 x,
-                1.5f * (event.string + 1.5f) / 6f,
-                (time - event.time) * scrollSpeed,
+                calculator.calcY(event.string),
+                calculator.calcZ(event.time, time,  scrollSpeed),
                 0f
             )
         }

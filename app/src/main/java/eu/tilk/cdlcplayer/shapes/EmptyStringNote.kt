@@ -83,19 +83,21 @@ class EmptyStringNote(
         """.trimIndent()
     ) {
         private lateinit var textures : Textures
-        fun initialize(textures : Textures) {
+        private lateinit var calculator : NoteCalculator
+        fun initialize(textures : Textures, calculator : NoteCalculator) {
             super.initialize()
             this.textures = textures
+            this.calculator = calculator
         }
     }
     override val sortLevel =
-        SortLevel.String(note.string.toInt())
+        SortLevel.String(calculator.sort(note.string.toInt()))
     override fun internalDraw(time: Float, scrollSpeed : Float) {
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,
             anchor.fret - 1f,
-            1.5f * (event.string + 1.5f) / 6f,
-            (time - event.time) * scrollSpeed,
+            calculator.calcY(event.string),
+            calculator.calcZ(event.time, time, scrollSpeed),
             0f)
         val fretHandle = glGetUniformLocation(mProgram, "uWidth")
         glUniform1i(fretHandle, anchor.width.toInt())
