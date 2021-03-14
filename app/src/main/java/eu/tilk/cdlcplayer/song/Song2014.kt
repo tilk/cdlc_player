@@ -165,6 +165,7 @@ class Song2014 {
             note.time,
             note.fret,
             note.string,
+            note.leftHand,
             note.sustain,
             note.slideTo,
             note.slideUnpitchTo,
@@ -205,7 +206,8 @@ class Song2014 {
                             TEvent.Note(
                                 chord.time,
                                 chordTpl.fret[stringNo],
-                                stringNo.toByte()
+                                stringNo.toByte(),
+                                chordTpl.finger[stringNo]
                             )
                         )
                 list.add(TEvent.Chord(chord.time, chord.chordId, notes, repeated, effectFromChord(chord)))

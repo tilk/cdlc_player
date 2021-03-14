@@ -79,6 +79,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         NoteLocator.initialize(calculator)
         NoteTail.initialize(calculator)
         NotePredictor.initialize(calculator)
+        Finger.initialize(textures, calculator)
         EmptyStringNote.initialize(textures, calculator)
         Beat.initialize()
         Chord.initialize()
@@ -149,6 +150,8 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         var frontRightFret = 1
         var activeStrings = 0
         val noteInfos = mutableListOf<NoteInfo>()
+        val fingerInfos = mutableListOf<FingerInfo>()
+        var fingerInfoTime = Float.POSITIVE_INFINITY
         for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level }.thenByDescending(
             EventShape<Event>::endTime))) {
             draw(shape)
@@ -161,6 +164,14 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
                 }
                 is Event.Note -> {
                     activeStrings = activeStrings or (1 shl evt.string.toInt())
+                    if (evt.leftHand in 1..4) {
+                        if (evt.time < fingerInfoTime) {
+                            fingerInfoTime = evt.time
+                            fingerInfos.clear()
+                        }
+                        if (evt.time == fingerInfoTime)
+                            fingerInfos.add(FingerInfo(evt.leftHand, evt.string, evt.fret))
+                    }
                 }
             }
             when (shape) {
@@ -182,6 +193,9 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         draw(NeckInlays(frontLeftFret, frontRightFret))
         if (noteInfos.isNotEmpty())
             draw(NotePredictor(noteInfos))
+        fingerInfos.forEach {
+            draw(Finger(it))
+        }
         draw(FretNumbers(
             textures,
             frontLeftFret,

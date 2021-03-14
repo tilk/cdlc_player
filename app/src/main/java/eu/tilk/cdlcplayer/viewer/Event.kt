@@ -26,6 +26,7 @@ sealed class Event {
         override val time : Float,
         val fret : Byte,
         val string : Byte,
+        val leftHand : Byte = -1,
         val sustain : Float = 0f,
         val slideTo : Byte = -1,
         val slideUnpitchedTo : Byte = -1,
