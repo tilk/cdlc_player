@@ -17,6 +17,7 @@
 
 package eu.tilk.cdlcplayer
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
@@ -34,5 +35,8 @@ class AboutActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             textView.text = Html.fromHtml(getString(R.string.copyright_notice))
         }
+        val nameView = findViewById<TextView>(R.id.app_name)
+        @SuppressLint("SetTextI18n")
+        nameView.text = "${getString(R.string.app_name)} ${getString(R.string.version)}"
     }
 }

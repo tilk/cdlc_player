@@ -17,6 +17,7 @@
 
 <resources>
     <string name="app_name">CDLC Player</string>
+    <string name="version">0.0.1</string>
     <string name="add_song">Add song</string>
     <string name="settings">Settings</string>
     <string name="sort">Sort</string>
