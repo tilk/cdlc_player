@@ -21,6 +21,7 @@ import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.widget.TextView
 
 class AboutActivity : AppCompatActivity() {
@@ -28,7 +29,11 @@ class AboutActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_about)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        findViewById<TextView>(R.id.github).also {
+            it.movementMethod = LinkMovementMethod.getInstance()
+        }
         val textView = findViewById<TextView>(R.id.copyright_notice)
+        textView.movementMethod = LinkMovementMethod.getInstance()
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             textView.text = Html.fromHtml(getString(R.string.copyright_notice), Html.FROM_HTML_MODE_LEGACY)
         } else {

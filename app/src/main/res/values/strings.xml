@@ -49,4 +49,9 @@
             &lt;<a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>&gt;.
         </p>
     ]]></string>
+    <string name="no_songs"><![CDATA[
+        No songs loaded yet. <br />
+        Download CDLCs from <a href="https://customsforge.com/">CustomsForge</a>
+        and add them using the plus button.
+    ]]></string>
 </resources>

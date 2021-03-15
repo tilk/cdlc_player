@@ -20,9 +20,13 @@ package eu.tilk.cdlcplayer
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -44,14 +48,33 @@ class SongListActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list);
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
+        val emptyView = findViewById<TextView>(R.id.empty_view)
+        emptyView.movementMethod = LinkMovementMethod.getInstance()
         val adapter = SongListAdapter(this) { _, arrangement ->
             val intent = Intent(this, ViewerActivity::class.java).apply {
                 putExtra(ViewerActivity.SONG_ID, arrangement.persistentID)
             }
             startActivity(intent)
         }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            emptyView.text = Html.fromHtml(getString(R.string.no_songs), Html.FROM_HTML_MODE_LEGACY)
+        } else {
+            @Suppress("DEPRECATION")
+            emptyView.text = Html.fromHtml(getString(R.string.no_songs))
+        }
+        fun emptyViewVisible(b : Boolean) {
+            if (b) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            } else {
+                emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+            }
+        }
         recyclerView.adapter = adapter
-        observer = Observer { songs -> songs?.let { adapter.setSongs(it) } }
+        observer = Observer { songs ->
+            songs?.let { adapter.setSongs(it); emptyViewVisible(it.isEmpty()) }
+        }
         songViewModel = ViewModelProvider(this).get(SongViewModel::class.java)
         data = songViewModel.listByTitle()
         data.observe(this, observer)
