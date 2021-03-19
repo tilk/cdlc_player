@@ -88,6 +88,8 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         }
     }
 
+    override val endTime : Float = event.time
+
     override val sortLevel =
         SortLevel.String(calculator.sort(note.string.toInt()))
 

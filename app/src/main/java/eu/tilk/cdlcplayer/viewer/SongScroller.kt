@@ -27,23 +27,75 @@ class SongScroller(
     private val horizon = zHorizon / scrollSpeed
     private var time : Float = 0F
     private var position : Int = 0
-    private var lastAnchor =
-        Anchor(
-            Event.Anchor(
-                0f,
-                1,
-                4
-            ), horizon
-        )
-    private var events : ArrayList<EventShape<Event>> = arrayListOf(lastAnchor)
+    private var events : ArrayList<EventShape<Event>> = arrayListOf()
+    private var lastAnchor : Event.Anchor = Event.Anchor(0f, 1, 4, 0f)
+    private val lastAnchorCell = object : Cell<Event.Anchor> {
+        override var data : Event.Anchor by ::lastAnchor
+    }
 
     val activeEvents : List<EventShape<Event>> get() = events
     val currentTime : Float get() = time
 
+    private interface Cell<T> {
+        var data : T
+    }
+
+    private fun shapesForNote(
+        event : Event.Note,
+        lastAnchor : Event.Anchor,
+        derived : Boolean = false
+    ) = sequence {
+        if (!event.linked)
+            if (event.fret > 0)
+                yield(Note(event, derived))
+            else
+                yield(
+                    EmptyStringNote(
+                        event,
+                        derived,
+                        lastAnchor
+                    )
+                )
+        if (event.sustain > 0f)
+            yield(
+                NoteTail(
+                    event,
+                    lastAnchor,
+                    scrollSpeed
+                )
+            )
+    }
+
+    private fun shapesForEvent(event : Event, lastAnchor : Cell<Event.Anchor>) = sequence {
+        when(event) {
+            is Event.Chord -> {
+                for (string in -1..if (event.repeated) 2 else 6)
+                    yield(Chord(event, lastAnchor.data, string, event.repeated))
+                if (!event.repeated) {
+                    yield(ChordInfo(event, lastAnchor.data))
+                    for (note in event.notes)
+                        yieldAll(shapesForNote(note, lastAnchor.data,true))
+                }
+            }
+            is Event.Anchor -> {
+                lastAnchor.data = event
+                yield(Anchor(event))
+            }
+            is Event.Note -> {
+                if (!event.linked)
+                    for (string in -1 until event.string)
+                        if (event.fret > 0) // TODO empty string locator
+                            yield(NoteLocator(event, string))
+                yieldAll(shapesForNote(event, lastAnchor.data))
+            }
+            is Event.Beat -> yield(Beat(event, lastAnchor.data))
+            is Event.HandShape -> yield(ChordSustain(event, lastAnchor.data))
+
+        }
+    }
+
     fun advance(t : Float, onRemove : (Event, Boolean) -> Unit) {
         time += t
-
-        lastAnchor.lastAnchorTime = time + horizon
 
         val it = events.iterator()
         while (it.hasNext()) {
@@ -54,54 +106,8 @@ class SongScroller(
             }
         }
 
-        fun addNote(event : Event.Note, derived : Boolean = false) {
-            if (!event.linked)
-                if (event.fret > 0)
-                    events.add(Note(event, derived))
-                else
-                    events.add(
-                        EmptyStringNote(
-                            event,
-                            derived,
-                            lastAnchor.event
-                        )
-                    )
-            if (event.sustain > 0f)
-                events.add(
-                    NoteTail(
-                        event,
-                        lastAnchor.event,
-                        scrollSpeed
-                    )
-                )
-        }
-
         while (position < song.size && song[position].time < time + horizon) {
-            when (val event = song[position++]) {
-                is Event.Chord -> {
-                    for (string in -1..if (event.repeated) 2 else 6)
-                        events.add(Chord(event, lastAnchor.event, string, event.repeated))
-                    if (!event.repeated) {
-                        events.add(ChordInfo(event, lastAnchor.event))
-                        for (note in event.notes)
-                            addNote(note, true)
-                    }
-                }
-                is Event.Anchor -> {
-                    lastAnchor.lastAnchorTime = event.time
-                    lastAnchor = Anchor(event, time + horizon)
-                    events.add(lastAnchor)
-                }
-                is Event.Note -> {
-                    if (!event.linked)
-                        for (string in -1 until event.string)
-                            if (event.fret > 0) // TODO empty string locator
-                                events.add(NoteLocator(event, string))
-                    addNote(event)
-                }
-                is Event.Beat -> events.add(Beat(event, lastAnchor.event))
-                is Event.HandShape -> events.add(ChordSustain(event, lastAnchor.event))
-            }
+            events.addAll(shapesForEvent(song[position++], lastAnchorCell))
         }
     }
 }

@@ -140,7 +140,6 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
                 position(0)
             }
         }
-    override val endTime = note.time + note.sustain
     override val derived = true
     override val sortLevel =
         SortLevel.StringTail(calculator.sort(note.string.toInt()))

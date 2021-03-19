@@ -21,6 +21,7 @@ import eu.tilk.cdlcplayer.shapes.logistic
 
 sealed class Event {
     abstract val time : Float
+    open val endTime : Float get() = time
 
     data class Note(
         override val time : Float,
@@ -36,6 +37,7 @@ sealed class Event {
         val effect : Effect? = null,
         val bend : List<Pair<Float, Float>> = ArrayList()
     ) : Event() {
+        override val endTime : Float get() = time + sustain
         val slideLen = when {
             slideTo > 0 -> slideTo - fret
             slideUnpitchedTo >= 0 -> slideUnpitchedTo - fret
@@ -69,8 +71,11 @@ sealed class Event {
     data class Anchor(
         override val time : Float,
         val fret : Byte,
-        val width : Short
-    ) : Event()
+        val width : Short,
+        val nextTime : Float = time
+    ) : Event() {
+        override val endTime : Float get() = nextTime
+    }
 
     data class Chord(
         override val time : Float,
@@ -83,5 +88,7 @@ sealed class Event {
     data class HandShape(
         override val time : Float,
         val sustain : Float
-    ) : Event()
+    ) : Event() {
+        override val endTime : Float get() = time + sustain
+    }
 }

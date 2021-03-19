@@ -19,10 +19,14 @@ package eu.tilk.cdlcplayer.viewer
 
 import android.content.Context
 import android.opengl.GLSurfaceView
+import android.view.GestureDetector
+import android.view.MotionEvent
 import eu.tilk.cdlcplayer.song.Song2014
 
 class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(context) {
     private val renderer : SongGLRenderer
+    private val gestureDetector : GestureDetector
+
     init {
         setEGLContextClientVersion(3)
         setEGLConfigChooser(8, 8, 8, 8, 16, 4)
@@ -30,6 +34,11 @@ class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(cont
             song,
             context
         )
+        gestureDetector = GestureDetector(context, renderer.gestureListener)
         setRenderer(renderer)
+    }
+
+    override fun onTouchEvent(event : MotionEvent?) : Boolean {
+        return gestureDetector.onTouchEvent(event)
     }
 }

@@ -134,9 +134,10 @@ class Song2014 {
     fun makeEventListForInterval(level : Int, startTime : Float, endTime : Float) : List<TEvent> {
         val list = ArrayList<TEvent>()
         // inefficient, TODO binary search
-        for (anchor in levels[level].anchors) {
+        val guardAnchor = Anchor2014(endTime)
+        for ((anchor, anchor2) in (levels[level].anchors + listOf(guardAnchor)).zipWithNext()) {
             if (anchor.time >= startTime && anchor.time < endTime)
-                list.add(TEvent.Anchor(anchor.time, anchor.fret, anchor.width))
+                list.add(TEvent.Anchor(anchor.time, anchor.fret, anchor.width, anchor2.time))
         }
         for (ebeat in ebeats) {
             if (ebeat.time >= startTime && ebeat.time < endTime)
@@ -219,6 +220,8 @@ class Song2014 {
     }
     fun makeEventListForLevels(phraseLevels : List<Int>) : List<TEvent> {
         val list = ArrayList<TEvent>()
+        list.add(TEvent.Anchor(0f, 1, 0,
+            levels[phraseLevels[phraseIterations[0].phraseId]].anchors.first().time))
         for (i in 0 until phraseIterations.size-1) {
             list.addAll(makeEventListForInterval(
                 phraseLevels[phraseIterations[i].phraseId],
@@ -226,6 +229,7 @@ class Song2014 {
                 phraseIterations[i+1].time
             ))
         }
+        list.add(TEvent.Anchor(phraseIterations.last().time, 1, 0, songLength))
         return list
     }
     fun makeEventList() : List<TEvent> {

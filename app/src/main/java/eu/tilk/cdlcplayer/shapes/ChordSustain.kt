@@ -75,7 +75,6 @@ class ChordSustain(private val chord : Event.HandShape,
         """.trimIndent()
     )
     override val sortLevel = SortLevel.Beat
-    override val endTime = chord.time + chord.sustain
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uTime").also {
             glUniform1f(it, (time - event.time) * scrollSpeed)

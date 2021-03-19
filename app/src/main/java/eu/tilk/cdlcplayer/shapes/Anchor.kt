@@ -23,8 +23,7 @@ import android.opengl.GLES31.*
 import kotlin.math.max
 
 class Anchor(
-    anchor : Event.Anchor,
-    var lastAnchorTime : Float
+    anchor : Event.Anchor
 ) : EventShape<Event.Anchor>(vertexCoords, drawOrder, mProgram, anchor) {
     companion object : StaticCompanionBase(
         floatArrayOf(
@@ -68,14 +67,13 @@ class Anchor(
             }
         """.trimIndent()
     )
-    override val endTime : Float get() = lastAnchorTime
     override val sortLevel = SortLevel.Tab
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         val timeHandle = glGetUniformLocation(mProgram, "uTime")
         val movedTime = max(event.time, time)
         glUniform2f(timeHandle,
             (time - movedTime) * scrollSpeed,
-            (lastAnchorTime - movedTime) * scrollSpeed)
+            (event.endTime - movedTime) * scrollSpeed)
         val fretHandle = glGetUniformLocation(mProgram, "uFret")
         glUniform2i(fretHandle, event.fret.toInt(), event.width.toInt())
         super.internalDraw(time, scrollSpeed)

@@ -30,6 +30,8 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.tan
 import android.opengl.GLES31.*
+import android.view.GestureDetector
+import android.view.MotionEvent
 import androidx.preference.PreferenceManager
 import eu.tilk.cdlcplayer.song.Song2014
 
@@ -62,6 +64,21 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         R.raw.metronome1, 1)
     private val metronome2 = sounds.load(context,
         R.raw.metronome2, 1)
+
+    val gestureListener = object : GestureDetector.SimpleOnGestureListener()  {
+        override fun onScroll(
+            e1 : MotionEvent,
+            e2 : MotionEvent,
+            distanceX : Float,
+            distanceY : Float
+        ) : Boolean {
+            return super.onScroll(e1, e2, distanceX, distanceY)
+        }
+
+        override fun onLongPress(e : MotionEvent) {
+            super.onLongPress(e)
+        }
+    }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -182,12 +199,14 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             }
         }
 
-        val targetEyeX = (leftFret + rightFret)/2.0f - 1f
-        val targetEyeY = (rightFret - leftFret + 2)/6.0f*1.2f
-        val targetEyeZ = (rightFret - leftFret + 2)/6.0f*3f
-        eyeX = 0.02f*targetEyeX + 0.98f*eyeX
-        eyeY = 0.02f*targetEyeY + 0.98f*eyeY
-        eyeZ = 0.02f*targetEyeZ + 0.98f*eyeZ
+        if (rightFret > leftFret) {
+            val targetEyeX = (leftFret + rightFret) / 2.0f - 1f
+            val targetEyeY = (rightFret - leftFret + 2) / 6.0f * 1.2f
+            val targetEyeZ = (rightFret - leftFret + 2) / 6.0f * 3f
+            eyeX = 0.02f * targetEyeX + 0.98f * eyeX
+            eyeY = 0.02f * targetEyeY + 0.98f * eyeY
+            eyeZ = 0.02f * targetEyeZ + 0.98f * eyeZ
+        }
 
         draw(Neck(activeStrings))
         draw(NeckInlays(frontLeftFret, frontRightFret))

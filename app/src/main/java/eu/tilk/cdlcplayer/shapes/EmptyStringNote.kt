@@ -90,6 +90,7 @@ class EmptyStringNote(
             this.calculator = calculator
         }
     }
+    override val endTime : Float = event.time
     override val sortLevel =
         SortLevel.String(calculator.sort(note.string.toInt()))
     override fun internalDraw(time: Float, scrollSpeed : Float) {
