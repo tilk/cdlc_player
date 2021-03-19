@@ -51,6 +51,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
     private var eyeX : Float = 2f
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
+    private var paused = false
     private val sounds : SoundPool = SoundPool.Builder()
         .run {
         setAudioAttributes(AudioAttributes.Builder().run {
@@ -72,11 +73,11 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             distanceX : Float,
             distanceY : Float
         ) : Boolean {
-            return super.onScroll(e1, e2, distanceX, distanceY)
+            return true
         }
 
         override fun onLongPress(e : MotionEvent) {
-            super.onLongPress(e)
+            paused = !paused
         }
     }
 
@@ -118,19 +119,21 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             sounds.play(sound, 1f, 1f, 0, 0, 1f)
         }
 
-        scroller.advance(deltaTime / 1000.0F) { evt : Event, derived : Boolean ->
-            when (evt) {
-                is Event.Beat ->
-                    if (clickPref == "on_beats")
-                      play(if (evt.measure >= 0) metronome2 else metronome1)
-                is Event.Note ->
-                    if (clickPref == "on_notes" && !derived)
-                        play(metronome1)
-                is Event.Chord ->
-                    if (clickPref == "on_notes" && !derived)
-                        play(metronome1)
-                is Event.Anchor ->
-                    finalAnchor = evt
+        if (!paused) {
+            scroller.advance(deltaTime / 1000.0F) { evt : Event, derived : Boolean ->
+                when (evt) {
+                    is Event.Beat ->
+                        if (clickPref == "on_beats")
+                            play(if (evt.measure >= 0) metronome2 else metronome1)
+                    is Event.Note ->
+                        if (clickPref == "on_notes" && !derived)
+                            play(metronome1)
+                    is Event.Chord ->
+                        if (clickPref == "on_notes" && !derived)
+                            play(metronome1)
+                    is Event.Anchor ->
+                        finalAnchor = evt
+                }
             }
         }
 
