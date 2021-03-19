@@ -45,9 +45,6 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
     private var lastFrameTime : Long = 0
     private var scrollSpeed : Float = 13f
     private lateinit var scroller : SongScroller
-    private var awayAnchor : Event.Anchor =
-        Event.Anchor(0f, 1, 4)
-    private var finalAnchor : Event.Anchor = awayAnchor
     private var eyeX : Float = 2f
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
@@ -85,7 +82,6 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        //glEnable(GL_DEPTH_TEST)
         val calculator = NoteCalculator(context)
         textures = Textures(context, data)
         Neck.initialize(calculator)
@@ -131,8 +127,6 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
                     is Event.Chord ->
                         if (clickPref == "on_notes" && !derived)
                             play(metronome1)
-                    is Event.Anchor ->
-                        finalAnchor = evt
                 }
             }
         }
