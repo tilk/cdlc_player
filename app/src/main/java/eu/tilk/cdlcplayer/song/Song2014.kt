@@ -135,9 +135,10 @@ class Song2014 {
         val list = ArrayList<TEvent>()
         // inefficient, TODO binary search
         val guardAnchor = Anchor2014(endTime)
-        for ((anchor, anchor2) in (levels[level].anchors + listOf(guardAnchor)).zipWithNext()) {
-            if (anchor.time >= startTime && anchor.time < endTime)
-                list.add(TEvent.Anchor(anchor.time, anchor.fret, anchor.width, anchor2.time))
+        for ((anchor, anchor2) in (levels[level].anchors
+            .filter { it.time >= startTime && it.time < endTime } + listOf(guardAnchor))
+            .zipWithNext()) {
+            list.add(TEvent.Anchor(anchor.time, anchor.fret, anchor.width, anchor2.time))
         }
         for (ebeat in ebeats) {
             if (ebeat.time >= startTime && ebeat.time < endTime)
