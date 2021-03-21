@@ -35,6 +35,8 @@ class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(cont
             context
         )
         gestureDetector = GestureDetector(context, renderer.gestureListener)
+        gestureDetector.setIsLongpressEnabled(false)
+        gestureDetector.setOnDoubleTapListener(renderer.gestureListener)
         setRenderer(renderer)
     }
 

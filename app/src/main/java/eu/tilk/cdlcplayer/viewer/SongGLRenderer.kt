@@ -34,6 +34,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.preference.PreferenceManager
 import eu.tilk.cdlcplayer.song.Song2014
+import kotlin.math.abs
 
 class SongGLRenderer(val data : Song2014, private val context : Context) :
     GLSurfaceView.Renderer {
@@ -49,6 +50,9 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
     private var paused = false
+    private var scrollAmount = 0f
+    private var surfaceWidth = 1
+    private var surfaceHeight = 1
     private val sounds : SoundPool = SoundPool.Builder()
         .run {
         setAudioAttributes(AudioAttributes.Builder().run {
@@ -64,17 +68,24 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         R.raw.metronome2, 1)
 
     val gestureListener = object : GestureDetector.SimpleOnGestureListener()  {
+        override fun onDown(e : MotionEvent?) : Boolean {
+            return true
+        }
+
         override fun onScroll(
             e1 : MotionEvent,
             e2 : MotionEvent,
             distanceX : Float,
             distanceY : Float
         ) : Boolean {
+            if (paused)
+                scrollAmount += distanceY / surfaceHeight
             return true
         }
 
-        override fun onLongPress(e : MotionEvent) {
+        override fun onDoubleTap(e : MotionEvent) : Boolean {
             paused = !paused
+            return true
         }
     }
 
@@ -113,6 +124,11 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
 
         fun play(sound : Int) {
             sounds.play(sound, 1f, 1f, 0, 0, 1f)
+        }
+
+        if (scrollAmount != 0f) {
+            scroller.advance(abs(scrollAmount)) { _ : Event, _ : Boolean -> }
+            scrollAmount = 0f
         }
 
         if (!paused) {
@@ -223,6 +239,8 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+        surfaceWidth = width
+        surfaceHeight = height
         glViewport(0, 0, width, height)
         val ratio = width.toFloat() / height.toFloat()
         val fov = 0.9f
