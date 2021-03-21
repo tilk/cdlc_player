@@ -73,7 +73,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         addEndListener { _, _, _, _ -> prevPos = 0f }
         setMinValue(-10000f)
         setMaxValue(10000f)
-        minimumVisibleChange = 0.001f
+        minimumVisibleChange = 0.01f
         friction = 1f
     }
 
@@ -104,7 +104,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             velocityY : Float
         ) : Boolean {
             if (paused)
-                startFling(-velocityY / surfaceHeight * 2f)
+                startFling(velocityY / surfaceHeight * 2f)
             return true
         }
 
@@ -115,7 +115,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             distanceY : Float
         ) : Boolean {
             if (paused)
-                scrollAmount += distanceY / surfaceHeight * 2f
+                scrollAmount += -distanceY / surfaceHeight * 2f
             return true
         }
 
