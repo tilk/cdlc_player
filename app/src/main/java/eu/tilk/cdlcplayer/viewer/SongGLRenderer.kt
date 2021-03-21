@@ -127,7 +127,7 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         }
 
         if (scrollAmount != 0f) {
-            scroller.advance(abs(scrollAmount)) { _ : Event, _ : Boolean -> }
+            scroller.scroll(scrollAmount)
             scrollAmount = 0f
         }
 
