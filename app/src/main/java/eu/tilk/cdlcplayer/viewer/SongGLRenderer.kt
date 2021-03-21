@@ -32,9 +32,10 @@ import kotlin.math.tan
 import android.opengl.GLES31.*
 import android.view.GestureDetector
 import android.view.MotionEvent
+import androidx.dynamicanimation.animation.FlingAnimation
+import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.preference.PreferenceManager
 import eu.tilk.cdlcplayer.song.Song2014
-import kotlin.math.abs
 
 class SongGLRenderer(val data : Song2014, private val context : Context) :
     GLSurfaceView.Renderer {
@@ -66,9 +67,44 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         R.raw.metronome1, 1)
     private val metronome2 = sounds.load(context,
         R.raw.metronome2, 1)
+    private val fling : FlingAnimation = FlingAnimation(FloatValueHolder(0f)).apply {
+        var prevPos = 0f
+        addUpdateListener { _, pos, _ -> scrollAmount += pos - prevPos; prevPos = pos }
+        addEndListener { _, _, _, _ -> prevPos = 0f }
+        setMinValue(-10000f)
+        setMaxValue(10000f)
+        minimumVisibleChange = 0.001f
+        friction = 1f
+    }
+
+    private fun startFling(velocity : Float) {
+        fling.run {
+            if (isRunning)
+                stopFling()
+            setStartVelocity(velocity)
+            setStartValue(0f)
+            start()
+        }
+    }
+
+    private fun stopFling() {
+        fling.cancel()
+    }
 
     val gestureListener = object : GestureDetector.SimpleOnGestureListener()  {
         override fun onDown(e : MotionEvent?) : Boolean {
+            stopFling()
+            return true
+        }
+
+        override fun onFling(
+            e1 : MotionEvent?,
+            e2 : MotionEvent?,
+            velocityX : Float,
+            velocityY : Float
+        ) : Boolean {
+            if (paused)
+                startFling(-velocityY / surfaceHeight * 2f)
             return true
         }
 
@@ -79,11 +115,12 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             distanceY : Float
         ) : Boolean {
             if (paused)
-                scrollAmount += distanceY / surfaceHeight
+                scrollAmount += distanceY / surfaceHeight * 2f
             return true
         }
 
         override fun onDoubleTap(e : MotionEvent) : Boolean {
+            stopFling()
             paused = !paused
             return true
         }
