@@ -30,5 +30,5 @@ class NoteCalculator(context : Context) {
     fun calcX(fret : Byte) = fret - 0.5f
     fun calcY(string : Byte, bend : Float = 0f) = 0.25f * (startY + (string + bend) * dirY)
     fun calcZ(time : Float, curTime : Float, scrollSpeed : Float) = (curTime - time) * scrollSpeed
-    fun sort(string : Int) : Int = if (reversedFretboard) string.toInt() else 5 - string
+    fun sort(string : Byte) : Int = if (reversedFretboard) string.toInt() else 5 - string
 }

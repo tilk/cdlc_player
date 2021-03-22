@@ -92,7 +92,7 @@ class EmptyStringNote(
     }
     override val endTime : Float = event.time
     override val sortLevel =
-        SortLevel.String(calculator.sort(note.string.toInt()))
+        SortLevel.String(calculator.sort(note.string))
     override fun internalDraw(time: Float, scrollSpeed : Float) {
         val positionHandle = glGetUniformLocation(mProgram, "uPosition")
         glUniform4f(positionHandle,

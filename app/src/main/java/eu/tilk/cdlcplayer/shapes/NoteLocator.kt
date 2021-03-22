@@ -23,7 +23,7 @@ import android.opengl.GLES31.*
 
 class NoteLocator(
     note : Event.Note,
-    private val string : Int
+    private val string : Byte
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
@@ -53,11 +53,12 @@ class NoteLocator(
             precision mediump float;
             uniform mat4 uMVPMatrix;
             uniform int uString;
+            uniform int uCalcString;
             in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
-                float alp = step(abs(vTexCoord.x), 0.1) * max(1.0 - vTexCoord.y / float(uString + 1), 0.0);
+                float alp = step(abs(vTexCoord.x), 0.1) * max(1.0 - vTexCoord.y / float(uCalcString + 1), 0.0);
                 FragColor = vec4(stringColors[uString], alp);
             }
         """.trimIndent()
@@ -69,18 +70,22 @@ class NoteLocator(
         }
     }
     override val sortLevel = SortLevel.ChordBox(calculator.sort(string))
+    override val endTime = event.time
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glGetUniformLocation(mProgram, "uPosition").also {
             glUniform4f(
                 it,
                 calculator.calcX(event.fret),
-                calculator.calcY(event.string),
+                calculator.calcY(string),
                 calculator.calcZ(event.time, time, scrollSpeed),
                 0f
             )
         }
         glGetUniformLocation(mProgram, "uString").also {
             glUniform1i(it, event.string.toInt())
+        }
+        glGetUniformLocation(mProgram, "uCalcString").also {
+            glUniform1i(it, calculator.sort(event.string))
         }
         super.internalDraw(time, scrollSpeed)
     }

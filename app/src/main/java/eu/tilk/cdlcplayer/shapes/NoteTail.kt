@@ -142,7 +142,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
         }
     override val derived = true
     override val sortLevel =
-        SortLevel.StringTail(calculator.sort(note.string.toInt()))
+        SortLevel.StringTail(calculator.sort(note.string))
 
     override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? {
         val pct = (time - event.time) / event.sustain

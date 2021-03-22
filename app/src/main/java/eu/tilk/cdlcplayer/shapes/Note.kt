@@ -91,7 +91,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
     override val endTime : Float = event.time
 
     override val sortLevel =
-        SortLevel.String(calculator.sort(note.string.toInt()))
+        SortLevel.String(calculator.sort(note.string))
 
     override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? =
         if (event.time > time)

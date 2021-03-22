@@ -83,9 +83,9 @@ class SongScroller(
             }
             is Event.Note -> {
                 if (!event.linked)
-                    for (string in -1 until event.string)
+                    for (string in -1 until 6)
                         if (event.fret > 0) // TODO empty string locator
-                            yield(NoteLocator(event, string))
+                            yield(NoteLocator(event, string.toByte()))
                 yieldAll(shapesForNote(event, lastAnchor.data))
             }
             is Event.Beat -> yield(Beat(event, lastAnchor.data))
