@@ -22,7 +22,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import eu.tilk.cdlcplayer.data.*
 import eu.tilk.cdlcplayer.song.Song2014
@@ -39,9 +39,9 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
             songDao.insert(Song(songs[0]))
             for (song in songs) {
                 arrangementDao.insert(Arrangement(song))
-                app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
+                app.openFileOutput("${song.persistentID}.json", Context.MODE_PRIVATE).use {
                     it.write(
-                        XmlMapper().registerModule(KotlinModule())
+                        JsonMapper().registerModule(KotlinModule())
                             .writeValueAsBytes(song)
                     )
                 }

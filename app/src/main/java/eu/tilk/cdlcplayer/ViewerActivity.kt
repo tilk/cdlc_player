@@ -22,7 +22,7 @@ import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.WindowManager
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import eu.tilk.cdlcplayer.song.Song2014
@@ -35,10 +35,10 @@ class ViewerActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val songId = intent.getStringExtra(SONG_ID)
-        val song : Song2014 = XmlMapper()
+        val song : Song2014 = JsonMapper()
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(openFileInput("$songId.xml"))
+            .readValue(openFileInput("$songId.json"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         glView = SongGLSurfaceView(this, song)
         setContentView(glView)
