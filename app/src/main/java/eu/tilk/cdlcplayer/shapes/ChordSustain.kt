@@ -39,7 +39,7 @@ class ChordSustain(private val chord : Event.HandShape,
             uniform mat4 uMVPMatrix;
             uniform float uTime;
             uniform float uSustain;
-            uniform ivec2 uFret;
+            uniform lowp ivec2 uFret;
             in vec4 vPosition;
             out float xCoord;
             out float zPos;
@@ -57,7 +57,7 @@ class ChordSustain(private val chord : Event.HandShape,
         """
             #version 300 es
             precision mediump float;
-            uniform ivec2 uFret;
+            uniform lowp ivec2 uFret;
             in float xCoord;
             in float zPos;
             out vec4 FragColor;
