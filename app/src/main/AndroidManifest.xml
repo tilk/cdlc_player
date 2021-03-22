@@ -27,7 +27,7 @@
             android:configChanges="orientation|keyboardHidden"
             android:keepScreenOn="true"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".SettingsActivity"

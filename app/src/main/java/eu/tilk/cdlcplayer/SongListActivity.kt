@@ -27,10 +27,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import eu.tilk.cdlcplayer.data.SongWithArrangements
 import eu.tilk.cdlcplayer.psarc.PSARCReader
@@ -40,7 +40,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class SongListActivity: AppCompatActivity() {
-    private lateinit var songViewModel : SongViewModel
+    private val songListViewModel : SongListViewModel by viewModels()
     private lateinit var observer : Observer<List<SongWithArrangements>>
     private lateinit var data : LiveData<List<SongWithArrangements>>
 
@@ -75,8 +75,7 @@ class SongListActivity: AppCompatActivity() {
         observer = Observer { songs ->
             songs?.let { adapter.setSongs(it); emptyViewVisible(it.isEmpty()) }
         }
-        songViewModel = ViewModelProvider(this).get(SongViewModel::class.java)
-        data = songViewModel.listByTitle()
+        data = songListViewModel.listByTitle()
         data.observe(this, observer)
     }
 
@@ -108,16 +107,16 @@ class SongListActivity: AppCompatActivity() {
             data.observe(this, observer)
         }
         if (id == R.id.sortByAlbumName) {
-            sort(songViewModel.listByAlbumName())
+            sort(songListViewModel.listByAlbumName())
         }
         if (id == R.id.sortByAlbumYear) {
-            sort(songViewModel.listByAlbumYear())
+            sort(songListViewModel.listByAlbumYear())
         }
         if (id == R.id.sortByArtist) {
-            sort(songViewModel.listByArtist())
+            sort(songListViewModel.listByArtist())
         }
         if (id == R.id.sortByTitle) {
-            sort(songViewModel.listByTitle())
+            sort(songListViewModel.listByTitle())
         }
         return super.onOptionsItemSelected(item)
     }
@@ -150,7 +149,7 @@ class SongListActivity: AppCompatActivity() {
                                     attributes))
                         }
                     }
-                    songViewModel.insert(songs).start()
+                    songListViewModel.insert(songs).start()
                 }
             }
         }

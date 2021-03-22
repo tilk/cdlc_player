@@ -1,5 +1,5 @@
 /*
- *     Copyright (C) 2020  Marek Materzok
+ *     Copyright (C) 2021  Marek Materzok
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,39 +18,28 @@
 package eu.tilk.cdlcplayer
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.room.withTransaction
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import eu.tilk.cdlcplayer.data.*
+import com.fasterxml.jackson.module.kotlin.readValue
 import eu.tilk.cdlcplayer.song.Song2014
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SongViewModel(private val app : Application) : AndroidViewModel(app) {
-    private val database = SongRoomDatabase.getDatabase(app)
-    private val songDao : SongDao = SongRoomDatabase.getDatabase(app).songDao()
-    private val arrangementDao : ArrangementDao = SongRoomDatabase.getDatabase(app).arrangementDao()
+    val song = MutableLiveData<Song2014>()
 
-    fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.Default) {
-        database.withTransaction {
-            songDao.insert(Song(songs[0]))
-            for (song in songs) {
-                arrangementDao.insert(Arrangement(song))
-                app.openFileOutput("${song.persistentID}.json", Context.MODE_PRIVATE).use {
-                    it.write(
-                        JsonMapper().registerModule(KotlinModule())
-                            .writeValueAsBytes(song)
-                    )
-                }
-            }
+    fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.Default) {
+        val loadedSong : Song2014 = JsonMapper()
+            .registerModule(KotlinModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(app.openFileInput("$songId.json"))
+        withContext(Dispatchers.Main) {
+            song.value = loadedSong
         }
     }
-
-    fun listByTitle() = songDao.getSongsByTitle()
-    fun listByArtist() = songDao.getSongsByArtist()
-    fun listByAlbumName() = songDao.getSongsByAlbumName()
-    fun listByAlbumYear() = songDao.getSongsByAlbumYear()
 }

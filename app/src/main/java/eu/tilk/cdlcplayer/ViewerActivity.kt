@@ -17,31 +17,27 @@
 
 package eu.tilk.cdlcplayer
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.WindowManager
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
-import eu.tilk.cdlcplayer.song.Song2014
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
 
-class ViewerActivity : Activity() {
+class ViewerActivity : AppCompatActivity() {
+    private val songViewModel : SongViewModel by viewModels()
 
     private lateinit var glView : GLSurfaceView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val songId = intent.getStringExtra(SONG_ID)
-        val song : Song2014 = JsonMapper()
-            .registerModule(KotlinModule())
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(openFileInput("$songId.json"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        glView = SongGLSurfaceView(this, song)
-        setContentView(glView)
+        val songId = intent.getStringExtra(SONG_ID)
+        songViewModel.song.observe(this) { song ->
+            glView = SongGLSurfaceView(this, song)
+            setContentView(glView)
+        }
+        songViewModel.loadSong(songId!!)
     }
 
     companion object {
