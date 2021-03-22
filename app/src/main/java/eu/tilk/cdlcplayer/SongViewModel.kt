@@ -22,7 +22,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import eu.tilk.cdlcplayer.song.Song2014
@@ -34,10 +34,10 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val song = MutableLiveData<Song2014>()
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.Default) {
-        val loadedSong : Song2014 = JsonMapper()
+        val loadedSong : Song2014 = XmlMapper()
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(app.openFileInput("$songId.json"))
+            .readValue(app.openFileInput("$songId.xml"))
         withContext(Dispatchers.Main) {
             song.value = loadedSong
         }
