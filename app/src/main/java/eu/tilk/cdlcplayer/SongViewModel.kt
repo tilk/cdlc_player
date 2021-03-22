@@ -34,7 +34,7 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     private val songDao : SongDao = SongRoomDatabase.getDatabase(app).songDao()
     private val arrangementDao : ArrangementDao = SongRoomDatabase.getDatabase(app).arrangementDao()
 
-    fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.IO) {
+    fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.Default) {
         database.withTransaction {
             songDao.insert(Song(songs[0]))
             for (song in songs) {
