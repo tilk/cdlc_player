@@ -18,10 +18,7 @@
 package eu.tilk.cdlcplayer.data
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
 
 @Dao
 interface SongDao {
@@ -41,6 +38,6 @@ interface SongDao {
     @Query("SELECT * FROM Song ORDER BY albumYear, songNameSort")
     fun getSongsByAlbumYear() : LiveData<List<SongWithArrangements>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(song : Song)
 }

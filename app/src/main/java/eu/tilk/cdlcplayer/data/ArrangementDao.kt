@@ -17,11 +17,10 @@
 
 package eu.tilk.cdlcplayer.data
 
-import androidx.room.Dao
-import androidx.room.Insert
+import androidx.room.*
 
 @Dao
 interface ArrangementDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(arrangement : Arrangement)
 }
