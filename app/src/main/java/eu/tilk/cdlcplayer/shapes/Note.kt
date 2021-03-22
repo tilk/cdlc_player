@@ -105,7 +105,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
             glUniform4f(
                 it,
                 calculator.calcX(event.fret),
-                calculator.calcY(event.string),
+                calculator.calcY(event.string, event.bendValue(0f)),
                 calculator.calcZ(event.time, time, scrollSpeed),
                 0f
             )
