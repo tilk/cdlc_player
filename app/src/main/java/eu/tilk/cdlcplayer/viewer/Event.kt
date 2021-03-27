@@ -28,13 +28,22 @@ sealed class Event {
         val fret : Byte,
         val string : Byte,
         val leftHand : Byte = -1,
+        val derived : Boolean = false,
+        val bend : Float = 0f,
+        val effect : Effect? = null
+    ) : Event()
+
+    data class NoteSustain(
+        override val time : Float,
+        val fret : Byte,
+        val string : Byte,
+        val leftHand : Byte = -1,
         val sustain : Float = 0f,
         val slideTo : Byte = -1,
         val slideUnpitchedTo : Byte = -1,
         val tremolo : Boolean = false,
         val linked : Boolean = false,
         val vibrato : Short = 0,
-        val effect : Effect? = null,
         val bend : List<Pair<Float, Float>> = ArrayList()
     ) : Event() {
         override val endTime : Float get() = time + sustain

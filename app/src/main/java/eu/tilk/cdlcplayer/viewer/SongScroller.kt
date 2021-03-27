@@ -40,57 +40,31 @@ class SongScroller(
         var data : T
     }
 
-    private fun shapesForNote(
-        event : Event.Note,
-        lastAnchor : Event.Anchor,
-        derived : Boolean = false
-    ) = sequence {
-        if (!event.linked)
-            if (event.fret > 0)
-                yield(Note(event, derived))
-            else
-                yield(
-                    EmptyStringNote(
-                        event,
-                        derived,
-                        lastAnchor
-                    )
-                )
-        if (event.sustain > 0f)
-            yield(
-                NoteTail(
-                    event,
-                    lastAnchor,
-                    scrollSpeed
-                )
-            )
-    }
-
     private fun shapesForEvent(event : Event, lastAnchor : Cell<Event.Anchor>) = sequence {
         when(event) {
             is Event.Chord -> {
                 for (string in -1..if (event.repeated) 2 else 6)
                     yield(Chord(event, lastAnchor.data, string, event.repeated))
-                if (!event.repeated) {
+                if (!event.repeated)
                     yield(ChordInfo(event, lastAnchor.data))
-                    for (note in event.notes)
-                        yieldAll(shapesForNote(note, lastAnchor.data,true))
-                }
             }
             is Event.Anchor -> {
                 lastAnchor.data = event
                 yield(Anchor(event))
             }
             is Event.Note -> {
-                if (!event.linked)
+                if (!event.derived)
                     for (string in -1 until 6)
                         if (event.fret > 0) // TODO empty string locator
                             yield(NoteLocator(event, string.toByte()))
-                yieldAll(shapesForNote(event, lastAnchor.data))
+                if (event.fret > 0)
+                    yield(Note(event))
+                else
+                    yield(EmptyStringNote(event, lastAnchor.data))
             }
+            is Event.NoteSustain -> yield(NoteTail(event, lastAnchor.data, scrollSpeed))
             is Event.Beat -> yield(Beat(event, lastAnchor.data))
             is Event.HandShape -> yield(ChordSustain(event, lastAnchor.data))
-
         }
     }
 

@@ -163,23 +163,42 @@ class Song2014 {
                 chord.fretHandMute > 0 -> Effect.FrethandMute
                 else -> null
             }
-        fun noteFrom(note : Note2014) = TEvent.Note(
-            note.time,
-            note.fret,
-            note.string,
-            note.leftHand,
-            note.sustain,
-            note.slideTo,
-            note.slideUnpitchTo,
-            note.tremolo > 0,
-            note.linked > 0,
-            note.vibrato,
-            effectFrom(note),
-            note.bendValues.map { bv -> Pair((bv.time - note.time) / note.sustain, bv.step) }
-        )
+        fun singleNoteFrom(note : Note2014, derived : Boolean) =
+            TEvent.Note(
+                note.time,
+                note.fret,
+                note.string,
+                note.leftHand,
+                derived,
+                note.bendValues.firstOrNull { bv -> bv.time <= note.time }?.step ?: 0f,
+                effectFrom(note)
+            )
+        fun noteFrom(note : Note2014, derived : Boolean) = if (note.linked <= 0)
+            sequenceOf(singleNoteFrom(note, derived)) else emptySequence()
+        fun noteSustainFrom(note : Note2014) = if (note.sustain > 0)
+            sequenceOf(TEvent.NoteSustain(
+                note.time,
+                note.fret,
+                note.string,
+                note.leftHand,
+                note.sustain,
+                note.slideTo,
+                note.slideUnpitchTo,
+                note.tremolo > 0,
+                note.linked > 0,
+                note.vibrato,
+                note.bendValues.map { bv ->
+                    Pair(
+                        (bv.time - note.time) / note.sustain,
+                        bv.step
+                    )
+                }
+            )) else emptySequence()
+        fun noteEventsFrom(note : Note2014, derived : Boolean) =
+            noteFrom(note, derived) + noteSustainFrom(note)
         for (note in levels[level].notes) {
             if (note.time >= startTime && note.time < endTime)
-                list.add(noteFrom(note))
+                list.addAll(noteEventsFrom(note, false))
         }
         for (handShape in levels[level].handShapes) {
             if (handShape.startTime >= startTime && handShape.startTime < endTime)
@@ -197,21 +216,25 @@ class Song2014 {
             }
             val chordTpl = chordTemplates[chord.chordId]
             if (chord.time >= startTime && chord.time < endTime) {
-                val notes = ArrayList<TEvent.Note>()
-                val repeated = chord.chordId == lastChordId && !chord.chordNotes.isNotEmpty()
+                val repeated = chord.chordId == lastChordId && chord.chordNotes.isEmpty()
+                val notes = mutableListOf<TEvent.Note>()
                 if (chord.chordNotes.isNotEmpty())
-                    for (note in chord.chordNotes)
-                        notes.add(noteFrom(note))
+                    for (note in chord.chordNotes) {
+                        notes.add(singleNoteFrom(note, true))
+                        if (!repeated) list.addAll(noteEventsFrom(note, true))
+                    }
                 else
-                    for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0)
-                        notes.add(
-                            TEvent.Note(
-                                chord.time,
-                                chordTpl.fret[stringNo],
-                                stringNo.toByte(),
-                                chordTpl.finger[stringNo]
-                            )
+                    for (stringNo in 0..5) if (chordTpl.fret[stringNo] >= 0) {
+                        val note = TEvent.Note(
+                            chord.time,
+                            chordTpl.fret[stringNo],
+                            stringNo.toByte(),
+                            chordTpl.finger[stringNo],
+                            true
                         )
+                        notes.add(note)
+                        if (!repeated) list.add(note)
+                    }
                 list.add(TEvent.Chord(chord.time, chord.chordId, notes, repeated, effectFromChord(chord)))
             }
             lastChordId = chord.chordId

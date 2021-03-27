@@ -25,7 +25,6 @@ import eu.tilk.cdlcplayer.viewer.Textures
 
 class EmptyStringNote(
     note : Event.Note,
-    override val derived : Boolean,
     private val anchor : Event.Anchor
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
@@ -97,6 +96,7 @@ class EmptyStringNote(
         private val uEffect   = GLUniformCache("uEffect")
     }
     override val endTime : Float = event.time
+    override val derived = event.derived
     override val sortLevel =
         SortLevel.String(calculator.sort(note.string))
     override fun internalDraw(time: Float, scrollSpeed : Float) {

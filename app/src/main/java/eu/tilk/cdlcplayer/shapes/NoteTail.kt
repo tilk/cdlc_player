@@ -29,8 +29,8 @@ import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.sin
 
-class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float) :
-    NoteyShape<Event.Note>(
+class NoteTail(note : Event.NoteSustain, val anchor : Event.Anchor, scrollSpeed : Float) :
+    NoteyShape<Event.NoteSustain>(
         makeVertexCoords(note, anchor, scrollSpeed),
         makeDrawOrder(note, scrollSpeed),
         this,
@@ -73,9 +73,9 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
         """.trimIndent()
     ) {
         private const val scaling = 10
-        private fun sizeFor(note : Event.Note, scrollSpeed : Float) : Int =
+        private fun sizeFor(note : Event.NoteSustain, scrollSpeed : Float) : Int =
             ceil(note.sustain * scrollSpeed * scaling).toInt()
-        private fun makeVertexCoords(note : Event.Note, anchor : Event.Anchor, scrollSpeed : Float) : FloatArray {
+        private fun makeVertexCoords(note : Event.NoteSustain, anchor : Event.Anchor, scrollSpeed : Float) : FloatArray {
             val suswidth = if (note.fret > 0) 1
                            else anchor.width
             val sz = sizeFor(note, scrollSpeed)
@@ -118,7 +118,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             }
         }
         private val drawOrder = shortArrayOf(0, 1, 2, 1, 3, 2)
-        private fun makeDrawOrder(note : Event.Note, scrollSpeed : Float) : ShortArray {
+        private fun makeDrawOrder(note : Event.NoteSustain, scrollSpeed : Float) : ShortArray {
             return ShortArray(6 * sizeFor(note, scrollSpeed)) {
                 (drawOrder[it % 6] + 2 * (it / 6)).toShort()
             }

@@ -24,7 +24,7 @@ import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.viewer.NoteInfo
 import eu.tilk.cdlcplayer.viewer.Textures
 
-class Note(note : Event.Note, override val derived : Boolean = false) :
+class Note(note : Event.Note) :
     NoteyShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
@@ -93,7 +93,8 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         private val uEffect   = GLUniformCache("uEffect")
     }
 
-    override val endTime : Float = event.time
+    override val endTime = event.time
+    override val derived = note.derived
 
     override val sortLevel =
         SortLevel.String(calculator.sort(note.string))
@@ -101,7 +102,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
     override fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo? =
         if (event.time > time)
             NoteInfo((event.time - time) * scrollSpeed, event.fret, event.string,
-                event.bendValue(0f), 0f)
+                event.bend, 0f)
         else
             null
 
@@ -109,7 +110,7 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
         glUniform4f(
             uPosition.value,
             calculator.calcX(event.fret),
-            calculator.calcY(event.string, event.bendValue(0f)),
+            calculator.calcY(event.string, event.bend),
             calculator.calcZ(event.time, time, scrollSpeed),
             0f
         )
