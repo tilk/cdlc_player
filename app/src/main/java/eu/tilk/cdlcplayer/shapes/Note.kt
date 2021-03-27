@@ -20,6 +20,7 @@ package eu.tilk.cdlcplayer.shapes
 import eu.tilk.cdlcplayer.viewer.Event
 import eu.tilk.cdlcplayer.viewer.SortLevel
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.viewer.NoteInfo
 import eu.tilk.cdlcplayer.viewer.Textures
 

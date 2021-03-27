@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package eu.tilk.cdlcplayer.shapes
+package eu.tilk.cdlcplayer.shapes.utils
 
 import android.content.Context
 import androidx.preference.PreferenceManager

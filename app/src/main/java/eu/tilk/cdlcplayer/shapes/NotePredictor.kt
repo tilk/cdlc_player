@@ -18,6 +18,7 @@
 package eu.tilk.cdlcplayer.shapes
 
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.viewer.NoteInfo
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

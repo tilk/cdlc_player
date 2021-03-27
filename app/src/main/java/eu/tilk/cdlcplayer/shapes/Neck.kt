@@ -18,6 +18,7 @@
 package eu.tilk.cdlcplayer.shapes
 
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 
 class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrder, mProgram) {
     companion object : StaticCompanionBase(

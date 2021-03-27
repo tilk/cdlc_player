@@ -35,6 +35,7 @@ import android.view.MotionEvent
 import androidx.dynamicanimation.animation.FlingAnimation
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.preference.PreferenceManager
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.song.Song2014
 
 class SongGLRenderer(val data : Song2014, private val context : Context) :
