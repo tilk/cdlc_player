@@ -24,7 +24,7 @@ import eu.tilk.cdlcplayer.viewer.Textures
 
 class ChordInfo(chord : Event.Chord,
                 private val anchor : Event.Anchor) :
-    EventShape<Event.Chord>(vertexCoords, drawOrder, mProgram, chord) {
+    EventShape<Event.Chord>(vertexCoords, drawOrder, this, chord) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0.0f, 0.0f, 0.0f,
@@ -70,23 +70,19 @@ class ChordInfo(chord : Event.Chord,
             this.textures = textures
             this.chordCount = chordCount
         }
+        private val uTime    = GLUniformCache("uTime")
+        private val uChord   = GLUniformCache("uChord")
+        private val uTexture = GLUniformCache("uTexture")
+        private val uFret    = GLUniformCache("uFret")
     }
 
     override val sortLevel = SortLevel.Chord
     override val derived = true
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uTime").also {
-            glUniform1f(it, (time - event.time) * scrollSpeed)
-        }
-        glGetUniformLocation(mProgram, "uChord").also {
-            glUniform2i(it, event.id, chordCount)
-        }
-        glGetUniformLocation(mProgram, "uTexture").also {
-            glUniform1i(it, 0)
-        }
-        glGetUniformLocation(mProgram, "uFret").also {
-            glUniform2i(it, anchor.fret.toInt(), anchor.width.toInt())
-        }
+        glUniform1f(uTime.value, (time - event.time) * scrollSpeed)
+        glUniform2i(uChord.value, event.id, chordCount)
+        glUniform1i(uTexture.value, 0)
+        glUniform2i(uFret.value, anchor.fret.toInt(), anchor.width.toInt())
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.chordTextures)
         super.internalDraw(time, scrollSpeed)

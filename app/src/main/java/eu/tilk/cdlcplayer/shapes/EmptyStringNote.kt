@@ -27,7 +27,7 @@ class EmptyStringNote(
     note : Event.Note,
     override val derived : Boolean,
     private val anchor : Event.Anchor
-) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
+) : EventShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0f, -0.24f, 0.0f,
@@ -90,27 +90,25 @@ class EmptyStringNote(
             this.textures = textures
             this.calculator = calculator
         }
+        private val uPosition = GLUniformCache("uPosition")
+        private val uWidth    = GLUniformCache("uWidth")
+        private val uString   = GLUniformCache("uString")
+        private val uTexture  = GLUniformCache("uTexture")
+        private val uEffect   = GLUniformCache("uEffect")
     }
     override val endTime : Float = event.time
     override val sortLevel =
         SortLevel.String(calculator.sort(note.string))
     override fun internalDraw(time: Float, scrollSpeed : Float) {
-        val positionHandle = glGetUniformLocation(mProgram, "uPosition")
-        glUniform4f(positionHandle,
+        glUniform4f(uPosition.value,
             anchor.fret - 1f,
             calculator.calcY(event.string),
             calculator.calcZ(event.time, time, scrollSpeed),
             0f)
-        val fretHandle = glGetUniformLocation(mProgram, "uWidth")
-        glUniform1i(fretHandle, anchor.width.toInt())
-        val stringHandle = glGetUniformLocation(mProgram, "uString")
-        glUniform1i(stringHandle, event.string.toInt())
-        glGetUniformLocation(mProgram, "uTexture").also {
-            glUniform1i(it, 0)
-        }
-        glGetUniformLocation(mProgram, "uEffect").also {
-            glUniform1i(it, event.effect?.ordinal ?: -1)
-        }
+        glUniform1i(uWidth.value, anchor.width.toInt())
+        glUniform1i(uString.value, event.string.toInt())
+        glUniform1i(uTexture.value, 0)
+        glUniform1i(uEffect.value, event.effect?.ordinal ?: -1)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.effects)
         super.internalDraw(time, scrollSpeed)

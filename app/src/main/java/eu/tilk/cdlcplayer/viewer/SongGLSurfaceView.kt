@@ -29,7 +29,6 @@ class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(cont
 
     init {
         setEGLContextClientVersion(3)
-        setEGLConfigChooser(8, 8, 8, 8, 16, 4)
         renderer = SongGLRenderer(
             song,
             context

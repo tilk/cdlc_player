@@ -23,7 +23,7 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
 class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
-    StaticShape(vertexCoords, drawOrder, mProgram) {
+    StaticShape(vertexCoords, drawOrder, this) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0f, 0f, 0f,
@@ -80,6 +80,8 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
         private val inlayFrets = shortArrayOf(
             3, 5, 7, 9, 12, 15, 17, 19, 21, 24
         )
+        private val uFret = GLUniformCache("uFret")
+        private val vInlayFret = GLAttribCache("vInlayFret")
     }
     private val inlayFretsBuffer : ShortBuffer = ByteBuffer.allocateDirect(inlayFrets.size * 2)
         .run {
@@ -91,7 +93,7 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
         }
     override val instances = inlayFrets.size
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val inlayFretHandle = glGetAttribLocation(mProgram, "vInlayFret").also {
+        vInlayFret.value.also {
             glEnableVertexAttribArray(it)
             glVertexAttribDivisor(it, 1)
             glVertexAttribIPointer(
@@ -100,11 +102,9 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
                 2, inlayFretsBuffer
             )
         }
-        glGetUniformLocation(mProgram, "uFret").also {
-            glUniform2i(it, leftFret, rightFret)
-        }
+        glUniform2i(uFret.value, leftFret, rightFret)
         super.internalDraw(time, scrollSpeed)
-        inlayFretHandle.also {
+        vInlayFret.value.also {
             glVertexAttribDivisor(it, 0)
             glDisableVertexAttribArray(it)
         }

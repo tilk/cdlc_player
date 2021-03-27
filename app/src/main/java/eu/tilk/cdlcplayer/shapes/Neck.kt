@@ -20,7 +20,7 @@ package eu.tilk.cdlcplayer.shapes
 import android.opengl.GLES31.*
 import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 
-class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrder, mProgram) {
+class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrder, this) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0.0f, 0f, 0.0f,
@@ -45,14 +45,14 @@ class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrde
             #version 300 es
             precision mediump float;
             uniform int uStrings;
-            uniform int reversedFretboard;
+            uniform int uReversed;
             in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
                 float y = vTexCoord.y * 6.0;
                 lowp int iy = int(y);
-                lowp int str = 5 * reversedFretboard + (1 - 2 * reversedFretboard) * iy;
+                lowp int str = 5 * uReversed + (1 - 2 * uReversed) * iy;
                 float dist = abs(y - float(iy) - 0.5);
                 float scl = (1.5+atan(20.0*(dist-0.1)))/3.0;
                 float coef = (1.0 + float((uStrings & (1 << str)) != 0)) / 2.0;
@@ -65,14 +65,12 @@ class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrde
             super.initialize()
             this.calculator = calculator
         }
+        private val uStrings = GLUniformCache("uStrings")
+        private val uReversed = GLUniformCache("uReversed")
     }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uStrings").also {
-            glUniform1i(it, activeStrings)
-        }
-        glGetUniformLocation(mProgram, "reversedFretboard").also {
-            glUniform1i(it, if (calculator.reversedFretboard) 0 else 1)
-        }
+        glUniform1i(uStrings.value, activeStrings)
+        glUniform1i(uReversed.value, if (calculator.reversedFretboard) 0 else 1)
         super.internalDraw(time, scrollSpeed)
     }
 }

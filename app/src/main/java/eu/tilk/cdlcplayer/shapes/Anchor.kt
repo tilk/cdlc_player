@@ -24,7 +24,7 @@ import kotlin.math.max
 
 class Anchor(
     anchor : Event.Anchor
-) : EventShape<Event.Anchor>(vertexCoords, drawOrder, mProgram, anchor) {
+) : EventShape<Event.Anchor>(vertexCoords, drawOrder, this, anchor) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.5f, 0.0f, 0.0f,
@@ -66,16 +66,17 @@ class Anchor(
                     + (tanh(20.0*(fdist-0.95))+1.0)/2.0 * bumpColor), 1.0);
             }
         """.trimIndent()
-    )
+    ) {
+        private val uTime = GLUniformCache("uTime")
+        private val uFret = GLUniformCache("uFret")
+    }
     override val sortLevel = SortLevel.Tab
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val timeHandle = glGetUniformLocation(mProgram, "uTime")
         val movedTime = max(event.time, time)
-        glUniform2f(timeHandle,
+        glUniform2f(uTime.value,
             (time - movedTime) * scrollSpeed,
             (event.endTime - movedTime) * scrollSpeed)
-        val fretHandle = glGetUniformLocation(mProgram, "uFret")
-        glUniform2i(fretHandle, event.fret.toInt(), event.width.toInt())
+        glUniform2i(uFret.value, event.fret.toInt(), event.width.toInt())
         super.internalDraw(time, scrollSpeed)
     }
 }

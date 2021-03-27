@@ -23,9 +23,9 @@ import eu.tilk.cdlcplayer.viewer.SortLevel
 abstract class EventShape<out T : Event>(
     vertexCoords : FloatArray,
     drawOrder : ShortArray,
-    mProgram : Int,
+    companion : CompanionBase,
     val event : T
-) : StaticShape(vertexCoords, drawOrder, mProgram) {
+) : StaticShape(vertexCoords, drawOrder, companion) {
     open val endTime : Float get() = event.endTime
     abstract val sortLevel : SortLevel
     open val derived = false

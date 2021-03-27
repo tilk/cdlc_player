@@ -24,12 +24,31 @@ import java.nio.IntBuffer
 import java.nio.ShortBuffer
 
 abstract class Shape(
-    private val mProgram : Int
+    private val companion : CompanionBase
 ) {
     open class CompanionBase(
         private val vertexShaderCode : String,
         private val fragmentShaderCode : String
     ) {
+        @Suppress("LeakingThis")
+        abstract inner class GLCache {
+            private var state = -1
+            fun clear() { state = -1 }
+            protected abstract fun reload() : Int
+            val value : Int get() {
+                if (state == -1) state = reload()
+                return state
+            }
+            init {
+                caches.add(this)
+            }
+        }
+        inner class GLUniformCache(private val name : String) : GLCache() {
+            override fun reload() = glGetUniformLocation(mProgram, name)
+        }
+        inner class GLAttribCache(private val name : String) : GLCache() {
+            override fun reload() = glGetAttribLocation(mProgram, name)
+        }
         companion object {
             const val logisticGLSL = """
                 float logistic(float x) {
@@ -66,7 +85,8 @@ abstract class Shape(
                 );    
             """
         }
-        protected var mProgram : Int = -1
+        internal var mProgram : Int = -1
+        private val caches = mutableListOf<GLCache>()
 
         private fun loadShader(type : Int, shaderCode : String): Int {
             return glCreateShader(type).also {
@@ -92,6 +112,10 @@ abstract class Shape(
             }
         }
 
+        fun reset() {
+            for (cache in caches) cache.clear()
+        }
+
         fun initialize() {
             val vertexShader =
                 loadShader(
@@ -107,15 +131,17 @@ abstract class Shape(
                 fragmentShader
             )
         }
+
+        internal val uMVPMatrix = GLUniformCache("uMVPMatrix")
+        internal val vPosition  = GLAttribCache("vPosition")
     }
     protected abstract val vertexBuffer : FloatBuffer
     protected abstract val drawListBuffer : ShortBuffer
     protected abstract val drawListSize : Int
     protected open val instances : Int = 1
     protected open fun internalDraw(time: Float, scrollSpeed : Float) {
-        val positionHandle = glGetAttribLocation(mProgram, "vPosition")
-        glEnableVertexAttribArray(positionHandle)
-        glVertexAttribPointer(positionHandle,
+        glEnableVertexAttribArray(companion.vPosition.value)
+        glVertexAttribPointer(companion.vPosition.value,
             COORDS_PER_VERTEX, GL_FLOAT, false,
             COORDS_PER_VERTEX * 4, vertexBuffer)
         if (instances > 1)
@@ -123,12 +149,11 @@ abstract class Shape(
                 drawListBuffer, instances)
         else
             glDrawElements(GL_TRIANGLES, drawListSize, GL_UNSIGNED_SHORT, drawListBuffer)
-        glDisableVertexAttribArray(positionHandle)
+        glDisableVertexAttribArray(companion.vPosition.value)
     }
     private fun prepare(mvpMatrix : FloatArray) {
-        glUseProgram(mProgram)
-        val vPMatrixHandle = glGetUniformLocation(mProgram, "uMVPMatrix")
-        glUniformMatrix4fv(vPMatrixHandle, 1, false, mvpMatrix, 0)
+        glUseProgram(companion.mProgram)
+        glUniformMatrix4fv(companion.uMVPMatrix.value, 1, false, mvpMatrix, 0)
     }
     fun draw(mvpMatrix : FloatArray, time: Float, scrollSpeed : Float) {
         prepare(mvpMatrix)

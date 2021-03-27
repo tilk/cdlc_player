@@ -23,7 +23,7 @@ import eu.tilk.cdlcplayer.viewer.FingerInfo
 import eu.tilk.cdlcplayer.viewer.Textures
 
 class Finger(private val finger : FingerInfo)
-    : StaticShape(vertexCoords, drawOrder, mProgram) {
+    : StaticShape(vertexCoords, drawOrder, this) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.25f, -0.125f, 0.0f,
@@ -66,23 +66,20 @@ class Finger(private val finger : FingerInfo)
             this.textures = textures
             this.calculator = calculator
         }
+        private val uPosition = GLUniformCache("uPosition")
+        private val uFinger   = GLUniformCache("uFinger")
+        private val uTexture  = GLUniformCache("uTexture")
     }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uPosition").also {
-            glUniform4f(
-                it,
-                calculator.calcX(finger.fret),
-                calculator.calcY(finger.string),
-                0f,
-                0f
-            )
-        }
-        glGetUniformLocation(mProgram, "uFinger").also {
-            glUniform1i(it, finger.finger.toInt())
-        }
-        glGetUniformLocation(mProgram, "uTexture").also {
-            glUniform1i(it, 0)
-        }
+        glUniform4f(
+            uPosition.value,
+            calculator.calcX(finger.fret),
+            calculator.calcY(finger.string),
+            0f,
+            0f
+        )
+        glUniform1i(uFinger.value, finger.finger.toInt())
+        glUniform1i(uTexture.value, 0)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.fretNumbers)
         super.internalDraw(time, scrollSpeed)

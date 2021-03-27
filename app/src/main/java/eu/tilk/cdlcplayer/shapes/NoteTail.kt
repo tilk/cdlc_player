@@ -33,7 +33,7 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
     NoteyShape<Event.Note>(
         makeVertexCoords(note, anchor, scrollSpeed),
         makeDrawOrder(note, scrollSpeed),
-        mProgram,
+        this,
         note
     ) {
     companion object : CompanionBase(
@@ -128,6 +128,11 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             super.initialize()
             this.calculator = calculator
         }
+        private val uPosition = GLUniformCache("uPosition")
+        private val uString   = GLUniformCache("uString")
+        private val uMaxZ     = GLUniformCache("uMaxZ")
+        private val unpitched = GLUniformCache("unpitched")
+        private val vParity   = GLAttribCache("vParity")
     }
 
     private val parityBuffer : FloatBuffer =
@@ -157,31 +162,21 @@ class NoteTail(note : Event.Note, val anchor : Event.Anchor, scrollSpeed : Float
             null
     }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val parityHandle = glGetAttribLocation(mProgram, "vParity").also {
-            glEnableVertexAttribArray(it)
-            glVertexAttribPointer(it, 1, GL_FLOAT, false, 4, parityBuffer)
-        }
-        glGetUniformLocation(mProgram, "uPosition").also {
-            val x = if (event.fret > 0) calculator.calcX(event.fret)
-                    else anchor.fret + anchor.width/2f - 1f
-            glUniform4f(
-                it,
-                x,
-                calculator.calcY(event.string),
-                calculator.calcZ(event.time, time,  scrollSpeed),
-                0f
-            )
-        }
-        glGetUniformLocation(mProgram, "uString").also {
-            glUniform1i(it, event.string.toInt())
-        }
-        glGetUniformLocation(mProgram, "uMaxZ").also {
-            glUniform1f(it, event.sustain * scrollSpeed)
-        }
-        glGetUniformLocation(mProgram, "unpitched").also {
-            glUniform1f(it, if (event.slideUnpitchedTo >= 0) 1f else 0f)
-        }
+        glEnableVertexAttribArray(vParity.value)
+        glVertexAttribPointer(vParity.value, 1, GL_FLOAT, false, 4, parityBuffer)
+        val x = if (event.fret > 0) calculator.calcX(event.fret)
+        else anchor.fret + anchor.width / 2f - 1f
+        glUniform4f(
+            uPosition.value,
+            x,
+            calculator.calcY(event.string),
+            calculator.calcZ(event.time, time, scrollSpeed),
+            0f
+        )
+        glUniform1i(uString.value, event.string.toInt())
+        glUniform1f(uMaxZ.value, event.sustain * scrollSpeed)
+        glUniform1f(unpitched.value, if (event.slideUnpitchedTo >= 0) 1f else 0f)
         super.internalDraw(time, scrollSpeed)
-        glDisableVertexAttribArray(parityHandle)
+        glDisableVertexAttribArray(vParity.value)
     }
 }

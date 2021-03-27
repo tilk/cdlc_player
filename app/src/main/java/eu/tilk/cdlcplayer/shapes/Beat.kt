@@ -24,7 +24,7 @@ import android.opengl.GLES31.*
 class Beat(
     beat : Event.Beat,
     private val anchor : Event.Anchor
-) : EventShape<Event.Beat>(vertexCoords, drawOrder, mProgram, beat) {
+) : EventShape<Event.Beat>(vertexCoords, drawOrder, this, beat) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0f, 0f, 0.0f,
@@ -59,15 +59,17 @@ class Beat(
                 FragColor = vec4(bumpColor, 0.5 + float(uMeasure) / 2.0);
             }
         """.trimIndent()
-    )
+    ) {
+        private val uTime = GLUniformCache("uTime")
+        private val uFret = GLUniformCache("uFret")
+        private val uMeasure = GLUniformCache("uMeasure")
+    }
+
     override val sortLevel = SortLevel.Beat
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val timeHandle = glGetUniformLocation(mProgram, "uTime")
-        glUniform1f(timeHandle, (time - event.time) * scrollSpeed)
-        val fretHandle = glGetUniformLocation(mProgram, "uFret")
-        glUniform2i(fretHandle, anchor.fret.toInt(), anchor.width.toInt())
-        val measureHandle = glGetUniformLocation(mProgram, "uMeasure")
-        glUniform1i(measureHandle, if (event.measure >= 0) 1 else 0)
+        glUniform1f(uTime.value, (time - event.time) * scrollSpeed)
+        glUniform2i(uFret.value, anchor.fret.toInt(), anchor.width.toInt())
+        glUniform1i(uMeasure.value, if (event.measure >= 0) 1 else 0)
         super.internalDraw(time, scrollSpeed)
     }
 }

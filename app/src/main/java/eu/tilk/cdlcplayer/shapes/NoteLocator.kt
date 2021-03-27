@@ -25,7 +25,7 @@ import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 class NoteLocator(
     note : Event.Note,
     private val string : Byte
-) : EventShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
+) : EventShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.5f, -0.125f, 0.0f,
@@ -69,25 +69,22 @@ class NoteLocator(
             super.initialize()
             this.calculator = calculator
         }
+        private val uPosition   = GLUniformCache("uPosition")
+        private val uString     = GLUniformCache("uString")
+        private val uCalcString = GLUniformCache("uCalcString")
     }
     override val sortLevel = SortLevel.ChordBox(calculator.sort(string))
     override val endTime = event.time
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uPosition").also {
-            glUniform4f(
-                it,
-                calculator.calcX(event.fret),
-                calculator.calcY(string),
-                calculator.calcZ(event.time, time, scrollSpeed),
-                0f
-            )
-        }
-        glGetUniformLocation(mProgram, "uString").also {
-            glUniform1i(it, event.string.toInt())
-        }
-        glGetUniformLocation(mProgram, "uCalcString").also {
-            glUniform1i(it, calculator.sort(event.string))
-        }
+        glUniform4f(
+            uPosition.value,
+            calculator.calcX(event.fret),
+            calculator.calcY(string),
+            calculator.calcZ(event.time, time, scrollSpeed),
+            0f
+        )
+        glUniform1i(uString.value, event.string.toInt())
+        glUniform1i(uCalcString.value, calculator.sort(event.string))
         super.internalDraw(time, scrollSpeed)
     }
 }

@@ -23,8 +23,8 @@ import eu.tilk.cdlcplayer.viewer.NoteInfo
 abstract class NoteyShape<out T : Event>(
     vertexCoords : FloatArray,
     drawOrder : ShortArray,
-    mProgram : Int,
+    companion : CompanionBase,
     event : T
-) : EventShape<T>(vertexCoords, drawOrder, mProgram, event) {
+) : EventShape<T>(vertexCoords, drawOrder, companion, event) {
     abstract fun noteInfo(time: Float, scrollSpeed : Float) : NoteInfo?
 }

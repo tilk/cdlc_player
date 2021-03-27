@@ -23,7 +23,7 @@ import eu.tilk.cdlcplayer.viewer.SortLevel
 
 class ChordSustain(private val chord : Event.HandShape,
                    private val anchor : Event.Anchor) :
-    EventShape<Event.HandShape>(vertexCoords, drawOrder, mProgram, chord) {
+    EventShape<Event.HandShape>(vertexCoords, drawOrder, this, chord) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0.0f, 0.0f, 0.0f,
@@ -73,18 +73,16 @@ class ChordSustain(private val chord : Event.HandShape,
                     col_fun(abs(xCoord - float(uFret.y))))));
             }
         """.trimIndent()
-    )
+    ) {
+        private val uTime    = GLUniformCache("uTime")
+        private val uSustain = GLUniformCache("uSustain")
+        private val uFret    = GLUniformCache("uFret")
+    }
     override val sortLevel = SortLevel.Beat
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uTime").also {
-            glUniform1f(it, (time - event.time) * scrollSpeed)
-        }
-        glGetUniformLocation(mProgram, "uSustain").also {
-            glUniform1f(it, chord.sustain * scrollSpeed)
-        }
-        glGetUniformLocation(mProgram, "uFret").also {
-            glUniform2i(it, anchor.fret.toInt(), anchor.width.toInt())
-        }
+        glUniform1f(uTime.value, (time - event.time) * scrollSpeed)
+        glUniform1f(uSustain.value, chord.sustain * scrollSpeed)
+        glUniform2i(uFret.value, anchor.fret.toInt(), anchor.width.toInt())
         super.internalDraw(time, scrollSpeed)
     }
 }

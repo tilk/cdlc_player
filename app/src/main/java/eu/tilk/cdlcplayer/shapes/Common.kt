@@ -26,3 +26,8 @@ const val COORDS_PER_VERTEX = 3
 
 fun logistic(x : Float) = 0.5f + 0.5f * tanh(x)
 fun dLogistic(x : Float) = logistic(x) * logistic(-x)
+
+val shapes = listOf(
+    Anchor, Beat, Chord, ChordInfo, ChordSustain, EmptyStringNote, Finger, FretNumbers,
+    Frets, Neck, NeckInlays, Note, NoteLocator, NotePredictor, NoteTail
+)

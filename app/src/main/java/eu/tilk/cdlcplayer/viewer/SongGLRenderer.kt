@@ -289,5 +289,6 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
             projectionMatrix, 0,
             -size * ratio, size * ratio, -size, size, zNear, zFar
         )
+        for (shape in shapes) shape.reset()
     }
 }

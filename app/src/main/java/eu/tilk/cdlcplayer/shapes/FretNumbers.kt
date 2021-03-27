@@ -24,7 +24,7 @@ class FretNumbers(
     private val textures : Textures,
     private val leftFret : Int,
     private val rightFret : Int
-) : StaticShape(vertexCoords, drawOrder, mProgram) {
+) : StaticShape(vertexCoords, drawOrder, this) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0.0f, -0.5f, 0.0f,
@@ -61,14 +61,13 @@ class FretNumbers(
                 FragColor = texture(uTexture, vec2((x + float(col)) / 6.0, (y + float(fret - 12 * col)) / 12.0));
             }
         """.trimIndent()
-    )
+    ) {
+        private val uFrets   = GLUniformCache("uFrets")
+        private val uTexture = GLUniformCache("uTexture")
+    }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uFrets").also {
-            glUniform2i(it, leftFret, rightFret)
-        }
-        glGetUniformLocation(mProgram, "uTexture").also {
-            glUniform1i(it, 0)
-        }
+        glUniform2i(uFrets.value, leftFret, rightFret)
+        glUniform1i(uTexture.value, 0)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.fretNumbers)
         super.internalDraw(time, scrollSpeed)

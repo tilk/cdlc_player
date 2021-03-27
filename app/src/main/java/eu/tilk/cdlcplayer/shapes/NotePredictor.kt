@@ -26,7 +26,7 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 class NotePredictor(private val notes : Iterable<NoteInfo>) :
-    StaticShape(vertexCoords, drawOrder, mProgram)
+    StaticShape(vertexCoords, drawOrder, this)
 {
     companion object : StaticCompanionBase(
         floatArrayOf(
@@ -77,6 +77,8 @@ class NotePredictor(private val notes : Iterable<NoteInfo>) :
             super.initialize()
             this.calculator = calculator
         }
+        private val vString = GLAttribCache("vString")
+        private val vOffset = GLAttribCache("vOffset")
     }
     private val stringBuffer : ShortBuffer = ByteBuffer.allocateDirect(notes.count() * 2)
         .run {
@@ -103,28 +105,29 @@ class NotePredictor(private val notes : Iterable<NoteInfo>) :
             }
     override val instances : Int = notes.count()
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val stringHandle = glGetAttribLocation(mProgram, "vString").also {
-            glEnableVertexAttribArray(it)
-            glVertexAttribDivisor(it, 1)
+        vString.value.also {
+            glEnableVertexAttribArray(vString.value)
+            glVertexAttribDivisor(vString.value, 1)
             glVertexAttribIPointer(
-                it,
+                vString.value,
                 1, GL_SHORT,
                 2, stringBuffer
             )
         }
-        val offsetHandle = glGetAttribLocation(mProgram, "vOffset").also {
-            glEnableVertexAttribArray(it)
-            glVertexAttribDivisor(it, 1)
-            glVertexAttribPointer(it,
+        vOffset.value.also {
+            glEnableVertexAttribArray(vOffset.value)
+            glVertexAttribDivisor(vOffset.value, 1)
+            glVertexAttribPointer(
+                vOffset.value,
                 COORDS_PER_VERTEX, GL_FLOAT, false,
                 COORDS_PER_VERTEX * 4, offsetBuffer)
         }
         super.internalDraw(time, scrollSpeed)
-        offsetHandle.also {
+        vOffset.value.also {
             glVertexAttribDivisor(it, 0)
             glDisableVertexAttribArray(it)
         }
-        stringHandle.also {
+        vString.value.also {
             glVertexAttribDivisor(it, 0)
             glDisableVertexAttribArray(it)
         }

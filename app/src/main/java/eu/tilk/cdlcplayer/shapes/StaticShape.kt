@@ -25,8 +25,8 @@ import java.nio.ShortBuffer
 abstract class StaticShape(
     vertexCoords : FloatArray,
     drawOrder : ShortArray,
-    mProgram : Int
-) : Shape(mProgram) {
+    companion : CompanionBase
+) : Shape(companion) {
     open class StaticCompanionBase(
         protected val vertexCoords : FloatArray,
         protected val drawOrder : ShortArray,

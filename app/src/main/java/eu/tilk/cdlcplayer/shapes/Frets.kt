@@ -23,7 +23,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
-class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
+class Frets : StaticShape(vertexCoords, drawOrder, this) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.04f, 0f, 0f,
@@ -87,6 +87,9 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             0.3f, 0f, 1f
         )
         private val frets = (1..24).toList().map { it.toShort() }.toShortArray()
+        private val uLight = GLUniformCache("uLight")
+        private val vNormal = GLAttribCache("vNormal")
+        private val vFret = GLAttribCache("vFret")
     }
     override val instances = frets.size
     private val fretsBuffer : ShortBuffer = ByteBuffer.allocateDirect(frets.size * 2)
@@ -106,7 +109,7 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
             }
         }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        val normalHandle = glGetAttribLocation(mProgram, "vNormal").also {
+        vNormal.value.also {
             glEnableVertexAttribArray(it)
             glVertexAttribPointer(
                 it,
@@ -114,7 +117,7 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
                 COORDS_PER_VERTEX * 4, normalsBuffer
             )
         }
-        val fretHandle = glGetAttribLocation(mProgram, "vFret").also {
+        vFret.value.also {
             glEnableVertexAttribArray(it)
             glVertexAttribDivisor(it, 1)
             glVertexAttribIPointer(
@@ -123,15 +126,13 @@ class Frets : StaticShape(vertexCoords, drawOrder, mProgram) {
                 2, fretsBuffer
             )
         }
-        glGetUniformLocation(mProgram, "uLight").also {
-            glUniform3f(it, 0.5f, 0.1f, 1f)
-        }
+        glUniform3f(uLight.value, 0.5f, 0.1f, 1f)
         super.internalDraw(time, scrollSpeed)
-        fretHandle.also {
+        vFret.value.also {
             glVertexAttribDivisor(it, 0)
             glDisableVertexAttribArray(it)
         }
-        normalHandle.also {
+        vNormal.value.also {
             glDisableVertexAttribArray(it)
         }
     }

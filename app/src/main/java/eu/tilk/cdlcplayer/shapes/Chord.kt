@@ -27,7 +27,7 @@ class Chord(
     private val anchor : Event.Anchor,
     private val string : Int,
     private val repeated : Boolean
-) : EventShape<Event.Chord>(vertexCoords, drawOrder, mProgram, chord) {
+) : EventShape<Event.Chord>(vertexCoords, drawOrder, this, chord) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             0.0f, 0.0f, 0.0f,
@@ -76,26 +76,22 @@ class Chord(
                                  0.2 + coef * 0.8);
             }
         """.trimIndent()
-    )
+    ) {
+        private val uTime = GLUniformCache("uTime")
+        private val uMult = GLUniformCache("uMult")
+        private val uString = GLUniformCache("uString")
+        private val uFret = GLUniformCache("uFret")
+        private val uEffect = GLUniformCache("uEffect")
+    }
 
     override val sortLevel = SortLevel.ChordBox(string)
     override val derived = string > 0
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uTime").also {
-            glUniform1f(it, (time - event.time) * scrollSpeed)
-        }
-        glGetUniformLocation(mProgram, "uMult").also {
-            glUniform1f(it, if (repeated) 4.0f else 2.0f)
-        }
-        glGetUniformLocation(mProgram, "uString").also {
-            glUniform1i(it, string)
-        }
-        glGetUniformLocation(mProgram, "uFret").also {
-            glUniform2i(it, anchor.fret.toInt(), anchor.width.toInt())
-        }
-        glGetUniformLocation(mProgram, "uEffect").also {
-            glUniform1i(it, if (repeated) event.effect?.ordinal ?: -1 else -1)
-        }
+        glUniform1f(uTime.value, (time - event.time) * scrollSpeed)
+        glUniform1f(uMult.value, if (repeated) 4.0f else 2.0f)
+        glUniform1i(uString.value, string)
+        glUniform2i(uFret.value, anchor.fret.toInt(), anchor.width.toInt())
+        glUniform1i(uEffect.value, if (repeated) event.effect?.ordinal ?: -1 else -1)
         super.internalDraw(time, scrollSpeed)
     }
 }

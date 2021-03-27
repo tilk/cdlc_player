@@ -25,7 +25,7 @@ import eu.tilk.cdlcplayer.viewer.NoteInfo
 import eu.tilk.cdlcplayer.viewer.Textures
 
 class Note(note : Event.Note, override val derived : Boolean = false) :
-    NoteyShape<Event.Note>(vertexCoords, drawOrder, mProgram, note) {
+    NoteyShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
             -0.5f, -0.24f, 0.0f,
@@ -87,6 +87,10 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
             this.textures = textures
             this.calculator = calculator
         }
+        private val uPosition = GLUniformCache("uPosition")
+        private val uString   = GLUniformCache("uString")
+        private val uTexture  = GLUniformCache("uTexture")
+        private val uEffect   = GLUniformCache("uEffect")
     }
 
     override val endTime : Float = event.time
@@ -102,24 +106,16 @@ class Note(note : Event.Note, override val derived : Boolean = false) :
             null
 
     override fun internalDraw(time : Float, scrollSpeed : Float) {
-        glGetUniformLocation(mProgram, "uPosition").also {
-            glUniform4f(
-                it,
-                calculator.calcX(event.fret),
-                calculator.calcY(event.string, event.bendValue(0f)),
-                calculator.calcZ(event.time, time, scrollSpeed),
-                0f
-            )
-        }
-        glGetUniformLocation(mProgram, "uString").also {
-            glUniform1i(it, event.string.toInt())
-        }
-        glGetUniformLocation(mProgram, "uTexture").also {
-            glUniform1i(it, 0)
-        }
-        glGetUniformLocation(mProgram, "uEffect").also {
-            glUniform1i(it, event.effect?.ordinal ?: -1)
-        }
+        glUniform4f(
+            uPosition.value,
+            calculator.calcX(event.fret),
+            calculator.calcY(event.string, event.bendValue(0f)),
+            calculator.calcZ(event.time, time, scrollSpeed),
+            0f
+        )
+        glUniform1i(uString.value, event.string.toInt())
+        glUniform1i(uTexture.value, 0)
+        glUniform1i(uEffect.value, event.effect?.ordinal ?: -1)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, textures.effects)
         super.internalDraw(time, scrollSpeed)
