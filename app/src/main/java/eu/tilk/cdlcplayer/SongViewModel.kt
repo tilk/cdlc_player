@@ -32,6 +32,8 @@ import kotlinx.coroutines.withContext
 
 class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val song = MutableLiveData<Song2014>()
+    val paused = MutableLiveData(false)
+    val speed = MutableLiveData(1f)
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.Default) {
         val loadedSong : Song2014 = XmlMapper()

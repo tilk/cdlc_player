@@ -21,17 +21,18 @@ import android.content.Context
 import android.opengl.GLSurfaceView
 import android.view.GestureDetector
 import android.view.MotionEvent
+import eu.tilk.cdlcplayer.SongViewModel
 import eu.tilk.cdlcplayer.song.Song2014
 
-class SongGLSurfaceView(context : Context, song : Song2014) : GLSurfaceView(context) {
+class SongGLSurfaceView(context : Context, viewModel : SongViewModel) : GLSurfaceView(context) {
     private val renderer : SongGLRenderer
     private val gestureDetector : GestureDetector
 
     init {
         setEGLContextClientVersion(3)
         renderer = SongGLRenderer(
-            song,
-            context
+            context,
+            viewModel
         )
         gestureDetector = GestureDetector(context, renderer.gestureListener)
         gestureDetector.setIsLongpressEnabled(false)

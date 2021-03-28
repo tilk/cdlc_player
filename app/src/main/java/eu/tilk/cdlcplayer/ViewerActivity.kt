@@ -17,30 +17,90 @@
 
 package eu.tilk.cdlcplayer
 
+import android.annotation.SuppressLint
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import eu.tilk.cdlcplayer.song.Song2014
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class ViewerActivity : AppCompatActivity() {
     private val songViewModel : SongViewModel by viewModels()
 
     private lateinit var glView : GLSurfaceView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val observer : Observer<Song2014> by lazy {
+        Observer {
+            setContentView(constructView())
+            songViewModel.song.removeObserver(observer)
+        }
+    }
+
+    private fun constructView() : FrameLayout {
+        glView = SongGLSurfaceView(this, songViewModel)
+        val frameLayout = FrameLayout(this)
+        frameLayout.addView(glView)
+        @SuppressLint("InflateParams")
+        val pausedUI = layoutInflater.inflate(R.layout.song_paused_ui, null)
+        val ll = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        ll.gravity = Gravity.TOP or Gravity.FILL_HORIZONTAL
+        pausedUI.layoutParams = ll
+        frameLayout.addView(pausedUI)
+        val pauseButton = pausedUI.findViewById<ImageButton>(R.id.pauseButton)
+        val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
+        speedBar.max = 99
+        pauseButton.setOnClickListener {
+            songViewModel.paused.value = !songViewModel.paused.value!!
+        }
+        speedBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar : SeekBar, progress : Int, fromUser : Boolean) {
+                if (fromUser)
+                    songViewModel.speed.value = (progress + 1) / 100f
+            }
+
+            override fun onStartTrackingTouch(p0 : SeekBar?) { }
+            override fun onStopTrackingTouch(p0 : SeekBar?) { }
+        })
+        songViewModel.paused.observe(this) {
+            val resource =
+                if (it) android.R.drawable.ic_media_pause
+                else android.R.drawable.ic_media_play
+            pauseButton.setImageResource(resource)
+            speedBar.visibility = if (it) View.VISIBLE else View.INVISIBLE
+        }
+        songViewModel.speed.observe(this) {
+            speedBar.progress = max(0, (100f * it).roundToInt() - 1)
+        }
+        return frameLayout
+    }
+
+    override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val songId = intent.getStringExtra(SONG_ID)
-        songViewModel.song.observe(this) { song ->
-            glView = SongGLSurfaceView(this, song)
-            setContentView(glView)
+        if (songViewModel.song.value != null)
+            setContentView(constructView())
+        else {
+            songViewModel.song.observe(this, observer)
+            songViewModel.loadSong(songId!!)
         }
-        songViewModel.loadSong(songId!!)
     }
 
     companion object {
-        const val SONG_ID = "eu.tilk.wihajster.SONG_ID"
+        const val SONG_ID = "eu.tilk.cdlcplayer.SONG_ID"
     }
 }

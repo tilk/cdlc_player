@@ -53,4 +53,5 @@
         Download CDLCs from <a href="https://customsforge.com/">CustomsForge</a>
         and add them using the plus button.
     ]]></string>
+    <string name="play">Play</string>
 </resources>

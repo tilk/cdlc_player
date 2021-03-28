@@ -35,12 +35,17 @@ import android.view.MotionEvent
 import androidx.dynamicanimation.animation.FlingAnimation
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.preference.PreferenceManager
+import eu.tilk.cdlcplayer.SongViewModel
 import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.song.Song2014
 
-class SongGLRenderer(val data : Song2014, private val context : Context) :
+class SongGLRenderer(private val context : Context, private val viewModel : SongViewModel) :
     GLSurfaceView.Renderer {
+    val data = viewModel.song.value!!
     val song : List<Event> = data.makeEventList()
+    var paused : Boolean
+        get() = viewModel.paused.value!!
+        set(b) { viewModel.paused.value = b }
     private lateinit var textures : Textures
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
@@ -51,7 +56,6 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
     private var eyeX : Float = 2f
     private var eyeY : Float = 1.2f
     private var eyeZ : Float = 3f
-    private var paused = false
     private var scrollAmount = 0f
     private var surfaceWidth = 1
     private var surfaceHeight = 1
@@ -170,7 +174,8 @@ class SongGLRenderer(val data : Song2014, private val context : Context) :
         }
 
         if (!paused) {
-            scroller.advance(deltaTime / 1000.0F) { evt : Event, derived : Boolean ->
+            val speed = viewModel.speed.value!!
+            scroller.advance(speed * deltaTime / 1000.0F) { evt : Event, derived : Boolean ->
                 when (evt) {
                     is Event.Beat ->
                         if (clickPref == "on_beats")
