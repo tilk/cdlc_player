@@ -52,7 +52,6 @@ class NoteLocator(
         """
             #version 300 es
             precision mediump float;
-            uniform mat4 uMVPMatrix;
             uniform int uString;
             uniform int uCalcString;
             in vec2 vTexCoord;
