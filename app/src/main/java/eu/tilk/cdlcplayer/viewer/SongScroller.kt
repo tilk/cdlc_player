@@ -18,10 +18,12 @@
 package eu.tilk.cdlcplayer.viewer
 
 import eu.tilk.cdlcplayer.shapes.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 
 class SongScroller(
     private val song : List<Event>,
     zHorizon : Float,
+    private val calculator : NoteCalculator,
     private val scrollSpeed : Float // TODO I don't really want scrollSpeed here
 ) {
     private val horizon = zHorizon / scrollSpeed
@@ -54,9 +56,9 @@ class SongScroller(
             }
             is Event.Note -> {
                 if (!event.derived)
-                    for (string in -1 until 6)
+                    for (string in -1 until calculator.sort(event.string))
                         if (event.fret > 0) // TODO empty string locator
-                            yield(NoteLocator(event, string.toByte()))
+                            yield(NoteLocator(event, string))
                 if (event.fret > 0)
                     yield(Note(event))
                 else

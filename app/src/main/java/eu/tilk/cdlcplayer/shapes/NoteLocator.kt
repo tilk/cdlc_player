@@ -24,7 +24,7 @@ import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 
 class NoteLocator(
     note : Event.Note,
-    private val string : Byte
+    private val stringHeight : Int
 ) : EventShape<Event.Note>(vertexCoords, drawOrder, this, note) {
     companion object : StaticCompanionBase(
         floatArrayOf(
@@ -72,13 +72,13 @@ class NoteLocator(
         private val uString     = GLUniformCache("uString")
         private val uCalcString = GLUniformCache("uCalcString")
     }
-    override val sortLevel = SortLevel.ChordBox(calculator.sort(string))
+    override val sortLevel = SortLevel.ChordBox(stringHeight)
     override val endTime = event.time
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glUniform4f(
             uPosition.value,
             calculator.calcX(event.fret),
-            calculator.calcY(string),
+            calculator.calcY(calculator.sort(stringHeight.toByte()).toByte()),
             calculator.calcZ(event.time, time, scrollSpeed),
             0f
         )

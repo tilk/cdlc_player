@@ -153,7 +153,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         ChordInfo.initialize(textures, data.chordTemplates.size)
         ChordSustain.initialize()
         lastFrameTime = SystemClock.elapsedRealtime()
-        scroller = SongScroller(song, 40f, scrollSpeed)
+        scroller = SongScroller(song, 40f, calculator, scrollSpeed)
     }
 
     override fun onDrawFrame(gl: GL10?) {
