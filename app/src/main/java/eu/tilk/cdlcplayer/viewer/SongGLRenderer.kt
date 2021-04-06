@@ -148,6 +148,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         NotePredictor.initialize(calculator)
         Finger.initialize(textures, calculator)
         EmptyStringNote.initialize(textures, calculator)
+        EmptyStringNoteLocator.initialize(calculator)
         Beat.initialize()
         Chord.initialize()
         ChordInfo.initialize(textures, data.chordTemplates.size)

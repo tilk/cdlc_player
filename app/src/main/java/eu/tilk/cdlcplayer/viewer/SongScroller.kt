@@ -57,8 +57,10 @@ class SongScroller(
             is Event.Note -> {
                 if (!event.derived)
                     for (string in -1 until calculator.sort(event.string))
-                        if (event.fret > 0) // TODO empty string locator
+                        if (event.fret > 0)
                             yield(NoteLocator(event, string))
+                        else
+                            yield(EmptyStringNoteLocator(event, string, lastAnchor.data))
                 if (event.fret > 0)
                     yield(Note(event))
                 else
