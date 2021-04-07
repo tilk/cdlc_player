@@ -145,6 +145,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         Note.initialize(textures, calculator)
         NoteLocator.initialize(calculator)
         NoteTail.initialize(calculator)
+        NoteMarker.initialize()
         NotePredictor.initialize(calculator)
         Finger.initialize(textures, calculator)
         EmptyStringNote.initialize(textures, calculator)

@@ -65,6 +65,7 @@ class SongScroller(
                     yield(Note(event))
                 else
                     yield(EmptyStringNote(event, lastAnchor.data))
+                yield(NoteMarker(event, lastAnchor.data))
             }
             is Event.NoteSustain -> yield(NoteTail(event, lastAnchor.data, scrollSpeed))
             is Event.Beat -> yield(Beat(event, lastAnchor.data))
