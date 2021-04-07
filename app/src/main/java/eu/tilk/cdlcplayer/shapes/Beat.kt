@@ -28,8 +28,8 @@ class Beat(
     companion object : StaticCompanionBase(
         floatArrayOf(
             0f, 0f, 0.0f,
-            0f, 0f, 0.15f,
-            1f, 0f, 0.15f,
+            0f, 0f, -0.15f,
+            1f, 0f, -0.15f,
             1f, 0f, 0.0f
         ),
         shortArrayOf(
