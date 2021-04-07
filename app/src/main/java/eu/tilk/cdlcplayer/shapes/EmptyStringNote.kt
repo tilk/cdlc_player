@@ -53,7 +53,7 @@ class EmptyStringNote(
                 int ex = uEffect / 5;
                 int ey = uEffect % 5;
                 vec2 inTexCoord = vec2(
-                    (vTexCoord.x * float(uWidth) / 2.0) + 0.5,
+                    (vTexCoord.x) + 0.5,
                     (vTexCoord.y + 2.0) / 4.0
                 );
                 aTexCoord = step(1.0, float(uEffect)) * (
