@@ -24,8 +24,8 @@ sealed class SortLevel {
         override val level = c_level
     }
 
-    object Tab : Const(-2)
-    object Beat : Const(-1)
+    object Tab : Const(-5)
+    object Beat : Const(-4)
     data class ChordBox(val string : Int) : SortLevel() {
         override val level = 3*string+1
     }
