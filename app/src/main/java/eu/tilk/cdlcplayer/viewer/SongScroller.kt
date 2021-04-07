@@ -55,17 +55,18 @@ class SongScroller(
                 yield(Anchor(event))
             }
             is Event.Note -> {
-                if (!event.derived)
+                if (!event.derived) {
                     for (string in -1 until calculator.sort(event.string))
                         if (event.fret > 0)
                             yield(NoteLocator(event, string))
                         else
                             yield(EmptyStringNoteLocator(event, string, lastAnchor.data))
+                    yield(NoteMarker(event, lastAnchor.data))
+                }
                 if (event.fret > 0)
                     yield(Note(event))
                 else
                     yield(EmptyStringNote(event, lastAnchor.data))
-                yield(NoteMarker(event, lastAnchor.data))
             }
             is Event.NoteSustain -> yield(NoteTail(event, lastAnchor.data, scrollSpeed))
             is Event.Beat -> yield(Beat(event, lastAnchor.data))
