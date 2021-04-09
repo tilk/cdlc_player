@@ -28,7 +28,7 @@ class SongScroller(
     private val repeaterInfo : LiveData<RepeaterInfo>,
     private val scrollSpeed : Float // TODO I don't really want scrollSpeed here
 ) {
-    private val songByEndTime = (1 until song.count()).toList().sortedBy { song[it].endTime }
+    private val songByEndTime = (0 until song.count()).toList().sortedBy { song[it].endTime }
     private val horizon = zHorizon / scrollSpeed
     private var time : Float = 0F
     private var position : Int = 0
@@ -151,6 +151,21 @@ class SongScroller(
         if (repeat != null) {
             if (time >= repeat.endBeat.time)
                 rewind(time - repeat.startBeat.time + repeat.beatPeriod)
+        }
+    }
+
+    fun nextBeats() : Sequence<Event.Beat> = sequence {
+        for (shape in activeEvents) {
+            when (shape.event) {
+                is Event.Beat -> if (shape.event.measure > 0) yield(shape.event)
+                else -> {}
+            }
+        }
+        for (event in song.subList(position, song.count())) {
+            when (event) {
+                is Event.Beat -> if (event.measure > 0) yield(event)
+                else -> {}
+            }
         }
     }
 }

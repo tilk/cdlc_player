@@ -300,12 +300,5 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         for (shape in shapes) shape.reset()
     }
 
-    fun nextBeats() : Sequence<Event.Beat> = sequence {
-        for (shape in scroller.activeEvents) {
-            when (shape.event) {
-                is Event.Beat -> if (shape.event.measure > 0) yield(shape.event)
-                else -> {}
-            }
-        }
-    }
+    fun nextBeats() = scroller.nextBeats()
 }
