@@ -32,7 +32,8 @@ class SongScroller(
     private var time : Float = 0F
     private var position : Int = 0
     private var events : MutableList<EventShape<Event>> = mutableListOf()
-    private var lastAnchor : Event.Anchor = Event.Anchor(0f, 1, 4, 0f)
+    private val guardAnchor = Event.Anchor(0f, 1, 4, 0f)
+    private var lastAnchor : Event.Anchor = guardAnchor
     private val lastAnchorCell = object : Cell<Event.Anchor> {
         override var data : Event.Anchor by ::lastAnchor
     }
@@ -85,26 +86,28 @@ class SongScroller(
         val prevTime = time
         time -= t
 
-        events.removeAll { e -> e.event.time >= time + horizon }
+        events.removeAll { it.event.time >= time + horizon }
 
         val firstAnchor = events.asSequence()
             .map { it.event }
             .find { it is Event.Anchor } as Event.Anchor?
 
         val cell = object : Cell<Event.Anchor> {
-            override var data : Event.Anchor =
-                firstAnchor ?: Event.Anchor(0f, 1, 4, 0f)
+            override var data : Event.Anchor = firstAnchor ?: guardAnchor
         }
 
         // TODO: inefficient
         val new = song
-            .filter { e -> e.endTime < prevTime && e.endTime >= time || e == firstAnchor }
+            .filter { e -> e.time < time + horizon && e.endTime < prevTime && e.endTime >= time || e == firstAnchor }
             .flatMap { e -> if (e == firstAnchor) { cell.data = firstAnchor; sequenceOf() } else shapesForEvent(e, cell) }
 
         events.addAll(0, new)
 
         while (position > 0 && song[position-1].time >= time + horizon)
             position--
+
+        lastAnchor = events.asReversed().asSequence().map { it.event }
+            .find { it is Event.Anchor } as Event.Anchor? ?: guardAnchor
     }
 
     fun advance(t : Float, onRemove : (Event, Boolean) -> Unit = { _ , _ -> }) {
