@@ -17,13 +17,15 @@
 
 package eu.tilk.cdlcplayer.viewer
 
+import androidx.lifecycle.LiveData
 import eu.tilk.cdlcplayer.shapes.*
 import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 
 class SongScroller(
     private val song : List<Event>,
     zHorizon : Float,
-    private val calculator : NoteCalculator,
+    private val calculator : NoteCalculator, // TODO I don't want that stuff here
+    private val repeaterInfo : LiveData<RepeaterInfo>,
     private val scrollSpeed : Float // TODO I don't really want scrollSpeed here
 ) {
     private val horizon = zHorizon / scrollSpeed
@@ -69,7 +71,7 @@ class SongScroller(
                     yield(EmptyStringNote(event, lastAnchor.data))
             }
             is Event.NoteSustain -> yield(NoteTail(event, lastAnchor.data, scrollSpeed))
-            is Event.Beat -> yield(Beat(event, lastAnchor.data))
+            is Event.Beat -> yield(Beat(event, lastAnchor.data, repeaterInfo))
             is Event.HandShape -> yield(ChordSustain(event, lastAnchor.data))
         }
     }
@@ -119,6 +121,14 @@ class SongScroller(
 
         while (position < song.size && song[position].time < time + horizon) {
             events.addAll(shapesForEvent(song[position++], lastAnchorCell))
+        }
+    }
+
+    fun repeat() {
+        val repeat = repeaterInfo.value
+        if (repeat != null) {
+            if (time >= repeat.endBeat.time)
+                rewind(time - repeat.startBeat.time + repeat.beatPeriod)
         }
     }
 }

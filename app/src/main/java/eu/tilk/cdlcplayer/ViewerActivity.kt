@@ -31,6 +31,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import eu.tilk.cdlcplayer.song.Song2014
+import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -38,7 +39,7 @@ import kotlin.math.roundToInt
 class ViewerActivity : AppCompatActivity() {
     private val songViewModel : SongViewModel by viewModels()
 
-    private lateinit var glView : GLSurfaceView
+    private lateinit var glView : SongGLSurfaceView
 
     private val observer : Observer<Song2014> by lazy {
         Observer {
@@ -62,9 +63,47 @@ class ViewerActivity : AppCompatActivity() {
         frameLayout.addView(pausedUI)
         val pauseButton = pausedUI.findViewById<ImageButton>(R.id.pauseButton)
         val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
+        val repStartButton = pausedUI.findViewById<ImageButton>(R.id.repStartButton)
+        val repEndButton = pausedUI.findViewById<ImageButton>(R.id.repEndButton)
+        fun setVisibility(v : Int) {
+            speedBar.visibility = v
+            repStartButton.visibility = v
+            repEndButton.visibility = v
+        }
         speedBar.max = 99
         pauseButton.setOnClickListener {
             songViewModel.paused.value = !songViewModel.paused.value!!
+        }
+        repStartButton.setOnClickListener {
+            val beats = glView.nextBeats()
+            val rep = songViewModel.repeater.value
+            val beats2 = beats.take(2).toList()
+            if (rep != null) {
+                if (beats2.count() == 2 && beats2[0].time < rep.endBeat.time) {
+                    songViewModel.repeater.value = rep.copy(
+                            startBeat = beats2[0],
+                            beatPeriod = beats2[1].time - beats2[0].time
+                    )
+                } else {
+                    songViewModel.repeater.value = null
+                }
+            } else {
+                if (beats2.count() == 2)
+                    songViewModel.repeater.value =
+                        RepeaterInfo(beats2[0], beats2[1], beats2[1].time - beats2[0].time)
+            }
+        }
+        repEndButton.setOnClickListener {
+            val beats = glView.nextBeats()
+            val rep = songViewModel.repeater.value
+            if (rep != null) {
+                val beat1 = beats.firstOrNull()
+                if (beat1 != null && beat1.time > rep.startBeat.time) {
+                    songViewModel.repeater.value = rep.copy(endBeat = beat1)
+                } else {
+                    songViewModel.repeater.value = null
+                }
+            }
         }
         speedBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar : SeekBar, progress : Int, fromUser : Boolean) {
@@ -80,7 +119,7 @@ class ViewerActivity : AppCompatActivity() {
                 if (it) android.R.drawable.ic_media_pause
                 else android.R.drawable.ic_media_play
             pauseButton.setImageResource(resource)
-            speedBar.visibility = if (it) View.VISIBLE else View.INVISIBLE
+            setVisibility(if (it) View.VISIBLE else View.INVISIBLE)
         }
         songViewModel.speed.observe(this) {
             speedBar.progress = max(0, (100f * it).roundToInt() - 1)

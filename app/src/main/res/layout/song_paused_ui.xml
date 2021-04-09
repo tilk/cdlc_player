@@ -31,6 +31,24 @@
         android:contentDescription="@string/play"
         app:srcCompat="@android:drawable/ic_media_pause" />
 
+    <ImageButton
+        android:id="@+id/repStartButton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/big_padding"
+        android:backgroundTint="@color/colorPrimary"
+        android:contentDescription="@string/repeater_start"
+        app:srcCompat="@drawable/ic_left_repeat_24" />
+
+    <ImageButton
+        android:id="@+id/repEndButton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/big_padding"
+        android:backgroundTint="@color/colorPrimary"
+        android:contentDescription="@string/repeater_end"
+        app:srcCompat="@drawable/ic_right_repeat_24" />
+
     <SeekBar
         android:id="@+id/speedBar"
         android:layout_width="match_parent"
@@ -38,4 +56,5 @@
         android:layout_gravity="fill_horizontal|center_vertical"
         android:layout_margin="@dimen/big_padding"
         android:visibility="invisible" />
+
 </LinearLayout>

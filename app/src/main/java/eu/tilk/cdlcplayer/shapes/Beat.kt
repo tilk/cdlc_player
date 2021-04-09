@@ -20,17 +20,20 @@ package eu.tilk.cdlcplayer.shapes
 import eu.tilk.cdlcplayer.viewer.Event
 import eu.tilk.cdlcplayer.viewer.SortLevel
 import android.opengl.GLES31.*
+import androidx.lifecycle.LiveData
+import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 
 class Beat(
     beat : Event.Beat,
-    private val anchor : Event.Anchor
+    private val anchor : Event.Anchor,
+    private val repeaterInfo : LiveData<RepeaterInfo>
 ) : EventShape<Event.Beat>(vertexCoords, drawOrder, this, beat) {
     companion object : StaticCompanionBase(
         floatArrayOf(
-            0f, 0f, 0.0f,
-            0f, 0f, -0.15f,
-            1f, 0f, -0.15f,
-            1f, 0f, 0.0f
+            0f, 0f, 0.3f,
+            0f, 0f, -0.3f,
+            1f, 0f, -0.3f,
+            1f, 0f, 0.3f
         ),
         shortArrayOf(
             0, 1, 2, 0, 2, 3
@@ -45,7 +48,7 @@ class Beat(
             void main() {
                 vec4 actPosition = vec4(float(uFret.x - 1) + vPosition.x * float(uFret.y), vPosition.y, uTime + vPosition.z, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
-                vTexCoord = vec2(vPosition.x, vPosition.y);
+                vTexCoord = vec2(2.0 * vPosition.x - 1.0, vPosition.z / 0.3);
             }
         """.trimIndent(),
         """
@@ -54,14 +57,22 @@ class Beat(
             in vec2 vTexCoord;
             out vec4 FragColor;
             uniform int uMeasure;
+            uniform int uRepeat;
             $bumpColorGLSL
+            $repeaterColorGLSL
             void main() {
-                FragColor = vec4(bumpColor, 0.5 + float(uMeasure) / 2.0);
+                bool inTriangle = uRepeat > 0 
+                    && (uRepeat == 1 ? vTexCoord.y <= 0.0 : vTexCoord.y >= 0.0)
+                    && (abs(vTexCoord.x) + abs(vTexCoord.y) <= 1.0);
+                bool inBar = vTexCoord.y <= 0.0 && vTexCoord.y >= -0.5;
+                FragColor = vec4(inTriangle ? repeaterColor : bumpColor,
+                    inTriangle ? 1.0 : inBar ? 0.5 + float(uMeasure) / 2.0 : 0.0);
             }
         """.trimIndent()
     ) {
         private val uTime = GLUniformCache("uTime")
         private val uFret = GLUniformCache("uFret")
+        private val uRepeat = GLUniformCache("uRepeat")
         private val uMeasure = GLUniformCache("uMeasure")
     }
 
@@ -70,6 +81,11 @@ class Beat(
         glUniform1f(uTime.value, (time - event.time) * scrollSpeed)
         glUniform2i(uFret.value, anchor.fret.toInt(), anchor.width.toInt())
         glUniform1i(uMeasure.value, if (event.measure >= 0) 1 else 0)
+        glUniform1i(uRepeat.value, when (this.event) {
+            repeaterInfo.value?.startBeat -> 1
+            repeaterInfo.value?.endBeat -> 2
+            else -> 0
+        })
         super.internalDraw(time, scrollSpeed)
     }
 }

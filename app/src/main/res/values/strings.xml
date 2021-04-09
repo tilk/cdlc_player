@@ -54,4 +54,6 @@
         and add them using the plus button.
     ]]></string>
     <string name="play">Play</string>
+    <string name="repeater_end">Repeater end</string>
+    <string name="repeater_start">Repeater start</string>
 </resources>

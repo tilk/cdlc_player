@@ -155,7 +155,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         ChordInfo.initialize(textures, data.chordTemplates.size)
         ChordSustain.initialize()
         lastFrameTime = SystemClock.elapsedRealtime()
-        scroller = SongScroller(song, 40f, calculator, scrollSpeed)
+        scroller = SongScroller(song, 40f, calculator, viewModel.repeater, scrollSpeed)
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -190,6 +190,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                             play(metronome1)
                 }
             }
+            scroller.repeat()
         }
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -297,5 +298,14 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
             -size * ratio, size * ratio, -size, size, zNear, zFar
         )
         for (shape in shapes) shape.reset()
+    }
+
+    fun nextBeats() : Sequence<Event.Beat> = sequence {
+        for (shape in scroller.activeEvents) {
+            when (shape.event) {
+                is Event.Beat -> if (shape.event.measure > 0) yield(shape.event)
+                else -> {}
+            }
+        }
     }
 }
