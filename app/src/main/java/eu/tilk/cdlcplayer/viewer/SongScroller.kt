@@ -28,6 +28,7 @@ class SongScroller(
     private val repeaterInfo : LiveData<RepeaterInfo>,
     private val scrollSpeed : Float // TODO I don't really want scrollSpeed here
 ) {
+    private val songByEndTime = (1 until song.count()).toList().sortedBy { song[it].endTime }
     private val horizon = zHorizon / scrollSpeed
     private var time : Float = 0F
     private var position : Int = 0
@@ -96,10 +97,28 @@ class SongScroller(
             override var data : Event.Anchor = firstAnchor ?: guardAnchor
         }
 
-        // TODO: inefficient
-        val new = song
-            .filter { e -> e.time < time + horizon && e.endTime < prevTime && e.endTime >= time || e == firstAnchor }
-            .flatMap { e -> if (e == firstAnchor) { cell.data = firstAnchor; sequenceOf() } else shapesForEvent(e, cell) }
+        fun List<Int>.binarySearchFirst(comp : (Int) -> Boolean) : Int {
+            var l = 0
+            var r = this.count()
+            while (l < r) {
+                val m = (l + r) / 2
+                if (comp(this[m])) r = m
+                else l = m + 1
+            }
+            return l
+        }
+
+        val startIdx = songByEndTime.binarySearchFirst { song[it].endTime >= time }
+        val endIdx = songByEndTime.binarySearchFirst { song[it].endTime >= prevTime }
+
+        val newPre = songByEndTime.subList(startIdx, endIdx)
+            .filter { song[it].time < time + horizon }
+            .sorted()
+            .map { song[it] }
+
+        val new = (if (firstAnchor == null) newPre else listOf(firstAnchor) + newPre)
+            .sortedBy { it.time }
+            .flatMap { if (it == firstAnchor) { cell.data = firstAnchor; sequenceOf() } else shapesForEvent(it, cell) }
 
         events.addAll(0, new)
 
