@@ -37,7 +37,7 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val speed = MutableLiveData(1f)
     val repeater = MutableLiveData<RepeaterInfo>()
 
-    fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.Default) {
+    fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.IO) {
         val loadedSong : Song2014 = XmlMapper()
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

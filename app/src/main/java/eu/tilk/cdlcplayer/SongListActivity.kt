@@ -124,32 +124,7 @@ class SongListActivity: AppCompatActivity() {
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             val url = data.data
             if (url != null) {
-                val outputFile = File(this.cacheDir, "output.psarc")
-                contentResolver.openInputStream(url).use { input ->
-                    if (input != null) FileOutputStream(outputFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                FileInputStream(outputFile).use { stream ->
-                    outputFile.delete()
-                    val psarc = PSARCReader(stream)
-                    val songs = ArrayList<Song2014>()
-                    for (f in psarc.listFiles("""manifests/.*\.json""".toRegex())) {
-                        val baseNameMatch = """manifests/.*/([^/]*)\.json""".toRegex().matchEntire(f)
-                        val baseName = baseNameMatch!!.groupValues[1]
-                        Log.w("file", baseName)
-                        val manifest = psarc.inflateManifest(f)
-                        val attributes = manifest.entries.values.first().values.first()
-                        Log.w("arrangement", attributes.arrangementName)
-                        when (attributes.arrangementName) {
-                            "Lead", "Rhythm" ->
-                                songs.add(psarc.inflateSng(
-                                    "songs/bin/generic/$baseName.sng",
-                                    attributes))
-                        }
-                    }
-                    songListViewModel.insert(songs).start()
-                }
+                songListViewModel.decodeAndInsert(url)
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
