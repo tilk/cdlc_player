@@ -116,8 +116,8 @@ class ViewerActivity : AppCompatActivity() {
         })
         songViewModel.paused.observe(this) {
             val resource =
-                if (it) android.R.drawable.ic_media_pause
-                else android.R.drawable.ic_media_play
+                if (it) android.R.drawable.ic_media_play
+                else android.R.drawable.ic_media_pause
             pauseButton.setImageResource(resource)
             setVisibility(if (it) View.VISIBLE else View.INVISIBLE)
         }
