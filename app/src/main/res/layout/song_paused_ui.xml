@@ -22,32 +22,38 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <ImageButton
+    <Button
         android:id="@+id/pauseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/big_padding"
         android:backgroundTint="@color/colorPrimary"
         android:contentDescription="@string/play"
-        app:srcCompat="@android:drawable/ic_media_pause" />
+        android:minWidth="@android:dimen/app_icon_size"
+        app:icon="@android:drawable/ic_media_pause"
+        app:iconPadding="0dp" />
 
-    <ImageButton
+    <Button
         android:id="@+id/repStartButton"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_margin="@dimen/big_padding"
         android:backgroundTint="@color/colorPrimary"
         android:contentDescription="@string/repeater_start"
-        app:srcCompat="@drawable/ic_left_repeat_24" />
+        android:minWidth="@android:dimen/app_icon_size"
+        app:iconPadding="0dp"
+        app:icon="@drawable/ic_left_repeat_24" />
 
-    <ImageButton
+    <Button
         android:id="@+id/repEndButton"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_margin="@dimen/big_padding"
         android:backgroundTint="@color/colorPrimary"
         android:contentDescription="@string/repeater_end"
-        app:srcCompat="@drawable/ic_right_repeat_24" />
+        android:minWidth="@android:dimen/app_icon_size"
+        app:icon="@drawable/ic_right_repeat_24"
+        app:iconPadding="0dp" />
 
     <SeekBar
         android:id="@+id/speedBar"

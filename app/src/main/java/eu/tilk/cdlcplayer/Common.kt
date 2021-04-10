@@ -19,6 +19,9 @@ package eu.tilk.cdlcplayer
 
 import android.text.Html
 import android.widget.TextView
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 
 fun TextView.setHtml(html : String) {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -27,4 +30,9 @@ fun TextView.setHtml(html : String) {
         @Suppress("DEPRECATION")
         this.text = Html.fromHtml(html)
     }
+}
+
+fun <T> MutableLiveData<T>.observeAndCall(owner : LifecycleOwner, observer : Observer<T>) {
+    observer.onChanged(this.value)
+    this.observe(owner, observer)
 }

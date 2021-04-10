@@ -18,18 +18,15 @@
 package eu.tilk.cdlcplayer
 
 import android.annotation.SuppressLint
-import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.SeekBar
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import com.google.android.material.button.MaterialButton
 import eu.tilk.cdlcplayer.song.Song2014
 import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
@@ -61,10 +58,10 @@ class ViewerActivity : AppCompatActivity() {
         ll.gravity = Gravity.TOP or Gravity.FILL_HORIZONTAL
         pausedUI.layoutParams = ll
         frameLayout.addView(pausedUI)
-        val pauseButton = pausedUI.findViewById<ImageButton>(R.id.pauseButton)
+        val pauseButton = pausedUI.findViewById<MaterialButton>(R.id.pauseButton)
         val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
-        val repStartButton = pausedUI.findViewById<ImageButton>(R.id.repStartButton)
-        val repEndButton = pausedUI.findViewById<ImageButton>(R.id.repEndButton)
+        val repStartButton = pausedUI.findViewById<MaterialButton>(R.id.repStartButton)
+        val repEndButton = pausedUI.findViewById<MaterialButton>(R.id.repEndButton)
         fun setVisibility(v : Int) {
             speedBar.visibility = v
             repStartButton.visibility = v
@@ -114,15 +111,18 @@ class ViewerActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(p0 : SeekBar?) { }
             override fun onStopTrackingTouch(p0 : SeekBar?) { }
         })
-        songViewModel.paused.observe(this) {
+        songViewModel.paused.observeAndCall(this) {
             val resource =
                 if (it) android.R.drawable.ic_media_play
                 else android.R.drawable.ic_media_pause
-            pauseButton.setImageResource(resource)
+            pauseButton.setIconResource(resource)
             setVisibility(if (it) View.VISIBLE else View.INVISIBLE)
         }
-        songViewModel.speed.observe(this) {
+        songViewModel.speed.observeAndCall(this) {
             speedBar.progress = max(0, (100f * it).roundToInt() - 1)
+        }
+        songViewModel.repeater.observeAndCall(this) {
+            repEndButton.isEnabled = it != null
         }
         return frameLayout
     }
