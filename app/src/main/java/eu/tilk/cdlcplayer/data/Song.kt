@@ -34,7 +34,8 @@ data class Song(
     @ColumnInfo(index = true)
     val albumNameSort : String,
     @ColumnInfo(index = true)
-    val albumYear : Int
+    val albumYear : Int,
+    val tuning : String
 ) {
     constructor(song : Song2014) : this(
         song.songKey,
@@ -45,6 +46,7 @@ data class Song(
         song.songLength,
         song.albumName,
         song.albumNameSort,
-        song.albumYear
+        song.albumYear,
+        song.tuning.name()
     )
 }

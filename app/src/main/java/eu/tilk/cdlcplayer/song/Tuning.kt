@@ -17,6 +17,7 @@
 
 package eu.tilk.cdlcplayer.song
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 data class Tuning(
@@ -46,6 +47,7 @@ data class Tuning(
         strings.subList(1, 5).all { it == (string0 - 1).toShort() } -> "Drop " + stringName(string0)
         else -> "Custom"
     }
+    @get:JsonIgnore
     val strings : List<Short>
         get() = arrayListOf(string0, string1, string2, string3, string4, string5)
     companion object {

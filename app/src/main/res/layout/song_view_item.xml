@@ -45,12 +45,28 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         tools:text="Artist" />
 
-    <TextView
-        android:id="@+id/albumView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-        tools:text="Album" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/albumView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="Album" />
+
+        <TextView
+            android:id="@+id/tuningView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|fill_horizontal"
+            android:gravity="right"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="Tuning" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/arrangementsView"

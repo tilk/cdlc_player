@@ -262,7 +262,6 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val lastConversionDateTime = readString(length = 32).trimEnd('\u0000')
         val part = readShort()
         val songLength = readFloat()
-        val stringCount = readInt()
         val tuning = readMany { readShort() }
         val unk11FirstNoteTime = readFloat()
         val unk12FirstNoteTime = readFloat()
