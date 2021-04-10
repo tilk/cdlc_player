@@ -18,6 +18,7 @@
 package eu.tilk.cdlcplayer
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.text.Html
@@ -124,7 +125,13 @@ class SongListActivity: AppCompatActivity() {
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             val url = data.data
             if (url != null) {
-                songListViewModel.decodeAndInsert(url)
+                songListViewModel.decodeAndInsert(url) {
+                    AlertDialog.Builder(this).apply {
+                        setTitle(R.string.error_loading_song_title)
+                        setMessage(R.string.error_loading_song_message)
+                        create().show()
+                    }
+                }
             }
         }
         super.onActivityResult(requestCode, resultCode, data)

@@ -56,6 +56,12 @@
     <string name="play">Play</string>
     <string name="repeater_end">Repeater end</string>
     <string name="repeater_start">Repeater start</string>
-    <string name="loading_song_list">Loading song list...</string>
-    <string name="loading_song">Loading song...</string>
+    <string name="loading_song_list">Loading song list…</string>
+    <string name="loading_song">Loading song…</string>
+    <string name="error_loading_song_title">Adding a song failed</string>
+    <string name="error_loading_song_message">
+        Song could not be added.
+        Please only use PC CDLCs (files named *_p.psarc).
+        If you are certain this is a PC CDLC, please report the problem to the app\'s author.
+    </string>
 </resources>
