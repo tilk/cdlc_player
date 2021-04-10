@@ -56,12 +56,7 @@ class SongListActivity: AppCompatActivity() {
             }
             startActivity(intent)
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            emptyView.text = Html.fromHtml(getString(R.string.no_songs), Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            @Suppress("DEPRECATION")
-            emptyView.text = Html.fromHtml(getString(R.string.no_songs))
-        }
+        emptyView.text = getString(R.string.loading_song_list)
         fun emptyViewVisible(b : Boolean) {
             if (b) {
                 emptyView.visibility = View.VISIBLE
@@ -73,7 +68,11 @@ class SongListActivity: AppCompatActivity() {
         }
         recyclerView.adapter = adapter
         observer = Observer { songs ->
-            songs?.let { adapter.setSongs(it); emptyViewVisible(it.isEmpty()) }
+            songs?.let {
+                adapter.setSongs(it)
+                emptyViewVisible(it.isEmpty())
+                emptyView.setHtml(getString(R.string.no_songs))
+            }
         }
         data = songListViewModel.listByTitle()
         data.observe(this, observer)

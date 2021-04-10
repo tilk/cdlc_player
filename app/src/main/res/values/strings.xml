@@ -56,4 +56,6 @@
     <string name="play">Play</string>
     <string name="repeater_end">Repeater end</string>
     <string name="repeater_start">Repeater start</string>
+    <string name="loading_song_list">Loading song list...</string>
+    <string name="loading_song">Loading song...</string>
 </resources>

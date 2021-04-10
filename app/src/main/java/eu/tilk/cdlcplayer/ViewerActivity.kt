@@ -134,6 +134,7 @@ class ViewerActivity : AppCompatActivity() {
         if (songViewModel.song.value != null)
             setContentView(constructView())
         else {
+            setContentView(R.layout.activity_viewer_loading);
             songViewModel.song.observe(this, observer)
             songViewModel.loadSong(songId!!)
         }
