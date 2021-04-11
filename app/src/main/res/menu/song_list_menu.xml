@@ -44,6 +44,12 @@
         </menu>
     </item>
     <item
+        android:id="@+id/app_bar_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/search"
+        app:actionLayout="@layout/search_view_layout"
+        app:showAsAction="ifRoom|collapseActionView" />
+    <item
         android:id="@+id/settings"
         android:title="@string/settings"
         app:showAsAction="ifRoom"

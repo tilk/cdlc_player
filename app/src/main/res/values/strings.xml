@@ -64,4 +64,6 @@
         Please only use PC CDLCs (files named *_p.psarc).
         If you are certain this is a PC CDLC, please report the problem to the app\'s author.
     </string>
+    <string name="search_hint">Enter song, album or artist name</string>
+    <string name="search">Search</string>
 </resources>

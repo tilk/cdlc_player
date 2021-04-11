@@ -38,6 +38,30 @@ interface SongDao {
     @Query("SELECT * FROM Song ORDER BY albumYear, songNameSort")
     fun getSongsByAlbumYear() : LiveData<List<SongWithArrangements>>
 
+    @Transaction
+    @Query("""SELECT * FROM Song 
+        WHERE title LIKE :search OR albumName LIKE :search OR artistName LIKE :search
+        ORDER BY songNameSort""")
+    fun getSongsByTitleSearch(search : String) : LiveData<List<SongWithArrangements>>
+
+    @Transaction
+    @Query("""SELECT * FROM Song
+        WHERE title LIKE :search OR albumName LIKE :search OR artistName LIKE :search
+        ORDER BY artistNameSort, songNameSort""")
+    fun getSongsByArtistSearch(search : String) : LiveData<List<SongWithArrangements>>
+
+    @Transaction
+    @Query("""SELECT * FROM Song
+        WHERE title LIKE :search OR albumName LIKE :search OR artistName LIKE :search
+        ORDER BY albumNameSort, songNameSort""")
+    fun getSongsByAlbumNameSearch(search : String) : LiveData<List<SongWithArrangements>>
+
+    @Transaction
+    @Query("""SELECT * FROM Song
+        WHERE title LIKE :search OR albumName LIKE :search OR artistName LIKE :search
+        ORDER BY albumYear, songNameSort""")
+    fun getSongsByAlbumYearSearch(search : String) : LiveData<List<SongWithArrangements>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(song : Song)
 }

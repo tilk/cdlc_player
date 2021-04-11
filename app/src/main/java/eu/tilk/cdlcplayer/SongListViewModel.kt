@@ -22,6 +22,8 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -93,8 +95,48 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
     }
 
-    fun listByTitle() = songDao.getSongsByTitle()
-    fun listByArtist() = songDao.getSongsByArtist()
-    fun listByAlbumName() = songDao.getSongsByAlbumName()
-    fun listByAlbumYear() = songDao.getSongsByAlbumYear()
+    enum class SortOrder {
+        TITLE, ARTIST, ALBUM_NAME, ALBUM_YEAR
+    }
+
+    private var currentList = songDao.getSongsByTitle()
+        set(value) {
+            listMediator.removeSource(currentList)
+            field = value
+            listMediator.addSource(value) { listMediator.value = it }
+        }
+    private val listMediator = MediatorLiveData<List<SongWithArrangements>>().apply {
+        addSource(currentList) { value = it }
+    }
+
+    val list : LiveData<List<SongWithArrangements>> get() = listMediator
+
+    var sortOrder : SortOrder = SortOrder.TITLE
+        set(value) {
+            field = value
+            updateList()
+        }
+
+    var search : String = ""
+        set(value) {
+            field = value
+            updateList()
+        }
+
+    private fun updateList() {
+        currentList = if (search == "")
+            when (sortOrder) {
+                SortOrder.TITLE -> songDao.getSongsByTitle()
+                SortOrder.ARTIST -> songDao.getSongsByArtist()
+                SortOrder.ALBUM_NAME -> songDao.getSongsByAlbumName()
+                SortOrder.ALBUM_YEAR -> songDao.getSongsByAlbumYear()
+            }
+        else
+            when (sortOrder) {
+                SortOrder.TITLE -> songDao.getSongsByTitleSearch("%$search%")
+                SortOrder.ARTIST -> songDao.getSongsByArtistSearch("%$search%")
+                SortOrder.ALBUM_NAME -> songDao.getSongsByAlbumNameSearch("%$search%")
+                SortOrder.ALBUM_YEAR -> songDao.getSongsByAlbumYearSearch("%$search%")
+            }
+    }
 }

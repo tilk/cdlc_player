@@ -19,6 +19,8 @@ package eu.tilk.cdlcplayer
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Html
@@ -27,6 +29,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -42,8 +45,6 @@ import java.io.FileOutputStream
 
 class SongListActivity: AppCompatActivity() {
     private val songListViewModel : SongListViewModel by viewModels()
-    private lateinit var observer : Observer<List<SongWithArrangements>>
-    private lateinit var data : LiveData<List<SongWithArrangements>>
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,57 +69,64 @@ class SongListActivity: AppCompatActivity() {
             }
         }
         recyclerView.adapter = adapter
-        observer = Observer { songs ->
+        songListViewModel.list.observe(this) { songs ->
             songs?.let {
                 adapter.setSongs(it)
                 emptyViewVisible(it.isEmpty())
                 emptyView.setHtml(getString(R.string.no_songs))
             }
         }
-        data = songListViewModel.listByTitle()
-        data.observe(this, observer)
+        handleIntent(intent)
     }
 
-    override fun onCreateOptionsMenu(menu : Menu?) : Boolean {
+    override fun onCreateOptionsMenu(menu : Menu) : Boolean {
         menuInflater.inflate(R.menu.song_list_menu, menu)
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val item = menu.findItem(R.id.app_bar_search)
+        val actionView = item.actionView as SearchView
+        actionView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(p0 : MenuItem) : Boolean {
+                handleSearch(actionView.query.toString())
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(p0 : MenuItem) : Boolean {
+                handleSearch("")
+                return true
+            }
+        })
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
-        val id = item.itemId
-        if (id == R.id.add_song) {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.type = "*/*"
-            intent.addCategory(Intent.CATEGORY_OPENABLE)
-            startActivityForResult(intent, READ_REQUEST_CODE)
-            return true
+        when (item.itemId) {
+            R.id.add_song -> {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.type = "*/*"
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                startActivityForResult(intent, READ_REQUEST_CODE)
+            }
+            R.id.settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.about -> {
+                val intent = Intent(this, AboutActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.sortByAlbumName ->
+                songListViewModel.sortOrder = SongListViewModel.SortOrder.ALBUM_NAME
+            R.id.sortByAlbumYear ->
+                songListViewModel.sortOrder = SongListViewModel.SortOrder.ALBUM_YEAR
+            R.id.sortByArtist ->
+                songListViewModel.sortOrder = SongListViewModel.SortOrder.ARTIST
+            R.id.sortByTitle ->
+                songListViewModel.sortOrder = SongListViewModel.SortOrder.TITLE
+            else ->
+                return super.onOptionsItemSelected(item)
         }
-        if (id == R.id.settings) {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-        }
-        if (id == R.id.about) {
-            val intent = Intent(this, AboutActivity::class.java)
-            startActivity(intent)
-        }
-        fun sort(newData : LiveData<List<SongWithArrangements>>) {
-            data.removeObserver(observer)
-            data = newData
-            data.observe(this, observer)
-        }
-        if (id == R.id.sortByAlbumName) {
-            sort(songListViewModel.listByAlbumName())
-        }
-        if (id == R.id.sortByAlbumYear) {
-            sort(songListViewModel.listByAlbumYear())
-        }
-        if (id == R.id.sortByArtist) {
-            sort(songListViewModel.listByArtist())
-        }
-        if (id == R.id.sortByTitle) {
-            sort(songListViewModel.listByTitle())
-        }
-        return super.onOptionsItemSelected(item)
+        return true
     }
 
     override fun onActivityResult(requestCode : Int, resultCode : Int, data : Intent?) {
@@ -135,6 +143,22 @@ class SongListActivity: AppCompatActivity() {
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onNewIntent(intent : Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent : Intent) {
+        when (intent.action) {
+            Intent.ACTION_SEARCH ->
+                handleSearch(intent.getStringExtra(SearchManager.QUERY) ?: "")
+        }
+    }
+
+    private fun handleSearch(query : String) {
+        songListViewModel.search = query
     }
 
     companion object {
