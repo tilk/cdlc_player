@@ -31,7 +31,9 @@ sealed class Event {
         val derived : Boolean = false,
         val bend : Float = 0f,
         val effect : Effect? = null
-    ) : Event()
+    ) : Event() {
+        val fingerInfo get() = if (leftHand in 1..4) FingerInfo(leftHand, string, fret) else null
+    }
 
     data class NoteSustain(
         override val time : Float,
@@ -89,14 +91,16 @@ sealed class Event {
     data class Chord(
         override val time : Float,
         val id : Int,
-        val notes : List<Note>,
+        val fingers : List<FingerInfo>,
         val repeated : Boolean,
         val effect : Effect? = null
     ) : Event()
 
     data class HandShape(
         override val time : Float,
-        val sustain : Float
+        val sustain : Float,
+        val id : Int,
+        val fingers : List<FingerInfo>
     ) : Event() {
         override val endTime : Float get() = time + sustain
     }

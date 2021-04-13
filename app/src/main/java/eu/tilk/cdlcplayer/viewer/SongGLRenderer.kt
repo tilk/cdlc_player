@@ -225,9 +225,24 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         var frontLeftFret = 24
         var frontRightFret = 1
         var activeStrings = 0
+        var activeChord = -1
         val noteInfos = mutableListOf<NoteInfo>()
-        val fingerInfos = mutableListOf<FingerInfo>()
+        var fingerInfos = listOf<FingerInfo>()
         var fingerInfoTime = Float.POSITIVE_INFINITY
+        fun addFingerInfo(time : Float, fingerInfo : FingerInfo) {
+            if (time < fingerInfoTime) {
+                fingerInfoTime = time
+                fingerInfos = listOf()
+            }
+            if (time == fingerInfoTime)
+                fingerInfos = fingerInfos + fingerInfo
+        }
+        fun setFingerInfos(time : Float, newFingerInfos : List<FingerInfo>) {
+            if (time < fingerInfoTime) {
+                fingerInfoTime = time
+                fingerInfos = newFingerInfos
+            }
+        }
         for (shape in scroller.activeEvents.sortedWith(compareBy<EventShape<Event>>{ it.sortLevel.level }.thenByDescending(
             EventShape<Event>::endTime))) {
             draw(shape)
@@ -240,14 +255,14 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                 }
                 is Event.Note -> {
                     activeStrings = activeStrings or (1 shl evt.string.toInt())
-                    if (evt.leftHand in 1..4) {
-                        if (evt.time < fingerInfoTime) {
-                            fingerInfoTime = evt.time
-                            fingerInfos.clear()
-                        }
-                        if (evt.time == fingerInfoTime)
-                            fingerInfos.add(FingerInfo(evt.leftHand, evt.string, evt.fret))
-                    }
+                    if (!evt.derived)
+                        evt.fingerInfo?.let { addFingerInfo(evt.time, it) }
+                }
+                is Event.Chord -> setFingerInfos(evt.time, evt.fingers)
+                is Event.HandShape-> {
+                    setFingerInfos(evt.time, evt.fingers)
+                    if (evt.time <= scroller.currentTime)
+                        activeChord = evt.id
                 }
             }
             when (shape) {
@@ -279,6 +294,19 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
             frontLeftFret,
             frontRightFret
         ))
+        if (activeChord >= 0)
+            draw(ChordInfo(
+                Event.Chord(
+                    scroller.currentTime,
+                    activeChord,
+                    listOf(), false
+                ),
+                Event.Anchor(
+                    scroller.currentTime,
+                    frontLeftFret.toByte(),
+                    (frontRightFret - frontLeftFret).toShort()
+                )
+            ))
         draw(Frets())
 
         if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
