@@ -56,6 +56,7 @@ class Anchor(
             $beltColorGLSL
             $bumpColorGLSL
             $specialFretsGLSL
+            $logisticGLSL
             void main() {
                 float fdist = 2.0 * distance(fract(pos), 0.5);
                 float cdist = 1.0 - fdist;
@@ -63,7 +64,7 @@ class Anchor(
                 float coef = isSpecialFret(fret) ? 0.7 : 1.0;
                 FragColor = vec4(coef * (
                     step(float(uFret.x - 1), pos) * step(pos, float(uFret.x + uFret.y - 1)) * (cos(2.0*fdist)+1.0)/2.0 * beltColor
-                    + (tanh(20.0*(fdist-0.95))+1.0)/2.0 * bumpColor), 1.0);
+                    + logistic(10.0*(fdist-0.95)) * bumpColor), 1.0);
             }
         """.trimIndent()
     ) {
