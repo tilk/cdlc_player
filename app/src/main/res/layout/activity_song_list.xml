@@ -51,4 +51,17 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressBar"
+        style="@style/Widget.MaterialComponents.CircularProgressIndicator"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorSize="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

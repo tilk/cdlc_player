@@ -22,6 +22,7 @@ import android.app.AlertDialog
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
+import android.opengl.Visibility
 import android.os.Bundle
 import android.text.Html
 import android.text.method.LinkMovementMethod
@@ -36,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import eu.tilk.cdlcplayer.data.SongWithArrangements
 import eu.tilk.cdlcplayer.psarc.PSARCReader
 import eu.tilk.cdlcplayer.song.Song2014
@@ -106,6 +108,8 @@ class SongListActivity: AppCompatActivity() {
                 intent.type = "*/*"
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
                 startActivityForResult(intent, READ_REQUEST_CODE)
+                findViewById<CircularProgressIndicator>(R.id.progressBar)
+                    .visibility = View.VISIBLE
             }
             R.id.settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
@@ -134,10 +138,14 @@ class SongListActivity: AppCompatActivity() {
             val url = data.data
             if (url != null) {
                 songListViewModel.decodeAndInsert(url) {
-                    AlertDialog.Builder(this).apply {
-                        setTitle(R.string.error_loading_song_title)
-                        setMessage(R.string.error_loading_song_message)
-                        create().show()
+                    findViewById<CircularProgressIndicator>(R.id.progressBar)
+                        .visibility = View.GONE
+                    if (it != null) {
+                        AlertDialog.Builder(this).apply {
+                            setTitle(R.string.error_loading_song_title)
+                            setMessage(R.string.error_loading_song_message)
+                            create().show()
+                        }
                     }
                 }
             }

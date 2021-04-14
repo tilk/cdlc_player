@@ -35,6 +35,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.lang.Exception
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -47,36 +48,42 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
             }
         }
     @ExperimentalUnsignedTypes
-    fun decodeAndInsert(uri : Uri, handler : (Throwable) -> Unit) =
-        viewModelScope.launch(Dispatchers.IO + exceptionHandler(handler)) {
-            val outputFile = File(app.cacheDir, "output.psarc")
-            app.contentResolver.openInputStream(uri).use { input ->
-                if (input != null) FileOutputStream(outputFile).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            FileInputStream(outputFile).use { stream ->
-                outputFile.delete()
-                val psarc = PSARCReader(stream)
-                val songs = ArrayList<Song2014>()
-                for (f in psarc.listFiles("""manifests/.*\.json""".toRegex())) {
-                    val baseNameMatch = """manifests/.*/([^/]*)\.json""".toRegex().matchEntire(f)
-                    val baseName = baseNameMatch!!.groupValues[1]
-                    Log.w("file", baseName)
-                    val manifest = psarc.inflateManifest(f)
-                    val attributes = manifest.entries.values.first().values.first()
-                    Log.w("arrangement", attributes.arrangementName)
-                    when (attributes.arrangementName) {
-                        "Lead", "Rhythm" ->
-                            songs.add(
-                                psarc.inflateSng(
-                                    "songs/bin/generic/$baseName.sng",
-                                    attributes
-                                )
-                            )
+    fun decodeAndInsert(uri : Uri, handler : (Throwable?) -> Unit) =
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val outputFile = File(app.cacheDir, "output.psarc")
+                app.contentResolver.openInputStream(uri).use { input ->
+                    if (input != null) FileOutputStream(outputFile).use { output ->
+                        input.copyTo(output)
                     }
                 }
-                insert(songs).start()
+                FileInputStream(outputFile).use { stream ->
+                    outputFile.delete()
+                    val psarc = PSARCReader(stream)
+                    val songs = ArrayList<Song2014>()
+                    for (f in psarc.listFiles("""manifests/.*\.json""".toRegex())) {
+                        val baseNameMatch =
+                            """manifests/.*/([^/]*)\.json""".toRegex().matchEntire(f)
+                        val baseName = baseNameMatch!!.groupValues[1]
+                        Log.w("file", baseName)
+                        val manifest = psarc.inflateManifest(f)
+                        val attributes = manifest.entries.values.first().values.first()
+                        Log.w("arrangement", attributes.arrangementName)
+                        when (attributes.arrangementName) {
+                            "Lead", "Rhythm" ->
+                                songs.add(
+                                    psarc.inflateSng(
+                                        "songs/bin/generic/$baseName.sng",
+                                        attributes
+                                    )
+                                )
+                        }
+                    }
+                    insert(songs).start()
+                }
+                withContext(Dispatchers.Main) { handler(null) }
+            } catch (throwable : Throwable) {
+                withContext(Dispatchers.Main) { handler(throwable) }
             }
         }
 
