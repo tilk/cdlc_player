@@ -67,7 +67,7 @@ class NoteTail(note : Event.NoteSustain, val anchor : Event.Anchor, scrollSpeed 
                 float dist = abs(vTexCoord.x);
                 float scaling = min(1.0, 1.0+(atan(1.0-20.0*abs(dist-0.8)))/3.14);
                 FragColor = vec4(scaling * stringColors[uString], 
-                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0) * 
+                    step(zPos, 0.0) * clamp(40.0 + zPos, 0.0, 1.0) * scaling *
                         max(1.0 - unpitched, 1.0 - logistic(4.0*(vTexCoord.y - 0.5))));
             }
         """.trimIndent()
