@@ -40,7 +40,6 @@ class SongListAdapter internal constructor(
         val songTitleView : TextView = itemView.findViewById(R.id.titleView)
         val songArtistView : TextView = itemView.findViewById(R.id.artistView)
         val songAlbumView : TextView = itemView.findViewById(R.id.albumView)
-        val songTuningView : TextView = itemView.findViewById(R.id.tuningView)
         val songArrangementsView : RecyclerView = itemView.findViewById(R.id.arrangementsView)
     }
 
@@ -57,7 +56,6 @@ class SongListAdapter internal constructor(
         holder.songTitleView.text = current.song.title
         holder.songArtistView.text = current.song.artistName
         holder.songAlbumView.text = "${current.song.albumName} (${current.song.albumYear})"
-        holder.songTuningView.text = current.song.tuning
         holder.songArrangementsView.adapter = ArrangementListAdapter(context, current.arrangements)
             { playCallback(current.song, it) }
     }

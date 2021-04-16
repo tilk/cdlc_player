@@ -36,6 +36,7 @@ class ArrangementListAdapter internal constructor(
 
     inner class ArrangementViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
         val songArrangementView : TextView = itemView.findViewById(R.id.arrangementView)
+        val songTuningView : TextView = itemView.findViewById(R.id.tuningView)
         val playButton : ImageButton = itemView.findViewById(R.id.playButton)
     }
 
@@ -49,6 +50,7 @@ class ArrangementListAdapter internal constructor(
     override fun onBindViewHolder(holder : ArrangementViewHolder, position : Int) {
         val current = arrangements[position]
         holder.songArrangementView.text = current.arrangement
+        holder.songTuningView.text = current.tuning
         holder.playButton.setOnClickListener { playCallback(current) }
     }
 }

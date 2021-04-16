@@ -32,10 +32,22 @@
 
     <TextView
         android:id="@+id/arrangementView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="fill_horizontal|center_vertical"
+        android:gravity="fill|fill_horizontal"
         android:textAlignment="inherit"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         tools:text="Arrangement" />
+
+    <TextView
+        android:id="@+id/tuningView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:gravity="right"
+        android:textAlignment="inherit"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        tools:text="Tuning" />
 
 </LinearLayout>
