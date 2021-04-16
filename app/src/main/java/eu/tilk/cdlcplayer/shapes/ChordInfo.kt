@@ -43,11 +43,13 @@ class ChordInfo(chord : Event.Chord,
             uniform ivec2 uChord;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out float zPos;
             void main() {
                 vec4 actPosition = vec4(
                     float(uFret.x-1) + vPosition.x * float(uFret.y), 
                     vPosition.y + 2.0, vPosition.z + uTime, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
+                zPos = actPosition.z;
                 vTexCoord = vec2(vPosition.x, 
                     (float(uChord.x) + 1.0 - vPosition.y / 0.5) / float(uChord.y));
             }
@@ -57,9 +59,11 @@ class ChordInfo(chord : Event.Chord,
             precision mediump float;
             uniform sampler2D uTexture;
             in vec2 vTexCoord;
+            in float zPos;
             out vec4 FragColor;
             void main() {
-                FragColor = texture(uTexture, vTexCoord);
+                vec4 texColor = texture(uTexture, vTexCoord); 
+                FragColor = vec4(texColor.rgb, texColor.a * $fogGLSL);
             }
         """.trimIndent()
     ) {

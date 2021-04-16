@@ -41,10 +41,12 @@ class Anchor(
             in vec4 vPosition;
             uniform vec2 uTime;
             out float pos;
+            out float zPos;
             void main() {
                 vec4 actPosition = vec4(vPosition.x, vPosition.y, uTime.x + vPosition.z * uTime.y, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
                 pos = vPosition.x;
+                zPos = actPosition.z;
             }
         """.trimIndent(),
         """
@@ -52,6 +54,7 @@ class Anchor(
             precision mediump float;
             uniform ivec2 uFret;
             in float pos;
+            in float zPos;
             out vec4 FragColor;
             $beltColorGLSL
             $bumpColorGLSL
@@ -64,7 +67,7 @@ class Anchor(
                 float coef = isSpecialFret(fret) ? 0.7 : 1.0;
                 FragColor = vec4(coef * (
                     step(float(uFret.x - 1), pos) * step(pos, float(uFret.x + uFret.y - 1)) * (cos(2.0*fdist)+1.0)/2.0 * beltColor
-                    + logistic(10.0*(fdist-0.95)) * bumpColor), 1.0);
+                    + logistic(10.0*(fdist-0.95)) * bumpColor), $fogGLSL);
             }
         """.trimIndent()
     ) {

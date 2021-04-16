@@ -42,8 +42,11 @@ class NoteLocator(
             uniform vec4 uPosition;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out float zPos;
             void main() {
-                gl_Position = uMVPMatrix * (vPosition + uPosition);
+                vec4 pos = vPosition + uPosition;
+                gl_Position = uMVPMatrix * pos;
+                zPos = pos.z;
                 vTexCoord = vec2(
                     vPosition.x / 0.5,
                     (vPosition.y + uPosition.y) / 0.25);
@@ -55,11 +58,12 @@ class NoteLocator(
             uniform int uString;
             uniform int uCalcString;
             in vec2 vTexCoord;
+            in float zPos;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
                 float alp = step(abs(vTexCoord.x), 0.1) * max(1.0 - vTexCoord.y / float(uCalcString + 1), 0.0);
-                FragColor = vec4(stringColors[uString], alp);
+                FragColor = vec4(stringColors[uString], alp * $fogGLSL);
             }
         """.trimIndent()
     ) {

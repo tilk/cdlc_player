@@ -67,7 +67,7 @@ class ChordSustain(private val chord : Event.HandShape,
                 return logistic(0.7 - 8.0*a);
             }
             void main() {
-                FragColor = vec4(bumpColor, step(zPos, 0.0) * max(
+                FragColor = vec4(bumpColor, $fogGLSL * step(zPos, 0.0) * max(
                     0.2 * step(0.0, xCoord) * step(xCoord, float(uFret.y)), max(
                     col_fun(abs(xCoord)), 
                     col_fun(abs(xCoord - float(uFret.y))))));

@@ -44,8 +44,11 @@ class Note(note : Event.Note) :
             in vec4 vPosition;
             out vec2 vTexCoord;
             out vec2 aTexCoord;
+            out float zPos;
             void main() {
-                gl_Position = uMVPMatrix * (vPosition + uPosition);
+                vec4 pos = vPosition + uPosition;
+                gl_Position = uMVPMatrix * pos;
+                zPos = pos.z;
                 vTexCoord = vec2(vPosition.x / 0.25, vPosition.y / 0.12);
                 int ex = uEffect / 5;
                 int ey = uEffect % 5;
@@ -60,6 +63,7 @@ class Note(note : Event.Note) :
             precision mediump float;
             uniform int uString;
             uniform sampler2D uTexture;
+            in float zPos;
             in vec2 vTexCoord;
             in vec2 aTexCoord;
             out vec4 FragColor;
@@ -76,7 +80,7 @@ class Note(note : Event.Note) :
                 float alp = step(dist, 1.0);
                 FragColor = vec4(max(1.0 - alp, effColor.a) * aEffColor 
                         + (1.0 - effColor.a) * scaling * stringColors[uString],
-                    max(effColor.a, alp));
+                    max(effColor.a, alp) * $fogGLSL);
             }
         """.trimIndent()
     ) {

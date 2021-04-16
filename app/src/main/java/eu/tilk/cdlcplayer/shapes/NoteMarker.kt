@@ -42,8 +42,10 @@ class NoteMarker(
             uniform ivec2 uFret;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out float zPos;
             void main() {
                 vec4 actPosition = vec4(float(uFret.x - 1) + vPosition.x * float(uFret.y), vPosition.y, uTime + vPosition.z, vPosition.w);
+                zPos = actPosition.z;
                 gl_Position = uMVPMatrix * actPosition;
                 vTexCoord = vec2(vPosition.x, 1.0 + vPosition.z / 0.25);
             }
@@ -52,10 +54,11 @@ class NoteMarker(
             #version 300 es
             precision mediump float;
             in vec2 vTexCoord;
+            in float zPos;
             out vec4 FragColor;
             $bumpColorGLSL
             void main() {
-                FragColor = vec4(bumpColor, min(1.0, vTexCoord.y * 2.0));
+                FragColor = vec4(bumpColor, $fogGLSL * min(1.0, vTexCoord.y * 2.0));
             }
         """.trimIndent()
     ) {

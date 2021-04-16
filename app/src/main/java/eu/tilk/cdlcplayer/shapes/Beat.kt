@@ -45,9 +45,11 @@ class Beat(
             uniform ivec2 uFret;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out float zPos;
             void main() {
                 vec4 actPosition = vec4(float(uFret.x - 1) + vPosition.x * float(uFret.y), vPosition.y, uTime + vPosition.z, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
+                zPos = actPosition.z;
                 vTexCoord = vec2(2.0 * vPosition.x - 1.0, vPosition.z / 0.3);
             }
         """.trimIndent(),
@@ -55,6 +57,7 @@ class Beat(
             #version 300 es
             precision mediump float;
             in vec2 vTexCoord;
+            in float zPos;
             out vec4 FragColor;
             uniform int uMeasure;
             uniform int uRepeat;
@@ -65,8 +68,9 @@ class Beat(
                     && (uRepeat == 1 ? vTexCoord.y <= 0.0 : vTexCoord.y >= 0.0)
                     && (abs(vTexCoord.x) + abs(vTexCoord.y) <= 1.0);
                 bool inBar = vTexCoord.y <= 0.0 && vTexCoord.y >= -0.5;
+                float alpha = inTriangle ? 1.0 : inBar ? 0.5 + float(uMeasure) / 2.0 : 0.0;
                 FragColor = vec4(inTriangle ? repeaterColor : bumpColor,
-                    inTriangle ? 1.0 : inBar ? 0.5 + float(uMeasure) / 2.0 : 0.0);
+                    alpha * $fogGLSL);
             }
         """.trimIndent()
     ) {

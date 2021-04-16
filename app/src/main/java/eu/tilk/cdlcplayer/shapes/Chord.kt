@@ -47,12 +47,14 @@ class Chord(
             uniform float uMult;
             in vec4 vPosition;
             out vec2 vTexCoord;
+            out float zPos;
             void main() {
                 vec2 qPosition = vec2(vPosition.x, (float(uString + 1) + vPosition.y) * 0.25 / 2.0);
                 vec4 actPosition = vec4(
                     float(uFret.x-1) + qPosition.x * float(uFret.y), 
                     qPosition.y * 2.0, vPosition.z + uTime, vPosition.w);
                 gl_Position = uMVPMatrix * actPosition;
+                zPos = actPosition.z;
                 vTexCoord = vec2(2.0, uMult) * qPosition - vec2(1.0, 1.0);
             }
         """.trimIndent(),
@@ -61,6 +63,7 @@ class Chord(
             precision mediump float;
             uniform int uEffect;
             in vec2 vTexCoord;
+            in float zPos;
             out vec4 FragColor;
             $beltColorGLSL
             $bumpColorGLSL
@@ -73,7 +76,7 @@ class Chord(
                 float coef = logistic(5.0 * (dist - 0.8));
                 float effc = uEffect >= 0 ? max(step(0.9, dist), step(0.2, xdist)) : 1.0;
                 FragColor = vec4(effc * (coef * bumpColor + (1.0 - coef) * beltColor), 
-                                 0.2 + coef * 0.8);
+                                 (0.2 + coef * 0.8) * $fogGLSL);
             }
         """.trimIndent()
     ) {

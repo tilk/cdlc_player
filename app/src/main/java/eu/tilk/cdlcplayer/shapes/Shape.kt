@@ -50,6 +50,7 @@ abstract class Shape(
             override fun reload() = glGetAttribLocation(mProgram, name)
         }
         companion object {
+            const val fogGLSL = "smoothstep(-40.0, -35.0, zPos)"
             const val logisticGLSL = """
                 float logistic(float x) {
                     return 0.5 + 0.5 * tanh(x);
