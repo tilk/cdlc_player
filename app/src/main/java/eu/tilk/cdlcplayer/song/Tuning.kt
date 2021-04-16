@@ -44,14 +44,14 @@ data class Tuning(
     ){}
     fun name() : String = when {
         strings.all { it == string0 } -> "Standard " + stringName(string0)
-        strings.subList(1, 5).all { it == (string0 - 1).toShort() } -> "Drop " + stringName(string0)
+        strings.subList(1, 5).all { it == (string0 + 2).toShort() } -> "Drop " + stringName(string0)
         else -> "Custom"
     }
     @get:JsonIgnore
     val strings : List<Short>
         get() = arrayListOf(string0, string1, string2, string3, string4, string5)
     companion object {
-        private fun stringName(s : Short) = when(s.toInt()) {
+        private fun stringName(s : Short) = when(-s.toInt()) {
             0 -> "E"
             1 -> "D♯"
             2 -> "D"
