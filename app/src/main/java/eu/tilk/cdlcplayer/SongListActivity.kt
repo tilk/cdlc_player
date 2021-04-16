@@ -108,8 +108,6 @@ class SongListActivity: AppCompatActivity() {
                 intent.type = "*/*"
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
                 startActivityForResult(intent, READ_REQUEST_CODE)
-                findViewById<CircularProgressIndicator>(R.id.progressBar)
-                    .visibility = View.VISIBLE
             }
             R.id.settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
@@ -135,6 +133,8 @@ class SongListActivity: AppCompatActivity() {
 
     override fun onActivityResult(requestCode : Int, resultCode : Int, data : Intent?) {
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            findViewById<CircularProgressIndicator>(R.id.progressBar)
+                .visibility = View.VISIBLE
             val url = data.data
             if (url != null) {
                 songListViewModel.decodeAndInsert(url) {

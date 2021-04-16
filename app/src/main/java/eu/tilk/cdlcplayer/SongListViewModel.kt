@@ -79,7 +79,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                                 )
                         }
                     }
-                    insert(songs).start()
+                    insert(songs).join()
                 }
                 withContext(Dispatchers.Main) { handler(null) }
             } catch (throwable : Throwable) {
@@ -89,7 +89,6 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
 
     private fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.IO) {
         for (song in songs) {
-            arrangementDao.insert(Arrangement(song))
             app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
                 it.write(
                     XmlMapper().registerModule(KotlinModule())
@@ -98,6 +97,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
             }
         }
         database.withTransaction {
+            for (song in songs) arrangementDao.insert(Arrangement(song))
             songDao.insert(Song(songs[0]))
         }
     }
