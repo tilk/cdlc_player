@@ -62,10 +62,12 @@ class ViewerActivity : AppCompatActivity() {
         val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
         val repStartButton = pausedUI.findViewById<MaterialButton>(R.id.repStartButton)
         val repEndButton = pausedUI.findViewById<MaterialButton>(R.id.repEndButton)
+        val speedText = pausedUI.findViewById<TextView>(R.id.speedText)
         fun setVisibility(v : Int) {
             speedBar.visibility = v
             repStartButton.visibility = v
             repEndButton.visibility = v
+            speedText.visibility = v
         }
         speedBar.max = 99
         pauseButton.setOnClickListener {
@@ -120,6 +122,8 @@ class ViewerActivity : AppCompatActivity() {
         }
         songViewModel.speed.observeAndCall(this) {
             speedBar.progress = max(0, (100f * it).roundToInt() - 1)
+            @SuppressLint("SetTextI18n")
+            speedText.text = "${(100f*it).roundToInt()}%"
         }
         songViewModel.repeater.observeAndCall(this) {
             repEndButton.isEnabled = it != null

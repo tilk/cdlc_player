@@ -17,6 +17,10 @@
 
 <resources>
 
+    <style name="WhiteText" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
     <style name="SearchViewTheme" parent="Widget.AppCompat.SearchView">
         <!-- Gets rid of the search icon -->
         <item name="searchIcon">@drawable/ic_search_white_24dp</item>
