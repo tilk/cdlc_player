@@ -20,15 +20,16 @@ package eu.tilk.cdlcplayer.shapes.utils
 import android.content.Context
 import androidx.preference.PreferenceManager
 
-class NoteCalculator(context : Context) {
+class NoteCalculator(context : Context, bass : Boolean = false) {
     val reversedFretboard = {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         sharedPreferences.getBoolean("reversedFretboard", false)
     }()
-    private val startY = 1.5f + (if (reversedFretboard) 0f else 5f)
+    val lastString = if (bass) 3 else 5
+    private val startY = 1.5f + (if (reversedFretboard) 0f else lastString.toFloat())
     private val dirY = if (reversedFretboard) 1 else -1
     fun calcX(fret : Byte) = fret - 0.5f
     fun calcY(string : Byte, bend : Float = 0f) = 0.25f * (startY + (string + bend) * dirY)
     fun calcZ(time : Float, curTime : Float, scrollSpeed : Float) = (curTime - time) * scrollSpeed
-    fun sort(string : Byte) : Int = if (reversedFretboard) string.toInt() else 5 - string
+    fun sort(string : Byte) : Int = if (reversedFretboard) string.toInt() else lastString - string
 }

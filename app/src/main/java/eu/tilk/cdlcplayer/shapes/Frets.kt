@@ -18,6 +18,7 @@
 package eu.tilk.cdlcplayer.shapes
 
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -50,6 +51,7 @@ class Frets : StaticShape(vertexCoords, drawOrder, this) {
         """
             #version 300 es
             uniform mat4 uMVPMatrix;
+            uniform float uScale;
             in vec4 vPosition;
             in vec3 vNormal;
             in int vFret;
@@ -57,7 +59,7 @@ class Frets : StaticShape(vertexCoords, drawOrder, this) {
             void main() {
                 vec4 actPosition = vec4(
                     vPosition.x + float(vFret - 1), 
-                    vPosition.y + 0.25, 
+                    vPosition.y * uScale + 0.25 , 
                     vPosition.zw); 
                 gl_Position = uMVPMatrix * actPosition;
                 normal = normalize(vNormal);
@@ -87,7 +89,13 @@ class Frets : StaticShape(vertexCoords, drawOrder, this) {
             0.3f, 0f, 1f
         )
         private val frets = (1..24).toList().map { it.toShort() }.toShortArray()
+        private lateinit var calculator : NoteCalculator
+        fun initialize(calculator: NoteCalculator) {
+            super.initialize()
+            this.calculator = calculator
+        }
         private val uLight = GLUniformCache("uLight")
+        private val uScale = GLUniformCache("uScale")
         private val vNormal = GLAttribCache("vNormal")
         private val vFret = GLAttribCache("vFret")
     }
@@ -109,6 +117,7 @@ class Frets : StaticShape(vertexCoords, drawOrder, this) {
             }
         }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
+        glUniform1f(uScale.value, (calculator.lastString+1) / 6.0f)
         vNormal.value.also {
             glEnableVertexAttribArray(it)
             glVertexAttribPointer(

@@ -18,6 +18,7 @@
 package eu.tilk.cdlcplayer.shapes
 
 import android.opengl.GLES31.*
+import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
@@ -38,6 +39,7 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
             #version 300 es
             uniform mat4 uMVPMatrix;
             uniform ivec2 uFret;
+            uniform float uCenter;
             in vec4 vPosition;
             in int vInlayFret;
             out vec2 vTexCoord;
@@ -50,7 +52,7 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
                     vPosition.y + 0.25,
                     vPosition.zw); 
                 gl_Position = uMVPMatrix * actPosition;
-                vTexCoord = vPosition.xy;
+                vTexCoord = vPosition.xy - vec2(0.5, uCenter);
                 twoDot = int(isTwoDotFret(vInlayFret));
                 actv = int(vInlayFret >= uFret.x && vInlayFret < uFret.y);
             }
@@ -69,17 +71,23 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
             }
             void main() {
                 float coef = max(
-                    icirc(vec2(0.5, 0.75 - float(twoDot) * 2.0 * 0.25)),
-                    icirc(vec2(0.5, 0.75 + float(twoDot) * 2.0 * 0.25))
+                    icirc(vec2(0, float(twoDot) * 2.0 * 0.25)),
+                    icirc(vec2(0, float(twoDot) * 2.0 * 0.25))
                 );
                 vec3 col = laneColors[actv];
                 FragColor = vec4(col, coef * 0.7);
             }
         """.trimIndent()
     ) {
+        private lateinit var calculator : NoteCalculator
+        fun initialize(calculator: NoteCalculator) {
+            super.initialize()
+            this.calculator = calculator
+        }
         private val inlayFrets = shortArrayOf(
             3, 5, 7, 9, 12, 15, 17, 19, 21, 24
         )
+        private val uCenter = GLUniformCache("uCenter")
         private val uFret = GLUniformCache("uFret")
         private val vInlayFret = GLAttribCache("vInlayFret")
     }
@@ -93,6 +101,7 @@ class NeckInlays(private val leftFret : Int, private val rightFret : Int) :
         }
     override val instances = inlayFrets.size
     override fun internalDraw(time : Float, scrollSpeed : Float) {
+        glUniform1f(uCenter.value, (calculator.lastString+1) / 6f * 0.75f)
         vInlayFret.value.also {
             glEnableVertexAttribArray(it)
             glVertexAttribDivisor(it, 1)

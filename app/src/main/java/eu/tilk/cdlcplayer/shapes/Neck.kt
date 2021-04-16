@@ -46,17 +46,19 @@ class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrde
             precision mediump float;
             uniform int uStrings;
             uniform int uReversed;
+            uniform lowp int uLastString;
             in vec2 vTexCoord;
             out vec4 FragColor;
             $stringColorsGLSL
             void main() {
                 float y = vTexCoord.y * 6.0;
                 lowp int iy = int(y);
-                lowp int str = 5 * uReversed + (1 - 2 * uReversed) * iy;
+                lowp int str = uLastString * uReversed + (1 - 2 * uReversed) * iy;
                 float dist = abs(y - float(iy) - 0.5);
                 float scl = (1.5+atan(20.0*(dist-0.1)))/3.0;
                 float coef = (1.0 + float((uStrings & (1 << str)) != 0)) / 2.0;
-                FragColor = vec4(coef * stringColors[str], 1.0 - scl);
+                FragColor = vec4(coef * stringColors[str], (1.0 - scl) * 
+                    float(str <= uLastString && str >= 0));
             }
         """.trimIndent()
     ) {
@@ -67,10 +69,12 @@ class Neck(private val activeStrings : Int) : StaticShape(vertexCoords, drawOrde
         }
         private val uStrings = GLUniformCache("uStrings")
         private val uReversed = GLUniformCache("uReversed")
+        private val uLastString = GLUniformCache("uLastString")
     }
     override fun internalDraw(time : Float, scrollSpeed : Float) {
         glUniform1i(uStrings.value, activeStrings)
         glUniform1i(uReversed.value, if (calculator.reversedFretboard) 0 else 1)
+        glUniform1i(uLastString.value, calculator.lastString)
         super.internalDraw(time, scrollSpeed)
     }
 }

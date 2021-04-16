@@ -70,7 +70,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val attributes = manifest.entries.values.first().values.first()
                         Log.w("arrangement", attributes.arrangementName)
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm" ->
+                            "Lead", "Rhythm", "Bass" ->
                                 songs.add(
                                     psarc.inflateSng(
                                         "songs/bin/generic/$baseName.sng",

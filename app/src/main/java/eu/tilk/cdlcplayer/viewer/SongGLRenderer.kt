@@ -42,6 +42,7 @@ import eu.tilk.cdlcplayer.song.Song2014
 class SongGLRenderer(private val context : Context, private val viewModel : SongViewModel) :
     GLSurfaceView.Renderer {
     val data = viewModel.song.value!!
+    val bass = data.arrangement == "Bass"
     val song : List<Event> = data.makeEventList()
     var paused : Boolean
         get() = viewModel.paused.value!!
@@ -135,11 +136,11 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        val calculator = NoteCalculator(context)
+        val calculator = NoteCalculator(context, bass)
         textures = Textures(context, data)
         Neck.initialize(calculator)
-        NeckInlays.initialize()
-        Frets.initialize()
+        NeckInlays.initialize(calculator)
+        Frets.initialize(calculator)
         FretNumbers.initialize()
         Anchor.initialize()
         Note.initialize(textures, calculator)
