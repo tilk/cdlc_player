@@ -133,10 +133,14 @@ class SongScroller(
         time += t
 
         val it = events.iterator()
+        val evtsCalled = mutableSetOf<Event>()
         while (it.hasNext()) {
             val e = it.next()
             if (e.endTime < time) {
-                onRemove(e.event, e.derived)
+                if (!evtsCalled.contains(e.event)) {
+                    onRemove(e.event, e.derived)
+                    evtsCalled.add(e.event)
+                }
                 it.remove()
             }
         }
