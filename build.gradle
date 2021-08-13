@@ -50,5 +50,5 @@ ext {
     coreTestingVersion = '2.1.0'
     materialVersion = '1.4.0'
     jacksonVersion = '2.10.3'
-    coroutines = '1.4.1'
+    coroutines = '1.5.1-native-mt'
 }
