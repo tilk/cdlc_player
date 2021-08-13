@@ -1,0 +1,2 @@
+json_key_file("key_file.json") 
+package_name("eu.tilk.cdlcplayer")

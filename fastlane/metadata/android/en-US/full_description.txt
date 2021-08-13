@@ -1,0 +1,1 @@
+This application allows to play guitar tabs in CDLC format, using a three-dimensional notation.
