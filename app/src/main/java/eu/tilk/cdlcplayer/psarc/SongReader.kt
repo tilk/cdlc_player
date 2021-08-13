@@ -302,7 +302,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         Array(6) { i ->
             fun maskValue(flag : Int) : Byte =
                 if (noteMask[i] and flag != 0) 1 else 0
-            val maxBend = bendData[i].map { it.step }.max() ?: 0f
+            val maxBend = bendData[i].map { it.step }.maxOrNull() ?: 0f
             Note2014(
                 0f, maskValue(NOTE_MASK_PARENT), maskValue(NOTE_MASK_CHILD),
                 maskValue(NOTE_MASK_ACCENT), maxBend,
