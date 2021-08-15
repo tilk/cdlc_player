@@ -51,7 +51,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     fun decodeAndInsert(uri : Uri, handler : (Throwable?) -> Unit) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val outputFile = File(app.cacheDir, "output.psarc")
+                val outputFile = File(app.cacheDir, "output.CoroutineExceptionHandler {psarc")
                 app.contentResolver.openInputStream(uri).use { input ->
                     if (input != null) FileOutputStream(outputFile).use { output ->
                         input.copyTo(output)
@@ -65,10 +65,8 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val baseNameMatch =
                             """manifests/.*/([^/]*)\.json""".toRegex().matchEntire(f)
                         val baseName = baseNameMatch!!.groupValues[1]
-                        Log.w("file", baseName)
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
-                        Log.w("arrangement", attributes.arrangementName)
                         when (attributes.arrangementName) {
                             "Lead", "Rhythm", "Bass" ->
                                 songs.add(
@@ -79,7 +77,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                                 )
                         }
                     }
-                    insert(songs).join()
+                    insert(songs)
                 }
                 withContext(Dispatchers.Main) { handler(null) }
             } catch (throwable : Throwable) {
@@ -87,7 +85,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
             }
         }
 
-    private fun insert(songs : List<Song2014>) = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun insert(songs : List<Song2014>) {
         for (song in songs) {
             app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
                 it.write(
