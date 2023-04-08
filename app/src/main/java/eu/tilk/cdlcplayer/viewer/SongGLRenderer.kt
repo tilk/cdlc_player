@@ -52,7 +52,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private var lastFrameTime : Long = 0
-    private var lastSyncTime : Long = Long.MIN_VALUE
+    private var lastSyncTime : Long = -10000L
     private var scrollSpeed : Float = 13f
     private lateinit var scroller : SongScroller
     private var eyeX : Float = 2f
@@ -166,7 +166,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         lastFrameTime = currentTime
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val clickPref = sharedPreferences.getString("click", "on_beats")
+        val clickPref = sharedPreferences.getString("click", "quiet")
 
         fun play(sound : Int) {
             sounds.play(sound, 1f, 1f, 0, 0, 1f)

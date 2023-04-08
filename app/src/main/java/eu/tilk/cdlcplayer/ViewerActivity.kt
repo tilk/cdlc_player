@@ -150,7 +150,7 @@ class ViewerActivity : AppCompatActivity() {
             repEndButton.isEnabled = it != null
         }
         songViewModel.seekpos.observeAndCall(this) {
-            if (abs(player!!.currentPosition - it) > 100) player!!.seekTo(it)
+            if (abs(player!!.currentPosition - it) > 120) player!!.seekTo(it)
         }
         return frameLayout
     }
@@ -174,9 +174,9 @@ class ViewerActivity : AppCompatActivity() {
         player?.pause()
     }
 
-    override fun onStop() {
-        super.onStop()
-        player?.release()
+    override fun onResume() {
+        super.onResume()
+        if (songViewModel.paused.value == false) player?.play()
     }
 
     companion object {
