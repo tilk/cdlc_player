@@ -35,6 +35,7 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val song = MutableLiveData<Song2014>()
     val paused = MutableLiveData(false)
     val speed = MutableLiveData(1f)
+    val seekpos = MutableLiveData(0L)
     val repeater = MutableLiveData<RepeaterInfo>()
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.IO) {

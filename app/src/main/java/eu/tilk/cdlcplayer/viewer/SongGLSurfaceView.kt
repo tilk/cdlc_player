@@ -41,7 +41,7 @@ class SongGLSurfaceView(context : Context, viewModel : SongViewModel) : GLSurfac
     }
 
     override fun onTouchEvent(event : MotionEvent?) : Boolean {
-        return gestureDetector.onTouchEvent(event)
+        return gestureDetector.onTouchEvent(event!!)
     }
 
     fun nextBeats() = renderer.nextBeats()

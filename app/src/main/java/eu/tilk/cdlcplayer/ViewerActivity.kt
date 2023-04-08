@@ -25,11 +25,16 @@ import android.view.WindowManager
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.Observer
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.button.MaterialButton
 import eu.tilk.cdlcplayer.song.Song2014
 import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
+import java.io.File
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -45,7 +50,21 @@ class ViewerActivity : AppCompatActivity() {
         }
     }
 
+    private var player : ExoPlayer? = null
+
+    private fun initializePlayer() {
+        player = ExoPlayer.Builder(this)
+            .build()
+            .also { exoPlayer ->
+                val wav = File(this.filesDir, "${songViewModel.song.value!!.songKey}.wem.wav")
+                val mediaItem = MediaItem.fromUri(wav.toUri())
+                exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.prepare()
+            }
+    }
+
     private fun constructView() : FrameLayout {
+        initializePlayer()
         glView = SongGLSurfaceView(this, songViewModel)
         val frameLayout = FrameLayout(this)
         frameLayout.addView(glView)
@@ -114,6 +133,7 @@ class ViewerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(p0 : SeekBar?) { }
         })
         songViewModel.paused.observeAndCall(this) {
+            if (it) player!!.pause() else player!!.play()
             val resource =
                 if (it) android.R.drawable.ic_media_play
                 else android.R.drawable.ic_media_pause
@@ -124,9 +144,13 @@ class ViewerActivity : AppCompatActivity() {
             speedBar.progress = max(0, (100f * it).roundToInt() - 1)
             @SuppressLint("SetTextI18n")
             speedText.text = "${(100f*it).roundToInt()}%"
+            player!!.setPlaybackSpeed(it)
         }
         songViewModel.repeater.observeAndCall(this) {
             repEndButton.isEnabled = it != null
+        }
+        songViewModel.seekpos.observeAndCall(this) {
+            if (abs(player!!.currentPosition - it) > 100) player!!.seekTo(it)
         }
         return frameLayout
     }
@@ -142,6 +166,17 @@ class ViewerActivity : AppCompatActivity() {
             songViewModel.song.observe(this, observer)
             songViewModel.loadSong(songId!!)
         }
+    }
+
+    // Not so sure about this
+    override fun onPause() {
+        super.onPause()
+        player?.pause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        player?.release()
     }
 
     companion object {

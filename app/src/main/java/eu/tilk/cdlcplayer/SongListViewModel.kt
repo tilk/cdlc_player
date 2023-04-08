@@ -77,6 +77,19 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                                 )
                         }
                     }
+
+                    val wem = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
+                        .map { candidate -> psarc.inflateFile(candidate) }
+                        .maxByOrNull { ba -> ba.size }
+                    val tempWem = File(app.filesDir, "${songs[0].songKey}.wem")
+                    tempWem.writeBytes(wem!!)
+                    val where = File(app.applicationInfo.nativeLibraryDir)
+                    val conversion = ProcessBuilder("./libvgmstream-cli.so", tempWem.absolutePath)
+                        .directory(where)
+                        .start()
+                    conversion.waitFor()
+                    tempWem.delete()
+
                     insert(songs)
                 }
                 withContext(Dispatchers.Main) { handler(null) }

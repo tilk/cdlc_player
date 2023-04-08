@@ -52,6 +52,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private var lastFrameTime : Long = 0
+    private var lastSyncTime : Long = Long.MIN_VALUE
     private var scrollSpeed : Float = 13f
     private lateinit var scroller : SongScroller
     private var eyeX : Float = 2f
@@ -98,14 +99,14 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     }
 
     val gestureListener = object : GestureDetector.SimpleOnGestureListener()  {
-        override fun onDown(e : MotionEvent?) : Boolean {
+        override fun onDown(e : MotionEvent) : Boolean {
             stopFling()
             return true
         }
 
         override fun onFling(
-            e1 : MotionEvent?,
-            e2 : MotionEvent?,
+            e1 : MotionEvent,
+            e2 : MotionEvent,
             velocityX : Float,
             velocityY : Float
         ) : Boolean {
@@ -171,9 +172,19 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
             sounds.play(sound, 1f, 1f, 0, 0, 1f)
         }
 
+        fun sync() {
+            viewModel.seekpos.postValue((1000 * scroller.currentTime).toLong())
+        }
+
+        if (currentTime - lastSyncTime > 300) {
+            lastSyncTime = currentTime
+            sync()
+        }
+
         if (scrollAmount != 0f) {
             scroller.scroll(scrollAmount)
             scrollAmount = 0f
+            sync()
         }
 
         if (!paused) {
