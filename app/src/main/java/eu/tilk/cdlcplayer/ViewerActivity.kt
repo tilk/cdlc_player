@@ -76,7 +76,7 @@ class ViewerActivity : AppCompatActivity() {
                 while (true) {
                     val targetDelta = (250.0f*songViewModel.speed.value!! - 90.0f).roundToLong() // see https://www.wolframalpha.com/input?i=linear+regression+%7B%7B100%2C+180%7D%2C%7B90%2C145%7D%2C%7B80%2C+90%7D%2C%7B60%2C+50%7D%2C%7B40%2C+5%7D%2C%7B20%2C+-30%7D%2C%7B10%2C+-60%7D%7D
                     val actualDelta = glView.currentTime() - player!!.currentPosition
-                    if (actualDelta !in targetDelta - 50..targetDelta + 50) {
+                    if (actualDelta !in (targetDelta - 50) .. (targetDelta + 50)) {
                         player!!.seekTo(glView.currentTime())
                     }
                     delay(200)
