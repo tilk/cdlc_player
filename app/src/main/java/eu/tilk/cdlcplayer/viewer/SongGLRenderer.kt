@@ -176,7 +176,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
             viewModel.seekpos.postValue((1000 * scroller.currentTime).toLong())
         }
 
-        if (currentTime - lastSyncTime > 300) {
+        if (currentTime - lastSyncTime > 1000) {
             lastSyncTime = currentTime
             sync()
         }

@@ -78,17 +78,28 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         }
                     }
 
-                    val wem = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
+                    val wem = File(app.cacheDir, "${songs[0].songKey}.wem")
+                    val wav = File(app.cacheDir, "${songs[0].songKey}.wav")
+                    val opus = File(app.filesDir, "${songs[0].songKey}.opus")
+
+                    val wemBA = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
                         .map { candidate -> psarc.inflateFile(candidate) }
                         .maxByOrNull { ba -> ba.size }
-                    val tempWem = File(app.filesDir, "${songs[0].songKey}.wem")
-                    tempWem.writeBytes(wem!!)
+
+                    wem.writeBytes(wemBA!!)
+
                     val where = File(app.applicationInfo.nativeLibraryDir)
-                    val conversion = ProcessBuilder("./libvgmstream-cli.so", tempWem.absolutePath)
+                    val wem2wav = ProcessBuilder("./libvgmstream.so", "-o", wav.absolutePath, wem.absolutePath)
                         .directory(where)
                         .start()
-                    conversion.waitFor()
-                    tempWem.delete()
+                    wem2wav.waitFor()
+                    wem.delete()
+
+                    val wav2opus = ProcessBuilder("./libopusenc.so", "--comp", "0", wav.absolutePath, opus.absolutePath)
+                        .directory(where)
+                        .start()
+                    wav2opus.waitFor()
+                    wav.delete()
 
                     insert(songs)
                 }

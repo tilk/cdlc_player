@@ -56,8 +56,8 @@ class ViewerActivity : AppCompatActivity() {
         player = ExoPlayer.Builder(this)
             .build()
             .also { exoPlayer ->
-                val wav = File(this.filesDir, "${songViewModel.song.value!!.songKey}.wem.wav")
-                val mediaItem = MediaItem.fromUri(wav.toUri())
+                val opus = File(this.filesDir, "${songViewModel.song.value!!.songKey}.opus")
+                val mediaItem = MediaItem.fromUri(opus.toUri())
                 exoPlayer.setMediaItem(mediaItem)
                 exoPlayer.prepare()
             }
@@ -150,7 +150,7 @@ class ViewerActivity : AppCompatActivity() {
             repEndButton.isEnabled = it != null
         }
         songViewModel.seekpos.observeAndCall(this) {
-            if (abs(player!!.currentPosition - it) > 120) player!!.seekTo(it)
+            if (abs(player!!.currentPosition - it) > 250) player!!.seekTo(it)
         }
         return frameLayout
     }
