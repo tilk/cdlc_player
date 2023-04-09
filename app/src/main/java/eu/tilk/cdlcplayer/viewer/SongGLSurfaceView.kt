@@ -45,4 +45,5 @@ class SongGLSurfaceView(context : Context, viewModel : SongViewModel) : GLSurfac
     }
 
     fun nextBeats() = renderer.nextBeats()
+    fun currentTime() = renderer.currentTime()
 }

@@ -38,6 +38,7 @@ import androidx.preference.PreferenceManager
 import eu.tilk.cdlcplayer.SongViewModel
 import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
 import eu.tilk.cdlcplayer.song.Song2014
+import kotlin.math.roundToLong
 
 class SongGLRenderer(private val context : Context, private val viewModel : SongViewModel) :
     GLSurfaceView.Renderer {
@@ -172,19 +173,9 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
             sounds.play(sound, 1f, 1f, 0, 0, 1f)
         }
 
-        fun sync() {
-            viewModel.seekpos.postValue((1000 * scroller.currentTime).toLong())
-        }
-
-        if (currentTime - lastSyncTime > 1000) {
-            lastSyncTime = currentTime
-            sync()
-        }
-
         if (scrollAmount != 0f) {
             scroller.scroll(scrollAmount)
             scrollAmount = 0f
-            sync()
         }
 
         if (!paused) {
@@ -341,4 +332,6 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     }
 
     fun nextBeats() = scroller.nextBeats()
+    fun currentTime() = if (this::scroller.isInitialized)
+            (scroller.currentTime * 1000.0f).roundToLong() else 0
 }

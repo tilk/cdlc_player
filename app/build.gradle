@@ -78,8 +78,6 @@ dependencies {
     implementation 'javax.xml.stream:stax-api:1.0-2'
     implementation 'net.sf.loggersoft.kotlin:binary-streams:0.35'
     implementation "androidx.media3:media3-exoplayer:1.0.0"
-    implementation "androidx.media3:media3-exoplayer-dash:1.0.0"
-    implementation "androidx.media3:media3-ui:1.0.0"
 
 
     // Material design
@@ -97,6 +95,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
     kapt "androidx.lifecycle:lifecycle-common-java8:$rootProject.archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
 
     // Kotlin components
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
