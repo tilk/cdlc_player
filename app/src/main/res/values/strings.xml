@@ -47,6 +47,51 @@
             along with this program.  If not, see
             &lt;<a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>&gt;.
         </p>
+        <p>This program uses vgmstream, whose source resides at &lt;<a href="https://github.com/vgmstream/vgmstream%5C%3E">https://github.com/vgmstream/vgmstream</a>&gt;.</p>
+        <p>This program uses opusenc from opus-tools, whose source resides at &lt;<a href="https://github.com/xiph/opus-tools%5C%3E">https://github.com/xiph/opus-tools</a>&gt;.</p>
+        <p><strong>vgmstream</strong></p>
+        <p>Copyright (c) 2008-2019 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
+        Christopher Snowhill, NicknineTheEagle, bxaimc,
+        Thealexbarney, CyberBotX, et al</p>
+        <p>Portions Copyright (c) 2004-2008, Marko Kreen</p>
+        <p>Portions Copyright 2001-2007  jagarl / Kazunori Ueno &lt;jagarl@creator.club.ne.jp&gt;</p>
+        <p>Portions Copyright (c) 1998, Justin Frankel/Nullsoft Inc.</p>
+        <p>Portions Copyright (C) 2006 Nullsoft, Inc.</p>
+        <p>Portions Copyright (c) 2005-2007 Paul Hsieh</p>
+        <p>Portions Public Domain originating with Sun Microsystems</p>
+        <p>Permission to use, copy, modify, and distribute this software for any
+        purpose with or without fee is hereby granted, provided that the above
+        copyright notice and this permission notice appear in all copies.</p>
+        <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+        WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+        MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+        ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+        WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+        ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+        OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+        <p><strong>opus-tools</strong></p>
+        <p>Opus-tools, with the exception of opusinfo.[ch] is available under
+        the following two clause BSD-style license:</p>
+        <p>Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions
+        are met:</p>
+        <p>- Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.</p>
+        <p>- Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.</p>
+        <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+        &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+        LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+        A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+        OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+        EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+        PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+        PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+        LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+        NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
     ]]></string>
     <string name="no_songs"><![CDATA[
         No songs loaded yet. <br />

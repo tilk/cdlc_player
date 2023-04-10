@@ -19,6 +19,7 @@ package eu.tilk.cdlcplayer
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Handler
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -28,7 +29,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import androidx.media3.common.MediaItem
+import androidx.media3.datasource.FileDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
+import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.metadata.MetadataOutput
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.text.TextOutput
+import androidx.media3.exoplayer.video.VideoRendererEventListener
+import androidx.media3.extractor.ExtractorsFactory
+import androidx.media3.extractor.ogg.OggExtractor
 import com.google.android.material.button.MaterialButton
 import eu.tilk.cdlcplayer.song.Song2014
 import eu.tilk.cdlcplayer.viewer.RepeaterInfo
@@ -36,7 +49,6 @@ import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -53,31 +65,53 @@ class ViewerActivity : AppCompatActivity() {
         }
     }
 
+    private val secondObserver : Observer<Song2014> by lazy {
+        Observer {
+            playMusic()
+            songViewModel.song.removeObserver(secondObserver)
+        }
+    }
+
     private var player : ExoPlayer? = null
 
     private fun initializePlayer() {
-        player = ExoPlayer.Builder(this)
-            .build()
+        val audioOnlyRenderersFactory =
+            RenderersFactory {
+                    handler: Handler,
+                    videoListener: VideoRendererEventListener,
+                    audioListener: AudioRendererEventListener,
+                    textOutput: TextOutput,
+                    metadataOutput: MetadataOutput,
+                ->
+                arrayOf(
+                    MediaCodecAudioRenderer(this, MediaCodecSelector.DEFAULT, handler, audioListener)
+                )
+            }
+
+        val customMediaSourceFactory = ProgressiveMediaSource.Factory(FileDataSource.Factory(),  ExtractorsFactory { arrayOf(OggExtractor()) })
+            .setDrmSessionManagerProvider { DrmSessionManager.DRM_UNSUPPORTED }
+
+        player = ExoPlayer.Builder(this, audioOnlyRenderersFactory, customMediaSourceFactory).build()
     }
 
-    private fun playMusic(songViewModel : SongViewModel) {
+    private fun playMusic() {
         val opus = File(this.filesDir, "${songViewModel.song.value!!.songKey}.opus")
-        val mediaItem = MediaItem.fromUri(opus.toUri())
-        player!!.stop()
-        player!!.setMediaItem(mediaItem)
-        player!!.seekTo(0)
+        player!!.setMediaItem(MediaItem.fromUri(opus.toUri()))
         player!!.prepare()
-        player!!.play()
+        player!!.seekTo(if (this::glView.isInitialized) glView.currentTime() else 0)
+        player!!.setPlaybackSpeed(songViewModel.speed.value!!)
+        if (!songViewModel.paused.value!!) player!!.play()
     }
 
     private fun observeViewAndSyncMusic() {
         this.lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
+                    val currentTime = glView.currentTime()
                     val targetDelta = (250.0f*songViewModel.speed.value!! - 90.0f).roundToLong() // see https://www.wolframalpha.com/input?i=linear+regression+%7B%7B100%2C+180%7D%2C%7B90%2C145%7D%2C%7B80%2C+90%7D%2C%7B60%2C+50%7D%2C%7B40%2C+5%7D%2C%7B20%2C+-30%7D%2C%7B10%2C+-60%7D%7D
-                    val actualDelta = glView.currentTime() - player!!.currentPosition
-                    if (actualDelta !in (targetDelta - 50) .. (targetDelta + 50)) {
-                        player!!.seekTo(glView.currentTime())
+                    val actualDelta = currentTime - player!!.currentPosition
+                    if (actualDelta !in (targetDelta - 70) .. (targetDelta + 70)) {
+                        player!!.seekTo(currentTime)
                     }
                     delay(200)
                 }
@@ -87,10 +121,9 @@ class ViewerActivity : AppCompatActivity() {
 
     private fun constructView() : FrameLayout {
         glView = SongGLSurfaceView(this, songViewModel)
+        observeViewAndSyncMusic()
         val frameLayout = FrameLayout(this)
         frameLayout.addView(glView)
-        observeViewAndSyncMusic()
-        playMusic(songViewModel)
         @SuppressLint("InflateParams")
         val pausedUI = layoutInflater.inflate(R.layout.song_paused_ui, null)
         val ll = LinearLayout.LayoutParams(
@@ -156,7 +189,8 @@ class ViewerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(p0 : SeekBar?) { }
         })
         songViewModel.paused.observeAndCall(this) {
-            if (it) player!!.pause() else player!!.play()
+            if (it) player?.pause() else player?.play()
+
             val resource =
                 if (it) android.R.drawable.ic_media_play
                 else android.R.drawable.ic_media_pause
@@ -168,7 +202,7 @@ class ViewerActivity : AppCompatActivity() {
             speedBar.progress = max(0, (100f * it).roundToInt() - 1)
             @SuppressLint("SetTextI18n")
             speedText.text = "${(100f*it).roundToInt()}%"
-            player!!.setPlaybackSpeed(it)
+            player?.setPlaybackSpeed(it)
         }
         songViewModel.repeater.observeAndCall(this) {
             repEndButton.isEnabled = it != null
@@ -179,7 +213,6 @@ class ViewerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
-        initializePlayer()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val songId = intent.getStringExtra(SONG_ID)
         if (songViewModel.song.value != null)
@@ -191,15 +224,19 @@ class ViewerActivity : AppCompatActivity() {
         }
     }
 
-    // Not so sure about this
-    override fun onPause() {
-        super.onPause()
-        player?.pause()
+    override fun onStop() {
+        super.onStop()
+        player?.release()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (songViewModel.paused.value == false) player?.play()
+    override fun onStart() {
+        super.onStart()
+        initializePlayer()
+        if (songViewModel.song.value != null) {
+            playMusic()
+        } else {
+            songViewModel.song.observe(this, secondObserver)
+        }
     }
 
     companion object {

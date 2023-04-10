@@ -190,6 +190,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                     is Event.Chord ->
                         if (clickPref == "on_notes" && !derived)
                             play(metronome1)
+                    else -> {}
                 }
             }
             scroller.repeat()
@@ -266,6 +267,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                     if (evt.time <= scroller.currentTime)
                         activeChord = evt.id
                 }
+                else -> {}
             }
             when (shape) {
                 is NoteyShape -> {
