@@ -20,6 +20,7 @@ package eu.tilk.cdlcplayer
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
+import android.text.Html
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -73,6 +74,7 @@ class ViewerActivity : AppCompatActivity() {
     }
 
     private var player : ExoPlayer? = null
+    private var lyricsText : TextView? = null
 
     private fun initializePlayer() {
         val audioOnlyRenderersFactory =
@@ -113,6 +115,33 @@ class ViewerActivity : AppCompatActivity() {
                     if (actualDelta !in (targetDelta - 70) .. (targetDelta + 70)) {
                         player!!.seekTo(currentTime)
                     }
+
+                    if (songViewModel.currentWord.value!! < 0 || currentTime / 1000F !in songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time - 0.07 .. songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time + songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].length + 0.07) {
+                        songViewModel.currentWord.value =
+                            songViewModel.song.value!!.vocals.indexOfFirst { v -> currentTime / 1000F in v.time - 0.07..v.time + v.length + 0.07 }
+                    }
+
+                    if (songViewModel.currentWord.value!! >= 0) {
+                        if (songViewModel.currentWord.value!! == 0 || songViewModel.song.value!!.vocals[songViewModel.currentWord.value!! - 1].lyric.endsWith("+")) {
+                            songViewModel.sentenceStart.value = songViewModel.currentWord.value!!
+                        }
+
+                        var i = songViewModel.sentenceStart.value!!
+                        var text = "<b>"
+                        while (i < songViewModel.song.value!!.vocals.size) {
+                            val toAdd = songViewModel.song.value!!.vocals[i].lyric
+                            text += toAdd.removeSuffix("+") + " "
+                            if (i == songViewModel.currentWord.value) {
+                                text += "</b>"
+                            }
+                            i++
+                            if (toAdd.endsWith("+")) {
+                                break
+                            }
+                        }
+                        lyricsText?.setText(Html.fromHtml(text))
+                    }
+
                     delay(200)
                 }
             }
@@ -126,6 +155,7 @@ class ViewerActivity : AppCompatActivity() {
         frameLayout.addView(glView)
         @SuppressLint("InflateParams")
         val pausedUI = layoutInflater.inflate(R.layout.song_paused_ui, null)
+        val lyrics = layoutInflater.inflate(R.layout.lyrics, null)
         val ll = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -133,11 +163,13 @@ class ViewerActivity : AppCompatActivity() {
         ll.gravity = Gravity.TOP or Gravity.FILL_HORIZONTAL
         pausedUI.layoutParams = ll
         frameLayout.addView(pausedUI)
+        frameLayout.addView(lyrics)
         val pauseButton = pausedUI.findViewById<MaterialButton>(R.id.pauseButton)
         val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
         val repStartButton = pausedUI.findViewById<MaterialButton>(R.id.repStartButton)
         val repEndButton = pausedUI.findViewById<MaterialButton>(R.id.repEndButton)
         val speedText = pausedUI.findViewById<TextView>(R.id.speedText)
+        lyricsText = lyrics.findViewById<TextView>(R.id.lyricsText)
         fun setVisibility(v : Int) {
             speedBar.visibility = v
             repStartButton.visibility = v

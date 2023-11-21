@@ -141,7 +141,7 @@ class SongListActivity: AppCompatActivity() {
                     findViewById<CircularProgressIndicator>(R.id.progressBar)
                         .visibility = View.GONE
                     if (it != null) {
-                        Log.d("song_fail", it.toString())
+                        Log.d("song_fail", it.stackTraceToString())
                         AlertDialog.Builder(this).apply {
                             setTitle(R.string.error_loading_song_title)
                             setMessage(R.string.error_loading_song_message)

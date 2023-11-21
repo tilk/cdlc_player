@@ -290,7 +290,7 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val note = readInt()
         val length = readFloat()
         val lyric = readString(length = 48).trimEnd('\u0000')
-        Unit
+        Vocal(time, note, length, lyric)
     }
 
     private fun readChordNotes() = stream.run {
@@ -349,22 +349,28 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.songKey = attributes.songKey
 
         song.ebeats = readMany { readEBeat() }
-        song.startBeat = song.ebeats[0].time
+        if (attributes.arrangementName != "Vocals") {
+            song.startBeat = song.ebeats[0].time
+        }
         song.phrases = readMany { readPhrase() }
         song.chordTemplates = readMany { readChordTemplate() }
         val cNotes = readMany { readChordNotes() }
-        readMany { readVocal() }
-        song.phraseIterations = readMany { readPhraseIteration() }
-        song.phraseProperties = readMany { readPhraseProperties() }
-        song.newLinkedDiffs = readMany { readNewLinkedDiff() }
-        readMany { readAction() }
-        song.events = readMany { readEvent() }
-        song.tones = readMany { readTone() }
-        readMany { readDna() }
-        song.sections = readMany { readSection() }
-        song.levels = readMany { readLevel(song.chordTemplates, cNotes) }
-        readMetadata(song)
-        song.transcriptionTrack = TranscriptionTrack2014()
+        song.vocals = readMany { readVocal() }
+
+        if (attributes.arrangementName != "Vocals") {
+            song.phraseIterations = readMany { readPhraseIteration() }
+            song.phraseProperties = readMany { readPhraseProperties() }
+            song.newLinkedDiffs = readMany { readNewLinkedDiff() }
+            readMany { readAction() }
+            song.events = readMany { readEvent() }
+            song.tones = readMany { readTone() }
+            readMany { readDna() }
+            song.sections = readMany { readSection() }
+            song.levels = readMany { readLevel(song.chordTemplates, cNotes) }
+            readMetadata(song)
+            song.transcriptionTrack = TranscriptionTrack2014()
+        }
+
         song
     }
 

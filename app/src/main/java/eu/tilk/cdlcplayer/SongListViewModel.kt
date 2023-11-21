@@ -20,7 +20,6 @@ package eu.tilk.cdlcplayer
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -35,7 +34,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -68,7 +66,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm", "Bass" ->
+                            "Lead", "Rhythm", "Bass", "Vocals" ->
                                 songs.add(
                                     psarc.inflateSng(
                                         "songs/bin/generic/$baseName.sng",
@@ -110,16 +108,29 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
 
     private suspend fun insert(songs : List<Song2014>) {
+        val lyricsSong = songs.first { s -> s.vocals.isNotEmpty() }
+
         for (song in songs) {
-            app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
-                it.write(
-                    XmlMapper().registerModule(KotlinModule())
-                        .writeValueAsBytes(song)
-                )
+            if (song == lyricsSong) {
+                app.openFileOutput("${song.songKey}.lyrics.xml", Context.MODE_PRIVATE).use {
+                    it.write(
+                        XmlMapper().registerModule(KotlinModule())
+                            .writeValueAsBytes(song.vocals)
+                    )
+                }
+            } else {
+                app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
+                    it.write(
+                        XmlMapper().registerModule(KotlinModule())
+                            .writeValueAsBytes(song)
+                    )
+                }
             }
         }
         database.withTransaction {
-            for (song in songs) arrangementDao.insert(Arrangement(song))
+            for (song in songs) {
+                if (song != lyricsSong) arrangementDao.insert(Arrangement(song))
+            }
             songDao.insert(Song(songs[0]))
         }
     }

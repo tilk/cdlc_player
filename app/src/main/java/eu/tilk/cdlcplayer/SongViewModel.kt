@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import eu.tilk.cdlcplayer.song.Song2014
+import eu.tilk.cdlcplayer.song.Vocal
 import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,12 +37,19 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val paused = MutableLiveData(false)
     val speed = MutableLiveData(1f)
     val repeater = MutableLiveData<RepeaterInfo>()
+    val currentWord = MutableLiveData(-1)
+    val sentenceStart = MutableLiveData(-1)
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.IO) {
         val loadedSong : Song2014 = XmlMapper()
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(app.openFileInput("$songId.xml"))
+        val lyrics : List<Vocal> = XmlMapper()
+            .registerModule(KotlinModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(app.openFileInput("${loadedSong.songKey}.lyrics.xml"))
+        loadedSong.vocals = lyrics
         withContext(Dispatchers.Main) {
             song.value = loadedSong
         }
