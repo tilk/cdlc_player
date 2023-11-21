@@ -130,7 +130,10 @@ class ViewerActivity : AppCompatActivity() {
                         var text = "<b>"
                         while (i < songViewModel.song.value!!.vocals.size) {
                             val toAdd = songViewModel.song.value!!.vocals[i].lyric
-                            text += toAdd.removeSuffix("+") + " "
+                            text += toAdd.removeSuffix("+").removeSuffix("-")
+                            if (!toAdd.endsWith("-")) {
+                                text += " "
+                            }
                             if (i == songViewModel.currentWord.value) {
                                 text += "</b>"
                             }

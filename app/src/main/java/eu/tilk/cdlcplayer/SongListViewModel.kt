@@ -131,7 +131,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
             for (song in songs) {
                 if (song != lyricsSong) arrangementDao.insert(Arrangement(song))
             }
-            songDao.insert(Song(songs[0]))
+            songDao.insert(Song(songs.first{ s -> s != lyricsSong }))
         }
     }
 
