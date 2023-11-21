@@ -25,7 +25,7 @@ android {
     compileSdkVersion 33
     kotlinOptions.jvmTarget = "1.8"
     defaultConfig {
-        applicationId "eu.tilk.cdlcplayer"
+        applicationId 'ma.yassine.cdlcplayer'
         minSdkVersion 23
         targetSdkVersion 33
         versionCode 6
