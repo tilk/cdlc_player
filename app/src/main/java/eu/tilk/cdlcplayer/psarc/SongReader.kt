@@ -289,8 +289,9 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         val time = readFloat()
         val note = readInt()
         val length = readFloat()
-        val lyric = readString(length = 48).trimEnd('\u0000')
-        Vocal(time, note, length, lyric)
+        val bytes = ByteArray(48)
+        readBytes(bytes, 48)
+        Vocal(time, note, length, bytes.toString(Charsets.UTF_8).trimEnd('\u0000'))
     }
 
     private fun readChordNotes() = stream.run {
@@ -349,15 +350,16 @@ class SongReader(private val stream : Stream, private val attributes : Attribute
         song.songKey = attributes.songKey
 
         song.ebeats = readMany { readEBeat() }
-        if (attributes.arrangementName != "Vocals") {
+        if (attributes.arrangementName !in arrayOf("Vocals", "JVocals")) {
             song.startBeat = song.ebeats[0].time
         }
         song.phrases = readMany { readPhrase() }
         song.chordTemplates = readMany { readChordTemplate() }
         val cNotes = readMany { readChordNotes() }
+
         song.vocals = readMany { readVocal() }
 
-        if (attributes.arrangementName != "Vocals") {
+        if (attributes.arrangementName !in arrayOf("Vocals", "JVocals")) {
             song.phraseIterations = readMany { readPhraseIteration() }
             song.phraseProperties = readMany { readPhraseProperties() }
             song.newLinkedDiffs = readMany { readNewLinkedDiff() }

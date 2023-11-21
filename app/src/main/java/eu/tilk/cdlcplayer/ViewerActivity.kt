@@ -45,6 +45,7 @@ import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.ogg.OggExtractor
 import com.google.android.material.button.MaterialButton
 import eu.tilk.cdlcplayer.song.Song2014
+import eu.tilk.cdlcplayer.song.Vocal
 import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import eu.tilk.cdlcplayer.viewer.SongGLSurfaceView
 import kotlinx.coroutines.delay
@@ -117,12 +118,15 @@ class ViewerActivity : AppCompatActivity() {
                     }
 
                     if (songViewModel.song.value!!.vocals.isNotEmpty()) {
-                        if (songViewModel.currentWord.value!! < 0 || currentTime / 1000F !in songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time - 0.07 .. songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time + songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].length + 0.07) {
+                        if (songViewModel.currentWord.value!! < 0 || currentTime / 1000F !in songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time - 0.05 .. songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time + songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].length + 0.05) {
                             songViewModel.currentWord.value =
-                                songViewModel.song.value!!.vocals.indexOfFirst { v -> currentTime / 1000F in v.time - 0.07..v.time + v.length + 0.07 }
+                                songViewModel.song.value!!.vocals.binarySearch(Vocal(currentTime/1000F, 0, 0F, ""), Vocal::compareTo)
+                            if (songViewModel.currentWord.value!! < 0) {
+                                songViewModel.currentWord.value = -(songViewModel.currentWord.value!! + 2)
+                            }
                         }
 
-                        if (songViewModel.currentWord.value!! >= 0) {
+                        if (songViewModel.currentWord.value!! in 0 until songViewModel.song.value!!.vocals.size) {
                             if (songViewModel.currentWord.value!! == 0 || songViewModel.song.value!!.vocals[songViewModel.currentWord.value!! - 1].lyric.endsWith(
                                     "+"
                                 )
@@ -160,6 +164,9 @@ class ViewerActivity : AppCompatActivity() {
 
                                 i++
                                 if (toAdd.endsWith("+")) {
+                                    if (i - 1 == songViewModel.currentWord.value) {
+                                        songViewModel.sentenceStart.value = i
+                                    }
                                     break
                                 }
                             }

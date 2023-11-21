@@ -66,7 +66,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm", "Bass", "Vocals" ->
+                            "Lead", "Rhythm", "Bass", "Vocals", "JVocals" ->
                                 songs.add(
                                     psarc.inflateSng(
                                         "songs/bin/generic/$baseName.sng",
@@ -108,17 +108,17 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
 
     private suspend fun insert(songs : List<Song2014>) {
-        val lyricsSong = songs.firstOrNull { s -> s.vocals.isNotEmpty() }
+        val lyricsSongs = songs.filter { s -> s.vocals.isNotEmpty() }
 
         for (song in songs) {
-            if (song == lyricsSong) {
+            if (song in lyricsSongs) {
                 app.openFileOutput("${song.songKey}.lyrics.xml", Context.MODE_PRIVATE).use {
                     it.write(
                         XmlMapper().registerModule(KotlinModule())
                             .writeValueAsBytes(song.vocals)
                     )
                 }
-            } else {
+            } else if (song.songLength > 0) {
                 app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
                     it.write(
                         XmlMapper().registerModule(KotlinModule())
@@ -129,9 +129,9 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
         database.withTransaction {
             for (song in songs) {
-                if (song != lyricsSong) arrangementDao.insert(Arrangement(song))
+                if (song !in lyricsSongs && song.songLength > 0) arrangementDao.insert(Arrangement(song))
             }
-            songDao.insert(Song(songs.first{ s -> s != lyricsSong }))
+            songDao.insert(Song(songs.first{ s -> s !in lyricsSongs && s.songLength > 0 }))
         }
     }
 

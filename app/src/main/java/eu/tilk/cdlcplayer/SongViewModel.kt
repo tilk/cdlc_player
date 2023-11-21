@@ -39,7 +39,7 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val speed = MutableLiveData(1f)
     val repeater = MutableLiveData<RepeaterInfo>()
     val currentWord = MutableLiveData(-1)
-    val sentenceStart = MutableLiveData(-1)
+    val sentenceStart = MutableLiveData(0)
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.IO) {
         val loadedSong : Song2014 = XmlMapper()

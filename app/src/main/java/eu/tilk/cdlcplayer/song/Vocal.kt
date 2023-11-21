@@ -28,4 +28,9 @@ data class Vocal(
     var length : Float,
     @JacksonXmlProperty(isAttribute = true, localName = "lyric")
     val lyric : String
-)
+) : Comparable<Vocal> {
+    override fun compareTo(other : Vocal) : Int {
+        return this.time.compareTo(other.time)
+    }
+
+}
