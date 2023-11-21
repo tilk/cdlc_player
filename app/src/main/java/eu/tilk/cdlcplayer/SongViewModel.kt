@@ -31,6 +31,7 @@ import eu.tilk.cdlcplayer.viewer.RepeaterInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.FileNotFoundException
 
 class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val song = MutableLiveData<Song2014>()
@@ -45,10 +46,17 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
             .registerModule(KotlinModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(app.openFileInput("$songId.xml"))
-        val lyrics : List<Vocal> = XmlMapper()
-            .registerModule(KotlinModule())
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(app.openFileInput("${loadedSong.songKey}.lyrics.xml"))
+
+        var lyrics : List<Vocal>
+        try {
+            lyrics = XmlMapper()
+                .registerModule(KotlinModule())
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .readValue(app.openFileInput("${loadedSong.songKey}.lyrics.xml"))
+        } catch (fnfe : FileNotFoundException) {
+            lyrics = emptyList()
+        }
+
         loadedSong.vocals = lyrics
         withContext(Dispatchers.Main) {
             song.value = loadedSong

@@ -108,7 +108,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
 
     private suspend fun insert(songs : List<Song2014>) {
-        val lyricsSong = songs.first { s -> s.vocals.isNotEmpty() }
+        val lyricsSong = songs.firstOrNull { s -> s.vocals.isNotEmpty() }
 
         for (song in songs) {
             if (song == lyricsSong) {

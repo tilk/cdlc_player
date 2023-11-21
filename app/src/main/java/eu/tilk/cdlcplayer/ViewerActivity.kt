@@ -116,36 +116,58 @@ class ViewerActivity : AppCompatActivity() {
                         player!!.seekTo(currentTime)
                     }
 
-                    if (songViewModel.currentWord.value!! < 0 || currentTime / 1000F !in songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time - 0.07 .. songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time + songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].length + 0.07) {
-                        songViewModel.currentWord.value =
-                            songViewModel.song.value!!.vocals.indexOfFirst { v -> currentTime / 1000F in v.time - 0.07..v.time + v.length + 0.07 }
-                    }
-
-                    if (songViewModel.currentWord.value!! >= 0) {
-                        if (songViewModel.currentWord.value!! == 0 || songViewModel.song.value!!.vocals[songViewModel.currentWord.value!! - 1].lyric.endsWith("+")) {
-                            songViewModel.sentenceStart.value = songViewModel.currentWord.value!!
+                    if (songViewModel.song.value!!.vocals.isNotEmpty()) {
+                        if (songViewModel.currentWord.value!! < 0 || currentTime / 1000F !in songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time - 0.07 .. songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].time + songViewModel.song.value!!.vocals[songViewModel.currentWord.value!!].length + 0.07) {
+                            songViewModel.currentWord.value =
+                                songViewModel.song.value!!.vocals.indexOfFirst { v -> currentTime / 1000F in v.time - 0.07..v.time + v.length + 0.07 }
                         }
 
-                        var i = songViewModel.sentenceStart.value!!
-                        var text = "<b>"
-                        while (i < songViewModel.song.value!!.vocals.size) {
-                            val toAdd = songViewModel.song.value!!.vocals[i].lyric
-                            text += toAdd.removeSuffix("+").removeSuffix("-")
-                            if (!toAdd.endsWith("-")) {
-                                text += " "
+                        if (songViewModel.currentWord.value!! >= 0) {
+                            if (songViewModel.currentWord.value!! == 0 || songViewModel.song.value!!.vocals[songViewModel.currentWord.value!! - 1].lyric.endsWith(
+                                    "+"
+                                )
+                            ) {
+                                songViewModel.sentenceStart.value =
+                                    songViewModel.currentWord.value!!
                             }
-                            if (i == songViewModel.currentWord.value) {
-                                text += "</b>"
+
+                            var i = songViewModel.sentenceStart.value!!
+                            var text = ""
+
+                            while (i < songViewModel.song.value!!.vocals.size) {
+                                val toAdd = songViewModel.song.value!!.vocals[i].lyric
+                                if (i < songViewModel.currentWord.value!!) {
+                                    text += "<font color='#999999'>"
+                                }
+
+                                if (i == songViewModel.currentWord.value) {
+                                    text += "<b><font color='#fd686c'>"
+                                }
+
+                                text += toAdd.removeSuffix("+").removeSuffix("-")
+
+                                if (i < songViewModel.currentWord.value!!) {
+                                    text += "</font>"
+                                }
+
+                                if (i == songViewModel.currentWord.value) {
+                                    text += "</font></b>"
+                                }
+
+                                if (!toAdd.endsWith("-")) {
+                                    text += " "
+                                }
+
+                                i++
+                                if (toAdd.endsWith("+")) {
+                                    break
+                                }
                             }
-                            i++
-                            if (toAdd.endsWith("+")) {
-                                break
-                            }
+                            lyricsText?.setText(Html.fromHtml(text))
                         }
-                        lyricsText?.setText(Html.fromHtml(text))
                     }
 
-                    delay(200)
+                    delay(250)
                 }
             }
         }
@@ -178,6 +200,7 @@ class ViewerActivity : AppCompatActivity() {
             repStartButton.visibility = v
             repEndButton.visibility = v
             speedText.visibility = v
+            lyricsText!!.visibility = if (v == View.VISIBLE) View.INVISIBLE else View.VISIBLE
         }
         speedBar.max = 99
         pauseButton.setOnClickListener {
