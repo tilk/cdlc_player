@@ -46,6 +46,29 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                 handler(throwable)
             }
         }
+
+    fun deleteSong(song: SongWithArrangements, handler : (Throwable?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                actualDeleteSong(song)
+                withContext(Dispatchers.Main) { handler(null) }
+            } catch (throwable : Throwable) {
+                withContext(Dispatchers.Main) { handler(throwable) }
+            }
+        }
+    }
+
+    private suspend fun actualDeleteSong(song: SongWithArrangements) {
+        database.withTransaction {
+            for (arrangement in song.arrangements) {
+                app.deleteFile("${arrangement.persistentID}.xml")
+                arrangementDao.deleteArrangement(arrangement.persistentID)
+            }
+            app.deleteFile("${song.song.key}.lyrics.xml")
+            app.deleteFile("${song.song.key}.opus")
+            songDao.deleteSong(song.song.key)
+        }
+    }
     @ExperimentalUnsignedTypes
     fun decodeAndInsert(uri : Uri, handler : (Throwable?) -> Unit) =
         viewModelScope.launch(Dispatchers.IO) {

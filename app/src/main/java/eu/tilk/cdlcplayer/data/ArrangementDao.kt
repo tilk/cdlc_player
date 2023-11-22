@@ -23,4 +23,8 @@ import androidx.room.*
 interface ArrangementDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(arrangement : Arrangement)
+
+    @Transaction
+    @Query("""DELETE FROM Arrangement WHERE persistentID = :persistentID""")
+    fun deleteArrangement(persistentID : String) : Unit
 }

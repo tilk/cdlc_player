@@ -22,6 +22,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import eu.tilk.cdlcplayer.data.Arrangement
@@ -30,7 +31,8 @@ import eu.tilk.cdlcplayer.data.SongWithArrangements
 
 class SongListAdapter internal constructor(
     private val context : Context,
-    private val playCallback : (Song, Arrangement) -> Unit
+    private val playCallback : (Song, Arrangement) -> Unit,
+    private val deleteCallback : (SongWithArrangements) -> Unit
 ) : RecyclerView.Adapter<SongListAdapter.SongViewHolder>() {
 
     private val inflater : LayoutInflater = LayoutInflater.from(context)
@@ -41,6 +43,7 @@ class SongListAdapter internal constructor(
         val songArtistView : TextView = itemView.findViewById(R.id.artistView)
         val songAlbumView : TextView = itemView.findViewById(R.id.albumView)
         val songArrangementsView : RecyclerView = itemView.findViewById(R.id.arrangementsView)
+        val deleteButton : ImageButton = itemView.findViewById(R.id.deleteButton)
     }
 
     override fun onCreateViewHolder(parent : ViewGroup, viewType : Int) : SongViewHolder {
@@ -58,6 +61,9 @@ class SongListAdapter internal constructor(
         holder.songAlbumView.text = "${current.song.albumName} (${current.song.albumYear})"
         holder.songArrangementsView.adapter = ArrangementListAdapter(context, current.arrangements)
             { playCallback(current.song, it) }
+        holder.deleteButton.setOnClickListener {
+            deleteCallback(current)
+        }
     }
 
     internal fun setSongs(songs : List<SongWithArrangements>) {

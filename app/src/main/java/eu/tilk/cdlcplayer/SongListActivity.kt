@@ -56,12 +56,29 @@ class SongListActivity: AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
         val emptyView = findViewById<TextView>(R.id.empty_view)
         emptyView.movementMethod = LinkMovementMethod.getInstance()
-        val adapter = SongListAdapter(this) { _, arrangement ->
-            val intent = Intent(this, ViewerActivity::class.java).apply {
-                putExtra(ViewerActivity.SONG_ID, arrangement.persistentID)
+
+        val adapter = SongListAdapter(this,
+            playCallback = { _, arrangement ->
+                val intent = Intent(this, ViewerActivity::class.java).apply {
+                    putExtra(ViewerActivity.SONG_ID, arrangement.persistentID)
+                }
+                startActivity(intent)
+            },
+            deleteCallback = { song ->
+                songListViewModel.deleteSong(song) {
+                    findViewById<CircularProgressIndicator>(R.id.progressBar).visibility = View.GONE
+                    if (it != null) {
+                        Log.d("song_fail", it.stackTraceToString())
+                        AlertDialog.Builder(this).apply {
+                            setTitle(getString(R.string.deleting_song_failed))
+                            setMessage(getString(R.string.could_not_delete_song))
+                            create().show()
+                        }
+                    }
+                }
             }
-            startActivity(intent)
-        }
+        )
+
         emptyView.text = getString(R.string.loading_song_list)
         fun emptyViewVisible(b : Boolean) {
             if (b) {

@@ -26,17 +26,29 @@
     android:paddingEnd="5dp"
     android:paddingBottom="5dp">
 
-    <TextView
-        android:id="@+id/titleView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_light"
-        android:paddingLeft="5dp"
-        android:paddingTop="2dp"
-        android:paddingRight="5dp"
-        android:paddingBottom="2dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        tools:text="Title" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/delete_button"
+            android:src="@android:drawable/ic_menu_delete" />
+        <TextView
+            android:id="@+id/titleView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/holo_orange_light"
+            android:paddingLeft="5dp"
+            android:paddingTop="2dp"
+            android:paddingRight="5dp"
+            android:paddingBottom="2dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            tools:text="Title" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/artistView"

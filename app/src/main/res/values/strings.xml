@@ -112,4 +112,7 @@
     </string>
     <string name="search_hint">Enter song, album or artist name</string>
     <string name="search">Search</string>
+    <string name="delete_button">Delete button</string>
+    <string name="could_not_delete_song">Could not delete song.</string>
+    <string name="deleting_song_failed">Deleting song failed.</string>
 </resources>
