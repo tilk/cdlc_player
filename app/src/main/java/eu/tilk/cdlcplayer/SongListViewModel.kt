@@ -34,6 +34,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.UUID
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -49,7 +50,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     fun decodeAndInsert(uri : Uri, handler : (Throwable?) -> Unit) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val outputFile = File(app.cacheDir, "output.CoroutineExceptionHandler {psarc")
+                val outputFile = File(app.cacheDir, UUID.randomUUID().toString() + "output.CoroutineExceptionHandler {psarc")
                 app.contentResolver.openInputStream(uri).use { input ->
                     if (input != null) FileOutputStream(outputFile).use { output ->
                         input.copyTo(output)

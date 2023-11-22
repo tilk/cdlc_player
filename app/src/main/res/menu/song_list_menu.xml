@@ -44,6 +44,11 @@
         </menu>
     </item>
     <item
+        android:id="@+id/scan_dir"
+        android:title="@string/scan_dir"
+        app:showAsAction="ifRoom"
+        />
+    <item
         android:id="@+id/app_bar_search"
         android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/search"
