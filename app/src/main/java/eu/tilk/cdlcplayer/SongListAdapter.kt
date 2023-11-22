@@ -24,6 +24,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import eu.tilk.cdlcplayer.data.Arrangement
 import eu.tilk.cdlcplayer.data.Song
@@ -62,7 +63,22 @@ class SongListAdapter internal constructor(
         holder.songArrangementsView.adapter = ArrangementListAdapter(context, current.arrangements)
             { playCallback(current.song, it) }
         holder.deleteButton.setOnClickListener {
-            deleteCallback(current)
+            val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+            builder
+                .setMessage(
+                    context.getString(
+                        R.string.are_you_sure_you_want_to_delete,
+                        current.song.title
+                    ))
+                .setPositiveButton(context.getString(R.string.delete_song)) { dialog, which ->
+                    deleteCallback(current)
+                }
+                .setNegativeButton(context.getString(R.string.cancel)) { dialog, which ->
+                    // Do nothing
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
         }
     }
 

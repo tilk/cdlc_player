@@ -115,4 +115,7 @@
     <string name="delete_button">Delete button</string>
     <string name="could_not_delete_song">Could not delete song.</string>
     <string name="deleting_song_failed">Deleting song failed.</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_song">Delete song</string>
+    <string name="are_you_sure_you_want_to_delete">Are you sure you want to delete \"%1$s\"?</string>
 </resources>
