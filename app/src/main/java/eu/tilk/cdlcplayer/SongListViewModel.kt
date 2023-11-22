@@ -65,8 +65,9 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val baseName = baseNameMatch!!.groupValues[1]
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
+                        println(attributes.arrangementName)
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm", "Bass", "Vocals", "JVocals" ->
+                            "Lead", "Combo", "Rhythm", "Bass", "Vocals", "JVocals" ->
                                 songs.add(
                                     psarc.inflateSng(
                                         "songs/bin/generic/$baseName.sng",
@@ -118,7 +119,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                             .writeValueAsBytes(song.vocals)
                     )
                 }
-            } else if (song.songLength > 0) {
+            } else {
                 app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
                     it.write(
                         XmlMapper().registerModule(KotlinModule())
@@ -129,7 +130,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
         database.withTransaction {
             for (song in songs) {
-                if (song !in lyricsSongs && song.songLength > 0) arrangementDao.insert(Arrangement(song))
+                if (song !in lyricsSongs) arrangementDao.insert(Arrangement(song))
             }
             songDao.insert(Song(songs.first{ s -> s !in lyricsSongs && s.songLength > 0 }))
         }
