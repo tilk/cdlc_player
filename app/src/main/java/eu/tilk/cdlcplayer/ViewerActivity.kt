@@ -17,7 +17,9 @@
 
 package eu.tilk.cdlcplayer
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.text.Html
@@ -27,6 +29,8 @@ import android.view.WindowManager
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import androidx.media3.common.MediaItem
@@ -43,6 +47,12 @@ import androidx.media3.exoplayer.text.TextOutput
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.ogg.OggExtractor
+import androidx.preference.PreferenceManager
+import be.tarsos.dsp.AudioDispatcher
+import be.tarsos.dsp.AudioProcessor
+import be.tarsos.dsp.io.android.AudioDispatcherFactory
+import be.tarsos.dsp.pitch.PitchDetectionHandler
+import be.tarsos.dsp.pitch.PitchProcessor
 import com.google.android.material.button.MaterialButton
 import eu.tilk.cdlcplayer.song.Song2014
 import eu.tilk.cdlcplayer.song.Vocal
@@ -70,12 +80,15 @@ class ViewerActivity : AppCompatActivity() {
     private val secondObserver : Observer<Song2014> by lazy {
         Observer {
             playMusic()
+            initAudioDispatcher()
             songViewModel.song.removeObserver(secondObserver)
         }
     }
 
     private var player : ExoPlayer? = null
     private var lyricsText : TextView? = null
+    private var audioDispatcher : AudioDispatcher? = null
+    private var audioThread : Thread? = null
 
     private fun initializePlayer() {
         val audioOnlyRenderersFactory =
@@ -188,6 +201,7 @@ class ViewerActivity : AppCompatActivity() {
         @SuppressLint("InflateParams")
         val pausedUI = layoutInflater.inflate(R.layout.song_paused_ui, null)
         val lyrics = layoutInflater.inflate(R.layout.lyrics, null)
+        val missOrGood = layoutInflater.inflate(R.layout.miss_good, null)
         val ll = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -196,18 +210,22 @@ class ViewerActivity : AppCompatActivity() {
         pausedUI.layoutParams = ll
         frameLayout.addView(pausedUI)
         frameLayout.addView(lyrics)
+        frameLayout.addView(missOrGood)
         val pauseButton = pausedUI.findViewById<MaterialButton>(R.id.pauseButton)
         val speedBar = pausedUI.findViewById<SeekBar>(R.id.speedBar)
         val repStartButton = pausedUI.findViewById<MaterialButton>(R.id.repStartButton)
         val repEndButton = pausedUI.findViewById<MaterialButton>(R.id.repEndButton)
         val speedText = pausedUI.findViewById<TextView>(R.id.speedText)
+        val missOrGoodText = missOrGood.findViewById<TextView>(R.id.missOrGoodText)
         lyricsText = lyrics.findViewById<TextView>(R.id.lyricsText)
         fun setVisibility(v : Int) {
             speedBar.visibility = v
             repStartButton.visibility = v
             repEndButton.visibility = v
             speedText.visibility = v
-            lyricsText!!.visibility = if (v == View.VISIBLE) View.INVISIBLE else View.VISIBLE
+            val inverseV = if (v == View.VISIBLE) View.INVISIBLE else View.VISIBLE
+            lyricsText!!.visibility = inverseV
+            missOrGoodText!!.visibility = inverseV
         }
         speedBar.max = 99
         pauseButton.setOnClickListener {
@@ -272,6 +290,13 @@ class ViewerActivity : AppCompatActivity() {
         songViewModel.repeater.observeAndCall(this) {
             repEndButton.isEnabled = it != null
         }
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val detectNotes = sharedPreferences.getBoolean("detectNotes", false)
+        if (detectNotes) {
+            songViewModel.missGood.observeAndCall(this) {
+                missOrGoodText.text = it.joinToString(" ")
+            }
+        }
 
         return frameLayout
     }
@@ -289,9 +314,60 @@ class ViewerActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode : Int,
+        permissions : Array<String?>,
+        grantResults : IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_RECORD_AUDIO -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    initAudioDispatcher()
+                } else {
+                    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+                    sharedPreferences.edit().putBoolean("detectNotes", false).apply()
+                }
+            }
+        }
+    }
+
+    private fun initAudioDispatcher() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val detectNotes = sharedPreferences.getBoolean("detectNotes", false)
+        if (detectNotes && !songViewModel.song.value!!.arrangement.contains("Bass") && songViewModel.song.value!!.capo == 0) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+                // Request the permission
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.RECORD_AUDIO),
+                    REQUEST_RECORD_AUDIO
+                )
+            } else {
+                audioDispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+                val pdh = PitchDetectionHandler { res, _ ->
+                    if (res.isPitched && res.probability > 0.91) {
+                        runOnUiThread {
+                            // println("GOT ${res.pitch} (${glView.currentTime()})")
+                            songViewModel.currentNoteByPlayer.tryEmit(Pair(glView.currentTime(), res.pitch.toDouble()))
+                        }
+                    }
+                }
+                val pitchProcessor : AudioProcessor =
+                    PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050f, 1024, pdh)
+                audioDispatcher!!.addAudioProcessor(pitchProcessor)
+
+                audioThread = Thread(audioDispatcher, "Audio Thread")
+                audioThread!!.start()
+            }
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         player?.release()
+        audioDispatcher?.stop()
+        audioThread?.join()
     }
 
     override fun onStart() {
@@ -299,6 +375,7 @@ class ViewerActivity : AppCompatActivity() {
         initializePlayer()
         if (songViewModel.song.value != null) {
             playMusic()
+            initAudioDispatcher()
         } else {
             songViewModel.song.observe(this, secondObserver)
         }
@@ -306,5 +383,6 @@ class ViewerActivity : AppCompatActivity() {
 
     companion object {
         const val SONG_ID = "eu.tilk.cdlcplayer.SONG_ID"
+        const val REQUEST_RECORD_AUDIO = 33
     }
 }

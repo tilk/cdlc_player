@@ -89,7 +89,6 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val baseName = baseNameMatch!!.groupValues[1]
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
-                        println(attributes.arrangementName)
                         when (attributes.arrangementName) {
                             "Lead", "Combo", "Rhythm", "Bass", "Vocals", "JVocals" ->
                                 songs.add(

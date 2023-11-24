@@ -37,5 +37,13 @@
             app:useSimpleSummaryProvider="true"
             />
     </PreferenceCategory>
+    <PreferenceCategory app:title="Note detection">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="detectNotes"
+            android:title="Detect notes"
+            app:useSimpleSummaryProvider="true"
+            />
+    </PreferenceCategory>
 
 </PreferenceScreen>
