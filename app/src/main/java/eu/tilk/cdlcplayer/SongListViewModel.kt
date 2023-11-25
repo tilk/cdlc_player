@@ -20,7 +20,6 @@ package eu.tilk.cdlcplayer
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -35,7 +34,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
+import java.util.UUID
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -47,11 +46,34 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                 handler(throwable)
             }
         }
+
+    fun deleteSong(song: SongWithArrangements, handler : (Throwable?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                actualDeleteSong(song)
+                withContext(Dispatchers.Main) { handler(null) }
+            } catch (throwable : Throwable) {
+                withContext(Dispatchers.Main) { handler(throwable) }
+            }
+        }
+    }
+
+    private suspend fun actualDeleteSong(song: SongWithArrangements) {
+        database.withTransaction {
+            for (arrangement in song.arrangements) {
+                app.deleteFile("${arrangement.persistentID}.xml")
+                arrangementDao.deleteArrangement(arrangement.persistentID)
+            }
+            app.deleteFile("${song.song.key}.lyrics.xml")
+            app.deleteFile("${song.song.key}.opus")
+            songDao.deleteSong(song.song.key)
+        }
+    }
     @ExperimentalUnsignedTypes
     fun decodeAndInsert(uri : Uri, handler : (Throwable?) -> Unit) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val outputFile = File(app.cacheDir, "output.CoroutineExceptionHandler {psarc")
+                val outputFile = File(app.cacheDir, UUID.randomUUID().toString() + "output.CoroutineExceptionHandler {psarc")
                 app.contentResolver.openInputStream(uri).use { input ->
                     if (input != null) FileOutputStream(outputFile).use { output ->
                         input.copyTo(output)
@@ -68,7 +90,7 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                         val manifest = psarc.inflateManifest(f)
                         val attributes = manifest.entries.values.first().values.first()
                         when (attributes.arrangementName) {
-                            "Lead", "Rhythm", "Bass" ->
+                            "Lead", "Combo", "Rhythm", "Bass", "Vocals", "JVocals" ->
                                 songs.add(
                                     psarc.inflateSng(
                                         "songs/bin/generic/$baseName.sng",
@@ -77,6 +99,30 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                                 )
                         }
                     }
+
+                    val wem = File(app.cacheDir, "${songs[0].songKey}.wem")
+                    val wav = File(app.cacheDir, "${songs[0].songKey}.wav")
+                    val opus = File(app.filesDir, "${songs[0].songKey}.opus")
+
+                    val wemBA = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
+                        .map { candidate -> psarc.inflateFile(candidate) }
+                        .maxByOrNull { ba -> ba.size }
+
+                    wem.writeBytes(wemBA!!)
+
+                    val where = File(app.applicationInfo.nativeLibraryDir)
+                    val wem2wav = ProcessBuilder("./libvgmstream.so", "-o", wav.absolutePath, wem.absolutePath)
+                        .directory(where)
+                        .start()
+                    wem2wav.waitFor()
+                    wem.delete()
+
+                    val wav2opus = ProcessBuilder("./libopusenc.so", "--comp", "0", wav.absolutePath, opus.absolutePath)
+                        .directory(where)
+                        .start()
+                    wav2opus.waitFor()
+                    wav.delete()
+
                     insert(songs)
                 }
                 withContext(Dispatchers.Main) { handler(null) }
@@ -86,17 +132,30 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
         }
 
     private suspend fun insert(songs : List<Song2014>) {
+        val lyricsSongs = songs.filter { s -> s.vocals.isNotEmpty() }
+
         for (song in songs) {
-            app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
-                it.write(
-                    XmlMapper().registerModule(KotlinModule())
-                        .writeValueAsBytes(song)
-                )
+            if (song in lyricsSongs) {
+                app.openFileOutput("${song.songKey}.lyrics.xml", Context.MODE_PRIVATE).use {
+                    it.write(
+                        XmlMapper().registerModule(KotlinModule())
+                            .writeValueAsBytes(song.vocals)
+                    )
+                }
+            } else {
+                app.openFileOutput("${song.persistentID}.xml", Context.MODE_PRIVATE).use {
+                    it.write(
+                        XmlMapper().registerModule(KotlinModule())
+                            .writeValueAsBytes(song)
+                    )
+                }
             }
         }
         database.withTransaction {
-            for (song in songs) arrangementDao.insert(Arrangement(song))
-            songDao.insert(Song(songs[0]))
+            for (song in songs) {
+                if (song !in lyricsSongs) arrangementDao.insert(Arrangement(song))
+            }
+            songDao.insert(Song(songs.first{ s -> s !in lyricsSongs && s.songLength > 0 }))
         }
     }
 

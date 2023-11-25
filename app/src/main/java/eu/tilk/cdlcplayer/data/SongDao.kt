@@ -62,6 +62,10 @@ interface SongDao {
         ORDER BY albumYear, songNameSort""")
     fun getSongsByAlbumYearSearch(search : String) : LiveData<List<SongWithArrangements>>
 
+    @Transaction
+    @Query("""DELETE FROM Song WHERE `key` = :key""")
+    fun deleteSong(key : String) : Unit
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(song : Song)
 }

@@ -35,9 +35,24 @@ import android.view.MotionEvent
 import androidx.dynamicanimation.animation.FlingAnimation
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.preference.PreferenceManager
+import eu.tilk.cdlcplayer.MissOrGood
 import eu.tilk.cdlcplayer.SongViewModel
+import eu.tilk.cdlcplayer.ViewerActivity
 import eu.tilk.cdlcplayer.shapes.utils.NoteCalculator
+import eu.tilk.cdlcplayer.song.Note2014
 import eu.tilk.cdlcplayer.song.Song2014
+import eu.tilk.cdlcplayer.song.Tuning
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.suspendCoroutine
+import kotlin.math.pow
+import kotlin.math.roundToLong
 
 class SongGLRenderer(private val context : Context, private val viewModel : SongViewModel) :
     GLSurfaceView.Renderer {
@@ -98,14 +113,14 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     }
 
     val gestureListener = object : GestureDetector.SimpleOnGestureListener()  {
-        override fun onDown(e : MotionEvent?) : Boolean {
+        override fun onDown(e : MotionEvent) : Boolean {
             stopFling()
             return true
         }
 
         override fun onFling(
-            e1 : MotionEvent?,
-            e2 : MotionEvent?,
+            e1 : MotionEvent,
+            e2 : MotionEvent,
             velocityX : Float,
             velocityY : Float
         ) : Boolean {
@@ -165,7 +180,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         lastFrameTime = currentTime
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val clickPref = sharedPreferences.getString("click", "on_beats")
+        val clickPref = sharedPreferences.getString("click", "quiet")
 
         fun play(sound : Int) {
             sounds.play(sound, 1f, 1f, 0, 0, 1f)
@@ -183,12 +198,17 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                     is Event.Beat ->
                         if (clickPref == "on_beats")
                             play(if (evt.measure >= 0) metronome2 else metronome1)
-                    is Event.Note ->
+                    is Event.Note -> {
+                        MainScope().launch {
+                            checkNote(evt)
+                        }
                         if (clickPref == "on_notes" && !derived)
                             play(metronome1)
+                    }
                     is Event.Chord ->
                         if (clickPref == "on_notes" && !derived)
                             play(metronome1)
+                    else -> {}
                 }
             }
             scroller.repeat()
@@ -265,6 +285,7 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                     if (evt.time <= scroller.currentTime)
                         activeChord = evt.id
                 }
+                else -> {}
             }
             when (shape) {
                 is NoteyShape -> {
@@ -313,6 +334,29 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
     }
 
+    private suspend fun checkNote(evt : Event.Note) {
+        val hz = noteToHz(
+            viewModel.song.value!!.arrangement.contains("Bass"),
+            evt,
+            viewModel.song.value!!.tuning
+        )
+        val hzLimits = hz * 2.0.pow(-0.5 / 12)..hz * 2.0.pow(0.5 / 12)
+        val t = (evt.time * 1000.0F).roundToLong()
+        // println("WAITING FOR $hz ($t)")
+        delay(350)
+        val timeLimits = t - 100..t + 600
+        var missOrGood = '❓'
+        if (withTimeoutOrNull(350) {
+                viewModel.currentNoteByPlayer.first { it.first in timeLimits && it.second in hzLimits }
+                missOrGood = '✅'
+                viewModel.totalCorrectNotes.value = viewModel.totalCorrectNotes.value!! + 1
+            } == null) missOrGood = '❌'
+
+        viewModel.totalNotes.value = viewModel.totalNotes.value!! + 1
+        viewModel.missGood.value!!.offer(MissOrGood(t, missOrGood))
+        viewModel.missGood.value = viewModel.missGood.value
+    }
+
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         surfaceWidth = width
         surfaceHeight = height
@@ -330,4 +374,29 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     }
 
     fun nextBeats() = scroller.nextBeats()
+    fun currentTime() = if (this::scroller.isInitialized)
+            (scroller.currentTime * 1000.0f).roundToLong() else 0
+
+    private fun noteToHz(isBass : Boolean, note : Event.Note, tuning : Tuning) : Double {
+        val string = note.string.toInt()
+        val semitoneOffset = note.fret + tuning.strings[string]
+        val baseline = if (isBass) STANDARD_BASS_FREQS[string] else STANDARD_GUITAR_FREQS[string]
+        return baseline * 2.0.pow((semitoneOffset / 12.0))
+    }
+
+    private val STANDARD_GUITAR_FREQS = arrayOf(
+        82.41,  // Low E (6th string)
+        110.00,  // A (5th string)
+        146.83,  // D (4th string)
+        196.00,  // G (3rd string)
+        246.94,  // B (2nd string)
+        329.63 // High E (1st string)
+    )
+
+    private val STANDARD_BASS_FREQS = arrayOf(
+        41.20,  // E1
+        55.00,  // A1
+        73.42,  // D2
+        98.00  // G2
+    )
 }

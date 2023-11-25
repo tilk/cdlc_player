@@ -15,16 +15,22 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package eu.tilk.cdlcplayer.data
+package eu.tilk.cdlcplayer.song
 
-import androidx.room.*
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
-@Dao
-interface ArrangementDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(arrangement : Arrangement)
+data class Vocal(
+    @JacksonXmlProperty(isAttribute = true, localName = "time")
+    var time : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "note")
+    var note : Int,
+    @JacksonXmlProperty(isAttribute = true, localName = "length")
+    var length : Float,
+    @JacksonXmlProperty(isAttribute = true, localName = "lyric")
+    val lyric : String
+) : Comparable<Vocal> {
+    override fun compareTo(other : Vocal) : Int {
+        return this.time.compareTo(other.time)
+    }
 
-    @Transaction
-    @Query("""DELETE FROM Arrangement WHERE persistentID = :persistentID""")
-    fun deleteArrangement(persistentID : String) : Unit
 }

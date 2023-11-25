@@ -99,6 +99,10 @@ class Song2014 {
     @JacksonXmlProperty(localName = "ebeat")
     @JacksonXmlElementWrapper(localName = "ebeats")
     var ebeats: List<EBeat> = ArrayList()
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    @JacksonXmlProperty(localName = "vocal")
+    @JacksonXmlElementWrapper(localName = "vocals")
+    var vocals: List<Vocal> = ArrayList()
     @JacksonXmlProperty(localName = "tonebase")
     var toneBase: String? = null
     @JacksonXmlProperty(localName = "tonea")
