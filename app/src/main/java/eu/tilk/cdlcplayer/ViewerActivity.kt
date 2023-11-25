@@ -299,7 +299,7 @@ class ViewerActivity : AppCompatActivity() {
             }
 
             songViewModel.totalNotes.observeAndCall(this) {
-                val percentage = (100.0 * songViewModel.totalCorrectNotes.value!!) / it
+                val percentage = if (it != 0) (100.0 * songViewModel.totalCorrectNotes.value!!) / it else 0.0
                 val score = songViewModel.totalCorrectNotes.value!! * 720
                 scoreText.text = getString(R.string.score_accuracy, score.toString(), "%.2f".format(percentage) + "%")
             }
