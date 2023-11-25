@@ -21,14 +21,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="bottom|center_horizontal"
     android:orientation="horizontal">
 
     <TextView
+        android:layout_weight="1"
         android:id="@+id/missOrGoodText"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="bottom|start"
         android:fontFamily="monospace"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textStyle="bold" />
+    <TextView
+        android:layout_weight="1"
+        android:id="@+id/scoreText"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="bottom|end"
+        android:fontFamily="monospace"
+        style="@style/WhiteText"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold" />
 

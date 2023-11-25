@@ -45,8 +45,10 @@ class SongViewModel(private val app : Application) : AndroidViewModel(app) {
     val repeater = MutableLiveData<RepeaterInfo>()
     val currentWord = MutableLiveData(-1)
     val sentenceStart = MutableLiveData(0)
+    val totalCorrectNotes = MutableLiveData(0)
+    val totalNotes = MutableLiveData(0)
     val currentNoteByPlayer = MutableSharedFlow<Pair<Long, Double>>(replay = 42)
-    val missGood = MutableLiveData<Queue<MissOrGood>>(Queues.synchronizedQueue(EvictingQueue.create(7)))
+    val missGood = MutableLiveData<Queue<MissOrGood>>(Queues.synchronizedQueue(EvictingQueue.create(6)))
 
     fun loadSong(songId : String) = viewModelScope.launch(Dispatchers.IO) {
         val loadedSong : Song2014 = XmlMapper()

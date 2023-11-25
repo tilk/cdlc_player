@@ -217,6 +217,7 @@ class ViewerActivity : AppCompatActivity() {
         val repEndButton = pausedUI.findViewById<MaterialButton>(R.id.repEndButton)
         val speedText = pausedUI.findViewById<TextView>(R.id.speedText)
         val missOrGoodText = missOrGood.findViewById<TextView>(R.id.missOrGoodText)
+        val scoreText = missOrGood.findViewById<TextView>(R.id.scoreText)
         lyricsText = lyrics.findViewById<TextView>(R.id.lyricsText)
         fun setVisibility(v : Int) {
             speedBar.visibility = v
@@ -296,6 +297,12 @@ class ViewerActivity : AppCompatActivity() {
             songViewModel.missGood.observeAndCall(this) {
                 missOrGoodText.text = it.joinToString(" ")
             }
+
+            songViewModel.totalNotes.observeAndCall(this) {
+                val percentage = (100.0 * songViewModel.totalCorrectNotes.value!!) / it
+                val score = songViewModel.totalCorrectNotes.value!! * 720
+                scoreText.text = getString(R.string.score_accuracy, score.toString(), "%.2f".format(percentage) + "%")
+            }
         }
 
         return frameLayout
@@ -335,7 +342,7 @@ class ViewerActivity : AppCompatActivity() {
     private fun initAudioDispatcher() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val detectNotes = sharedPreferences.getBoolean("detectNotes", false)
-        if (detectNotes && !songViewModel.song.value!!.arrangement.contains("Bass") && songViewModel.song.value!!.capo == 0) {
+        if (detectNotes && songViewModel.song.value!!.capo == 0) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
                 // Request the permission

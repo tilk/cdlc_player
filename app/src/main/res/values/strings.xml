@@ -118,4 +118,5 @@
     <string name="cancel">Cancel</string>
     <string name="delete_song">Delete song</string>
     <string name="are_you_sure_you_want_to_delete">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="score_accuracy">Score: %1$s | Accuracy: %2$s</string>
 </resources>

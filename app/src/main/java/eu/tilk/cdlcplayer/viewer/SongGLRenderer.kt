@@ -199,24 +199,11 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
                         if (clickPref == "on_beats")
                             play(if (evt.measure >= 0) metronome2 else metronome1)
                     is Event.Note -> {
+                        MainScope().launch {
+                            checkNote(evt)
+                        }
                         if (clickPref == "on_notes" && !derived)
                             play(metronome1)
-
-                        MainScope().launch {
-                            val hz = noteToHz(evt, viewModel.song.value!!.tuning)
-                            val hzLimits = hz * 2.0.pow(-0.5/12) .. hz * 2.0.pow(0.5/12)
-                            val t = (evt.time * 1000.0).roundToLong()
-                            // println("WAITING FOR $hz ($t)")
-                            delay(350)
-                            val timeLimits = t - 100 .. t + 600
-                            var missOrGood = '❓'
-                            if (withTimeoutOrNull(350) {
-                                    viewModel.currentNoteByPlayer.first { it.first in timeLimits && it.second in hzLimits }
-                                    missOrGood = '✅'
-                            } == null) missOrGood = '❌'
-                            viewModel.missGood.value!!.offer(MissOrGood(t, missOrGood))
-                            viewModel.missGood.value = viewModel.missGood.value
-                        }
                     }
                     is Event.Chord ->
                         if (clickPref == "on_notes" && !derived)
@@ -347,6 +334,29 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
         if (scroller.currentTime > data.songLength) (context as Activity)!!.finish()
     }
 
+    private suspend fun checkNote(evt : Event.Note) {
+        val hz = noteToHz(
+            viewModel.song.value!!.arrangement.contains("Bass"),
+            evt,
+            viewModel.song.value!!.tuning
+        )
+        val hzLimits = hz * 2.0.pow(-0.5 / 12)..hz * 2.0.pow(0.5 / 12)
+        val t = (evt.time * 1000.0F).roundToLong()
+        // println("WAITING FOR $hz ($t)")
+        delay(350)
+        val timeLimits = t - 100..t + 600
+        var missOrGood = '❓'
+        if (withTimeoutOrNull(350) {
+                viewModel.currentNoteByPlayer.first { it.first in timeLimits && it.second in hzLimits }
+                missOrGood = '✅'
+                viewModel.totalCorrectNotes.value = viewModel.totalCorrectNotes.value!! + 1
+            } == null) missOrGood = '❌'
+
+        viewModel.totalNotes.value = viewModel.totalNotes.value!! + 1
+        viewModel.missGood.value!!.offer(MissOrGood(t, missOrGood))
+        viewModel.missGood.value = viewModel.missGood.value
+    }
+
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         surfaceWidth = width
         surfaceHeight = height
@@ -367,18 +377,26 @@ class SongGLRenderer(private val context : Context, private val viewModel : Song
     fun currentTime() = if (this::scroller.isInitialized)
             (scroller.currentTime * 1000.0f).roundToLong() else 0
 
-    fun noteToHz(note : Event.Note, tuning : Tuning) : Double {
+    private fun noteToHz(isBass : Boolean, note : Event.Note, tuning : Tuning) : Double {
         val string = note.string.toInt()
         val semitoneOffset = note.fret + tuning.strings[string]
-        return STANDARD_TUNING_FREQS[string] * 2.0.pow((semitoneOffset / 12.0))
+        val baseline = if (isBass) STANDARD_BASS_FREQS[string] else STANDARD_GUITAR_FREQS[string]
+        return baseline * 2.0.pow((semitoneOffset / 12.0))
     }
 
-    private val STANDARD_TUNING_FREQS = arrayOf(
+    private val STANDARD_GUITAR_FREQS = arrayOf(
         82.41,  // Low E (6th string)
         110.00,  // A (5th string)
         146.83,  // D (4th string)
         196.00,  // G (3rd string)
         246.94,  // B (2nd string)
         329.63 // High E (1st string)
+    )
+
+    private val STANDARD_BASS_FREQS = arrayOf(
+        41.20,  // E1
+        55.00,  // A1
+        73.42,  // D2
+        98.00  // G2
     )
 }
