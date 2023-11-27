@@ -20,7 +20,6 @@ package eu.tilk.cdlcplayer
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -35,7 +34,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -82,11 +80,12 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                     val wav = File(app.cacheDir, "${songs[0].songKey}.wav")
                     val opus = File(app.filesDir, "${songs[0].songKey}.opus")
 
+                    // Look for largest .wem song file, because sometimes there is a preview file alongside the real song
                     val wemBA = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
                         .map { candidate -> psarc.inflateFile(candidate) }
-                        .maxByOrNull { ba -> ba.size }
+                        .maxBy { ba -> ba.size }
 
-                    wem.writeBytes(wemBA!!)
+                    wem.writeBytes(wemBA)
 
                     val where = File(app.applicationInfo.nativeLibraryDir)
                     val wem2wav = ProcessBuilder("./libvgmstream.so", "-o", wav.absolutePath, wem.absolutePath)
