@@ -22,14 +22,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion '30.0.2'
-    kotlinOptions.useIR = true
+    compileSdkVersion 33
     kotlinOptions.jvmTarget = "1.8"
     defaultConfig {
         applicationId "eu.tilk.cdlcplayer"
-        minSdkVersion 21
-        targetSdkVersion 30
+        minSdkVersion 23
+        targetSdkVersion 33
         versionCode 6
         versionName "0.0.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -44,6 +42,9 @@ android {
         }
     }
     packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.md'
@@ -74,6 +75,8 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$rootProject.jacksonVersion"
     implementation 'javax.xml.stream:stax-api:1.0-2'
     implementation 'net.sf.loggersoft.kotlin:binary-streams:0.35'
+    implementation "androidx.media3:media3-exoplayer:1.0.0"
+
 
     // Material design
     implementation "com.google.android.material:material:$rootProject.materialVersion"
@@ -90,6 +93,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
     kapt "androidx.lifecycle:lifecycle-common-java8:$rootProject.archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
 
     // Kotlin components
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"

@@ -29,7 +29,7 @@
 
     <PreferenceCategory app:title="Sound">
         <ListPreference
-            android:defaultValue="on_beats"
+            android:defaultValue="quiet"
             android:entries="@array/beat_entries"
             android:entryValues="@array/beat_values"
             android:key="click"

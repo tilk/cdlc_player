@@ -20,7 +20,6 @@ package eu.tilk.cdlcplayer
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -35,7 +34,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
 
 class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
     private val database = SongRoomDatabase.getDatabase(app)
@@ -77,6 +75,31 @@ class SongListViewModel(private val app : Application) : AndroidViewModel(app) {
                                 )
                         }
                     }
+
+                    val wem = File(app.cacheDir, "${songs[0].songKey}.wem")
+                    val wav = File(app.cacheDir, "${songs[0].songKey}.wav")
+                    val opus = File(app.filesDir, "${songs[0].songKey}.opus")
+
+                    // Look for largest .wem song file, because sometimes there is a preview file alongside the real song
+                    val wemBA = psarc.listFiles("""audio/windows/.*\.wem""".toRegex())
+                        .map { candidate -> psarc.inflateFile(candidate) }
+                        .maxBy { ba -> ba.size }
+
+                    wem.writeBytes(wemBA)
+
+                    val where = File(app.applicationInfo.nativeLibraryDir)
+                    val wem2wav = ProcessBuilder("./libvgmstream.so", "-o", wav.absolutePath, wem.absolutePath)
+                        .directory(where)
+                        .start()
+                    wem2wav.waitFor()
+                    wem.delete()
+
+                    val wav2opus = ProcessBuilder("./libopusenc.so", "--comp", "0", wav.absolutePath, opus.absolutePath)
+                        .directory(where)
+                        .start()
+                    wav2opus.waitFor()
+                    wav.delete()
+
                     insert(songs)
                 }
                 withContext(Dispatchers.Main) { handler(null) }
