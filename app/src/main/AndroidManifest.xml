@@ -38,8 +38,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="eu.tilk.cdlcplayer.SongListActivity" />
         </activity>
-        <activity android:name=".SongListActivity" android:launchMode="singleTop"
-            android:exported="true">
+        <activity android:name=".SongListActivity" android:launchMode="singleTop" android:exported="true">
             <meta-data android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
             <intent-filter>
